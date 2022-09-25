@@ -55,15 +55,9 @@ namespace Archipelago.RiskOfRain2
             ItemLogic = new ArchipelagoItemLogicController(session);
             LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
 
-            List<string> taglist = tags is not null ? tags.ToList<string>() : new List<string>();
-
-            if (enableDeathLink)
-            {
-                Log.LogDebug("Tagging DeathLink");
-                taglist.Add("DeathLink");
-            }
-
-            tags = taglist.ToArray();
+            //List<string> taglist = tags is not null ? tags.ToList<string>() : new List<string>();
+            // any dynamic modification to the given tags should be done here
+            //tags = taglist.ToArray();
 
             var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems, tags: tags);
 
@@ -78,17 +72,20 @@ namespace Archipelago.RiskOfRain2
                 return;
             }
 
-            if (enableDeathLink)
-            {
-                Log.LogDebug("Starting DeathLink service");
-                deathLinkService = session.CreateDeathLinkServiceAndEnable();
-                Deathlinkhandler = new DeathLinkHandler(deathLinkService);
-            }
-
             LoginSuccessful successResult = (LoginSuccessful)result;
             if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
+            }
+
+            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enabledeathlink))
+            {
+                if (Convert.ToBoolean(enabledeathlink))
+                {
+                    Log.LogDebug("Starting DeathLink service");
+                    deathLinkService = session.CreateDeathLinkServiceAndEnable();
+                    Deathlinkhandler = new DeathLinkHandler(deathLinkService);
+                }
             }
 
             LocationCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
