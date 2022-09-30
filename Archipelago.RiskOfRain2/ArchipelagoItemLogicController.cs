@@ -52,8 +52,7 @@ namespace Archipelago.RiskOfRain2
         public ArchipelagoItemLogicController(ArchipelagoSession session)
         {
             this.session = session;
-            // TODO make a YAML option to toggle on the classic/legacy mode of handling locations
-            // On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+            // TODO all the hooks for ArchipelagoItemLogicController should probably be moved into a hook method
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
@@ -106,6 +105,23 @@ namespace Archipelago.RiskOfRain2
                 case ArchipelagoPacketType.Connected:
                     {
                         var connectedPacket = packet as ConnectedPacket;
+
+
+                        // hook the classic location handler if not using EnvironmentsAsItems
+                        bool classic;
+                        if (connectedPacket.SlotData.TryGetValue("classic_mode", out var classicmodeobject))
+                        {
+                            classic = Convert.ToBoolean(classicmodeobject);
+                        }
+                        else classic = true;
+
+                        Log.LogDebug($"Detected classic_mode from ArchipelagoItemLogicController? {classic}");
+
+                        // TODO maybe this should be moved into a hook method with the other hooks from the constructor
+                        if (classic) On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+                        else On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+
+
                         // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
                         ItemPickupStep = Convert.ToInt32(connectedPacket.SlotData["itemPickupStep"]) + 1;
                         TotalChecks = connectedPacket.LocationsChecked.Count() + connectedPacket.MissingChecks.Count();
@@ -372,7 +388,7 @@ namespace Archipelago.RiskOfRain2
                 var itemSendName = $"ItemPickup{CurrentChecks}";
                 //var itemLocationId = session.Locations.GetLocationIdFromName("Risk of Rain 2", itemSendName);
                 // TODO come back and move magic number to variable
-                var itemLocationId = 38000 + CurrentChecks;
+                var itemLocationId = 38000 + CurrentChecks - 1; // subtract 1 because this count starts at 1
                 Log.LogDebug($"Sent out location {itemSendName} (id: {itemLocationId})");
 
                 var packet = new LocationChecksPacket();

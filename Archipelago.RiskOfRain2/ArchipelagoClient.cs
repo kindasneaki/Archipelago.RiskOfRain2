@@ -95,11 +95,16 @@ namespace Archipelago.RiskOfRain2
                 }
             }
 
-            // TODO make a YAML option to toggle on the classic/legacy mode of handling locations
-            if (successResult.SlotData is not null) //(successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var newlocations))
+            if (successResult.SlotData.TryGetValue("classic_mode", out var classicmode))
             {
-                if (true) //(Convert.ToBoolean(newlocations))
+                if (Convert.ToBoolean(classicmode))
                 {
+                    Log.LogDebug("Client detected classic_mode");
+                }
+                else
+                {
+                    Log.LogDebug("Client detected explore_mode");
+                    // only start the new location handler for explore mode
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
                 }
             }
