@@ -22,6 +22,7 @@ namespace Archipelago.RiskOfRain2
 
         public Uri LastServerUrl { get; set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
+        internal LocationHandler Locationhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
@@ -79,6 +80,15 @@ namespace Archipelago.RiskOfRain2
                 }
             }
 
+            // TODO make a YAML option to toggle on the classic/legacy mode of handling locations
+            if (successResult.SlotData is not null) //(successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var newlocations))
+            {
+                if (true) //(Convert.ToBoolean(newlocations))
+                {
+                    Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+                }
+            }
+
             LocationCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
 
             session.Socket.PacketReceived += Session_PacketReceived;
@@ -124,7 +134,11 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
+            // TODO It is propobably quite possible of undefined behavior to arise
+            // In the case the player joins a lobby that uses different settings, the previous handlers will still activate if they are not replaced
+            // the old ones probably need to be trashed after closing a socket
             Stageblockerhandler?.Hook();
+            Locationhandler?.Hook();
         }
 
         private void UnhookGame()
@@ -134,6 +148,7 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
             Stageblockerhandler?.UnHook();
+            Locationhandler?.Hook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
