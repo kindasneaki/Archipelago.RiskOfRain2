@@ -85,7 +85,7 @@ namespace Archipelago.RiskOfRain2
                 }
             }
 
-            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enabledeathlink))
+            if (successResult.SlotData.TryGetValue("DeathLink", out var enabledeathlink))
             {
                 if (Convert.ToBoolean(enabledeathlink))
                 {
