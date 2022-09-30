@@ -58,14 +58,19 @@ namespace Archipelago.RiskOfRain2
                 return;
             }
 
-            // TODO make this an option
-            Stageblockerhandler = new StageBlockerHandler();
-            ItemLogic.Stageblockerhandler = Stageblockerhandler;
-
             LoginSuccessful successResult = (LoginSuccessful)result;
             if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
+            }
+
+            // TODO make this an option
+            Stageblockerhandler = new StageBlockerHandler();
+            ItemLogic.Stageblockerhandler = Stageblockerhandler;
+            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enableBlocker))
+            {
+                // block the stages if they are expected to be recieved as items
+                if (Convert.ToBoolean(enableBlocker)) Stageblockerhandler.BlockAll();
             }
 
             LocationCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
