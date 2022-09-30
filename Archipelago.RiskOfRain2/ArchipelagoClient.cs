@@ -32,18 +32,12 @@ namespace Archipelago.RiskOfRain2
         public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
 
         private ArchipelagoSession session;
-        private bool enableDeathLink = false;
         private DeathLinkService deathLinkService;
         private bool finalStageDeath = true;
 
         public ArchipelagoClient()
         {
 
-        }
-
-        public void Setup_SetDeathLink(bool enabled)
-        {
-            enableDeathLink = enabled;
         }
 
         public void Connect(Uri url, string slotName, string password = null, string[] tags = null)
