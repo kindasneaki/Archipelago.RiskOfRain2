@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Packets;
+using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using R2API.Networking;
@@ -22,12 +25,15 @@ namespace Archipelago.RiskOfRain2
 
         public Uri LastServerUrl { get; set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
+        internal DeathLinkHandler Deathlinkhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
 
         private ArchipelagoSession session;
+        private bool enableDeathLink = false;
+        private DeathLinkService deathLinkService;
         private bool finalStageDeath = true;
 
         public ArchipelagoClient()
@@ -35,7 +41,12 @@ namespace Archipelago.RiskOfRain2
 
         }
 
-        public void Connect(Uri url, string slotName, string password = null)
+        public void Setup_SetDeathLink(bool enabled)
+        {
+            enableDeathLink = enabled;
+        }
+
+        public void Connect(Uri url, string slotName, string password = null, string[] tags = null)
         {
             ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
             Dispose();
@@ -46,7 +57,11 @@ namespace Archipelago.RiskOfRain2
             ItemLogic = new ArchipelagoItemLogicController(session);
             LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems);
+            //List<string> taglist = tags is not null ? tags.ToList<string>() : new List<string>();
+            // any dynamic modification to the given tags should be done here
+            //tags = taglist.ToArray();
+
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems, tags: tags);
 
             if (!result.Successful)
             {
@@ -86,6 +101,16 @@ namespace Archipelago.RiskOfRain2
                 if (true) //(Convert.ToBoolean(newlocations))
                 {
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+                }
+            }
+
+            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enabledeathlink))
+            {
+                if (Convert.ToBoolean(enabledeathlink))
+                {
+                    Log.LogDebug("Starting DeathLink service");
+                    deathLinkService = session.CreateDeathLinkServiceAndEnable();
+                    Deathlinkhandler = new DeathLinkHandler(deathLinkService);
                 }
             }
 
@@ -136,6 +161,8 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
             // TODO It is propobably quite possible of undefined behavior to arise
             // In the case the player joins a lobby that uses different settings, the previous handlers will still activate if they are not replaced
+
+            Deathlinkhandler?.Hook();
             // the old ones probably need to be trashed after closing a socket
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
@@ -149,6 +176,8 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
             Stageblockerhandler?.UnHook();
             Locationhandler?.Hook();
+
+            Deathlinkhandler?.UnHook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
