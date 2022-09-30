@@ -24,8 +24,8 @@ namespace Archipelago.RiskOfRain2
         public event ClientDisconnected OnClientDisconnect;
 
         public Uri LastServerUrl { get; set; }
-        internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal DeathLinkHandler Deathlinkhandler { get; private set; }
+        internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
@@ -74,6 +74,12 @@ namespace Archipelago.RiskOfRain2
                 return;
             }
 
+            LoginSuccessful successResult = (LoginSuccessful)result;
+            if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
+            {
+                finalStageDeath = Convert.ToBoolean(stageDeathObject);
+            }
+
             if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enableBlocker))
             {
                 // block the stages if they are expected to be recieved as items
@@ -101,16 +107,6 @@ namespace Archipelago.RiskOfRain2
                 if (true) //(Convert.ToBoolean(newlocations))
                 {
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
-                }
-            }
-
-            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enabledeathlink))
-            {
-                if (Convert.ToBoolean(enabledeathlink))
-                {
-                    Log.LogDebug("Starting DeathLink service");
-                    deathLinkService = session.CreateDeathLinkServiceAndEnable();
-                    Deathlinkhandler = new DeathLinkHandler(deathLinkService);
                 }
             }
 
@@ -159,11 +155,11 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
+
             // TODO It is propobably quite possible of undefined behavior to arise
             // In the case the player joins a lobby that uses different settings, the previous handlers will still activate if they are not replaced
-
-            Deathlinkhandler?.Hook();
             // the old ones probably need to be trashed after closing a socket
+            Deathlinkhandler?.Hook();
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
         }
@@ -174,10 +170,10 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
-            Stageblockerhandler?.UnHook();
-            Locationhandler?.Hook();
 
             Deathlinkhandler?.UnHook();
+            Stageblockerhandler?.UnHook();
+            Locationhandler?.Hook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
