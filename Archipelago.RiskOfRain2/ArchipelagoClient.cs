@@ -21,6 +21,7 @@ namespace Archipelago.RiskOfRain2
         public event ClientDisconnected OnClientDisconnect;
 
         public Uri LastServerUrl { get; set; }
+        internal StageBlockerHandler Stageblockerhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
@@ -56,6 +57,9 @@ namespace Archipelago.RiskOfRain2
                 }
                 return;
             }
+
+            // TODO make this an option
+            Stageblockerhandler = new StageBlockerHandler();
 
             LoginSuccessful successResult = (LoginSuccessful)result;
             if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
@@ -101,6 +105,7 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
+            Stageblockerhandler?.Hook();
         }
 
         private void UnhookGame()
@@ -109,6 +114,7 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
+            Stageblockerhandler?.UnHook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
