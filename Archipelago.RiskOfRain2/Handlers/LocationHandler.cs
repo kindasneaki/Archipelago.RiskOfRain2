@@ -186,7 +186,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 for (int n=0; n < originallocationstemplate.scavenger_count; n++)
                 {
                     // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ScannersPerEnvironment + environment_start_id))
+                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ScavengersPerEnvironment + environment_start_id))
                     {
                         location.scavenger_count--; // a location completed has been found for this environment
                     }
@@ -196,7 +196,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"caught up to scavenger {location.scavenger_count}"); // XXX
 
                 // catch up scanner
-                for (int n=0; n < originallocationstemplate.scavenger_count; n++)
+                for (int n=0; n < originallocationstemplate.radio_scanner_count; n++)
                 {
                     // check each location if it has been seen
                     if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ScannersPerEnvironment + environment_start_id))
@@ -209,12 +209,12 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"caught up to scanner {location.radio_scanner_count}"); // XXX
 
                 // catch up altar
-                for (int n=0; n < originallocationstemplate.scavenger_count; n++)
+                for (int n=0; n < originallocationstemplate.newt_alter_count; n++)
                 {
                     // check each location if it has been seen
                     if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_AltarsPerEnvironment + environment_start_id))
                     {
-                        location.radio_scanner_count--; // a location completed has been found for this environment
+                        location.newt_alter_count--; // a location completed has been found for this environment
                     }
                     // if we see a location missing, imply the ones that succeed it are also missing
                     else break;
