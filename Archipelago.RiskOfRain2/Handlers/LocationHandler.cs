@@ -235,6 +235,12 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
             // Shrines
+            On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
+            On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
+            On.RoR2.ShrineCombatBehavior.AddShrineStack += ShrineCombatBehavior_AddShrineStack;
+            On.RoR2.ShrineRestackBehavior.AddShrineStack += ShrineRestackBehavior_AddShrineStack;
+            On.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
+            On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
             // Scavengers
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
@@ -251,6 +257,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
             // Shrines
+            On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Gold;
+            On.RoR2.ShrineBloodBehavior.AddShrineStack -= ShrineBloodBehavior_AddShrineStack;
+            On.RoR2.ShrineChanceBehavior.AddShrineStack -= ShrineChanceBehavior_AddShrineStack;
+            On.RoR2.ShrineCombatBehavior.AddShrineStack -= ShrineCombatBehavior_AddShrineStack;
+            On.RoR2.ShrineRestackBehavior.AddShrineStack -= ShrineRestackBehavior_AddShrineStack;
+            On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards;
+            On.RoR2.ShrineHealingBehavior.AddShrineStack -= ShrineHealingBehavior_AddShrineStack;
             // Scavengers
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
@@ -260,8 +273,10 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
 
         private uint chestitemsPickedUp = 0; // is used to count the number of items
+        private uint shrinesUsed = 0; // is used to count the number of items
         // XXX get this in from the YAML
         private uint itemPickupStep = 2; // is the interval at which archipelago locations are sent from chest-like objects; 1 is every, 2 is every other, etc
+        private uint shrineUseStep = 2; // is the interval at which archipelago locations are sent from shrine objects; 1 is every, 2 is every other, etc
         private Queue<bool> itemShouldNotDrop; // used to figure out which items should complete locations
 
         private void sendLocation(int id)
@@ -408,6 +423,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // don't reset the counters on moving between stages
             // this could be it absurdly hard to complete checks on very high step sizes
             //chestitemsPickedUp = 0;
+            //shrinesUsed = 0;
 
             itemShouldNotDrop.Clear();
         }
@@ -464,13 +480,95 @@ namespace Archipelago.RiskOfRain2.Handlers
         // All shrines behave differently and there is no inheritance to a common shrine object
         // Therefore all shrine types will have to be handled differently.
 
-        // XXX Gold
-        // XXX Blood
-        // XXX Chance
-        // XXX Combat
-        // XXX Order
-        // XXX Mountain
-        // XXX Woods
+        /// <summary>
+        /// Call on beating a shrine. This accounts for the step in shrine uses and submits locations.
+        /// </summary>
+        /// <returns>Returns true if a location was submitted.</returns>
+        private bool shrineBeat()
+        {
+            if (0 < checkAvailable(LocationTypes.shrine))
+            {
+                shrinesUsed++;
+                if (0 == shrinesUsed % shrineUseStep) return sendNextAvailable(LocationTypes.shrine);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Beats the gold portal shrine when attempting to grant the portal entry.
+        /// </summary>
+        private void PortalStatueBehavior_GrantPortalEntry_Gold(On.RoR2.PortalStatueBehavior.orig_GrantPortalEntry orig, PortalStatueBehavior self)
+        {
+            orig(self);
+            // using the gold shrine beats it; it already costs enough to use the shrine, so taking the portal away is just crule
+            if (self.portalType == PortalStatueBehavior.PortalType.Goldshores) shrineBeat();
+        }
+
+
+        /// <summary>
+        /// Using the blood shrine beats the shrine.
+        /// </summary>
+        private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
+        {
+            orig(self, interactor); // depending on money would be given will determine success of the shrine
+            shrineBeat(); // using the blood shrine beats it
+        }
+
+        /// <summary>
+        /// Beat the chance shrine when a successful purchase happens.
+        /// </summary>
+        private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
+        {
+            int prev = self.successfulPurchaseCount;
+            // XXX make it so shrine does not drop item and a check
+            orig(self, activator);
+            // chance shrine is only beat if the success count increases
+            if (prev < self.successfulPurchaseCount) shrineBeat();
+        }
+
+        /// <summary>
+        /// Using the shcange shrine beats it.
+        /// </summary>
+        private void ShrineCombatBehavior_AddShrineStack(On.RoR2.ShrineCombatBehavior.orig_AddShrineStack orig, ShrineCombatBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            // TODO maybe combat shrine shouldn't be an instant reward
+            shrineBeat(); // using the combat shrine beats it
+        }
+
+        /// <summary>
+        /// Using the order shrine beats it
+        /// </summary>
+        private void ShrineRestackBehavior_AddShrineStack(On.RoR2.ShrineRestackBehavior.orig_AddShrineStack orig, ShrineRestackBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            shrineBeat(); // using the order shrine beats it
+        }
+
+        /// <summary>
+        /// When the boss group is attempting to drop bonus rewards, the mountain shrines which granted the bonus are beat.
+        /// </summary>
+        private void BossGroup_DropRewards(On.RoR2.BossGroup.orig_DropRewards orig, BossGroup self)
+        {
+            orig(self);
+            for (int n = 0; n < self.bonusRewardCount; n++)
+            {
+                Log.LogDebug("bonusRewardCount means a mountain shrine was beat");
+                // the only way to raise the bonusRewardCount of a boss is via a mountain shrine
+
+                shrineBeat(); // beat the mountain shrine per mountain activated when the teleporter finishes
+            }
+        }
+
+        /// <summary>
+        /// Purchasing the each of the last two upgrades of the woods shrine beats the shrine.
+        /// </summary>
+        private void ShrineHealingBehavior_AddShrineStack(On.RoR2.ShrineHealingBehavior.orig_AddShrineStack orig, ShrineHealingBehavior self, Interactor activator)
+        {
+            orig(self, activator);
+            // the last two purchases of woods shine are checks
+            if (self.purchaseCount > self.maxPurchaseCount - 2) shrineBeat();
+        }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
