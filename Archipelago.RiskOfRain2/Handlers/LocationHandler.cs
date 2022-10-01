@@ -99,8 +99,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations = new Dictionary<int, LocationInformationTemplate>();
 
 
-            itemShouldNotDrop = new Queue<bool>();
-
             InitialSetupLocationDict(locationstemplate);
 
             CatchUpLocationDict();
@@ -233,15 +231,19 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Stage.BeginAdvanceStage += Stage_BeginAdvanceStage;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
+            On.RoR2.CharacterMaster.GiveMoney += CharacterMaster_GiveMoney;
+            On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack += ShrineCombatBehavior_AddShrineStack;
             On.RoR2.ShrineRestackBehavior.AddShrineStack += ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
             // Scavengers
+            On.EntityStates.ScavBackpack.Opening.OnEnter += Opening_OnEnter;
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock += RadiotowerTerminal_GrantUnlock;
@@ -255,16 +257,19 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Stage.BeginAdvanceStage -= Stage_BeginAdvanceStage;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack -= ShrineBloodBehavior_AddShrineStack;
+            On.RoR2.CharacterMaster.GiveMoney -= CharacterMaster_GiveMoney;
             On.RoR2.ShrineChanceBehavior.AddShrineStack -= ShrineChanceBehavior_AddShrineStack;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack -= ShrineCombatBehavior_AddShrineStack;
             On.RoR2.ShrineRestackBehavior.AddShrineStack -= ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack -= ShrineHealingBehavior_AddShrineStack;
             // Scavengers
+            On.EntityStates.ScavBackpack.Opening.OnEnter -= Opening_OnEnter;
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock -= RadiotowerTerminal_GrantUnlock;
@@ -277,7 +282,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         // XXX get this in from the YAML
         private uint itemPickupStep = 2; // is the interval at which archipelago locations are sent from chest-like objects; 1 is every, 2 is every other, etc
         private uint shrineUseStep = 2; // is the interval at which archipelago locations are sent from shrine objects; 1 is every, 2 is every other, etc
-        private Queue<bool> itemShouldNotDrop; // used to figure out which items should complete locations
+
+        private bool chestblockitem = false; // used to keep track of when the chest's item(s) are blocked as a location check
+        private bool chanceshrineblockitem = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
+        private bool bloodshrineblockgold = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
+        private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
 
         private void sendLocation(int id)
         {
@@ -421,11 +430,15 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self, destinationStage);
 
             // don't reset the counters on moving between stages
-            // this could be it absurdly hard to complete checks on very high step sizes
+            // this could make it absurdly hard to complete checks on very high step sizes
             //chestitemsPickedUp = 0;
             //shrinesUsed = 0;
 
-            itemShouldNotDrop.Clear();
+            // reset the values in case the shrine was somehow busy when the stage changed
+            chestblockitem = false;
+            chanceshrineblockitem = false;
+            bloodshrineblockgold = false;
+            scavbackpackHash = 0;
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -437,8 +450,9 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void ChestBehavior_ItemDrop_Chest(On.RoR2.ChestBehavior.orig_ItemDrop orig, RoR2.ChestBehavior self)
         {
-            if(NetworkServer.active && self.dropPickup != PickupIndex.none && self.dropCount == 1)
-            // chests only ever drop one item, so if the drop count is one, we know it was truely a chest (and not a scavenger bag)
+            // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
+            // Therefore we need to manually make sure the call here is not from the backpack.
+            if(NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
             {
                 if (0 < checkAvailable(LocationTypes.chest))
                 {
@@ -446,7 +460,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     if (true) // TODO maybe items should also go to the player?
                     {
                         // used to enforce don't drop the item within PickupDropletController_CreatePickupDroplet
-                        itemShouldNotDrop.Enqueue(0 == chestitemsPickedUp % itemPickupStep);
+                        chestblockitem = 0 == chestitemsPickedUp % itemPickupStep;
                     }
 
                     if (0 == chestitemsPickedUp % itemPickupStep)
@@ -457,16 +471,15 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
 
             orig(self); // the original will end up calling PickupDropletController_CreatePickupDroplet as well as other things
+            chestblockitem = false;
         }
 
-        private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        private void PickupDropletController_CreatePickupDroplet_Chest(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
-            // XXX is from the item blacklist Ijwu created is important to impose here?
-
             // check if the item being dropped is being asked to not drop
-            if (itemShouldNotDrop.Count > 0 && itemShouldNotDrop.Dequeue())
+            if (chestblockitem)
             {
-                Log.LogDebug($"item {pickupIndex} was used to satisfy a location and thus is consumed");
+                Log.LogDebug($"chest item {pickupIndex} was used to satisfy a location and thus is consumed");
                 return;
             }
             orig(pickupIndex, position, velocity);
@@ -489,6 +502,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (0 < checkAvailable(LocationTypes.shrine))
             {
                 shrinesUsed++;
+                Log.LogDebug("shrine counted as towards the locations");
                 if (0 == shrinesUsed % shrineUseStep) return sendNextAvailable(LocationTypes.shrine);
             }
             return false;
@@ -510,8 +524,19 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
         {
-            orig(self, interactor); // depending on money would be given will determine success of the shrine
+            bloodshrineblockgold = true;
+            orig(self, interactor); // XXX somehow block the message about giving money
             shrineBeat(); // using the blood shrine beats it
+            bloodshrineblockgold = false;
+        }
+
+        /// <summary>
+        /// Blood shrine blocks the money that it will give if the shrine was used as a location.
+        /// </summary>
+        private void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
+        {
+            // TODO perhaps blocking gold could be an option
+            if (!bloodshrineblockgold) orig(self, amount);
         }
 
         /// <summary>
@@ -519,11 +544,21 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
         {
-            int prev = self.successfulPurchaseCount;
-            // XXX make it so shrine does not drop item and a check
+            chanceshrineblockitem = true;
             orig(self, activator);
-            // chance shrine is only beat if the success count increases
-            if (prev < self.successfulPurchaseCount) shrineBeat();
+            chanceshrineblockitem = false;
+        }
+
+        private void PickupDropletController_CreatePickupDroplet_ChanceShrine(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        {
+            // check if the item being dropped is being asked to not drop
+            if (chanceshrineblockitem)
+            {
+                shrineBeat();
+                Log.LogDebug($"chance shrine item {pickupIndex} was used to satisfy a location and thus is consumed");
+                return;
+            }
+            orig(pickupIndex, position, velocity);
         }
 
         /// <summary>
@@ -578,6 +613,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         // Scavengers will be counted by the number of bags opened.
 
         // XXX implement scavbackpak uses ChestBehavior_ItemDrop
+        private void Opening_OnEnter(On.EntityStates.ScavBackpack.Opening.orig_OnEnter orig, EntityStates.ScavBackpack.Opening self)
+        {
+            orig(self);
+            scavbackpackHash = self.chestBehavior.GetHashCode();
+        }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
