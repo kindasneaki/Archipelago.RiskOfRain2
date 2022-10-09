@@ -17,6 +17,8 @@ namespace Archipelago.RiskOfRain2.UI
 
         public void Update()
         {
+            // TODO this bar should be filling when doing checks for in explore mode
+            // TODO another of these bars should be present for completing shrines in explore mode
             // -1 so that the bar appears full when a check is next.
             var progressPercent = Mathf.InverseLerp(0, itemPickupStep-1, currentItemCount);
             if (fillRectTransform)

@@ -532,9 +532,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
         {
+            // TODO this should not block gold unless checks are being performed
             bloodshrineblockgold = true;
             orig(self, interactor); // XXX somehow block the message about giving money
             shrineBeat(); // using the blood shrine beats it
+            // TODO if shrineBeat() breaks, the shrine does not let gold get through
             bloodshrineblockgold = false;
         }
 
@@ -552,6 +554,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
         {
+            // TODO this should not block items unless checks are being performed
             chanceshrineblockitem = true;
             orig(self, activator);
             chanceshrineblockitem = false;
@@ -563,6 +566,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (chanceshrineblockitem)
             {
                 shrineBeat();
+                // TODO if shrineBeat() breaks, the shrine may not allow access back to chance shrines
                 Log.LogDebug($"chance shrine item {pickupIndex} was used to satisfy a location and thus is consumed");
                 return;
             }
@@ -664,6 +668,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self); // let the director do it's own thing first as to not get in the way
 
+            // TODO somehow SceneDirector_PopulateScene can get called several times in a row, thus spawning a bunch of scanners... why do the calls happen?
             if (0 < checkAvailable(LocationTypes.radio_scanner))
             // we always want to always spawn a radio scanner if it is a location
             {
@@ -733,4 +738,6 @@ namespace Archipelago.RiskOfRain2.Handlers
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     }
+
+    // TODO it may be interesting if Baazar seers could allow the player to travel to environments earlier in the loop (ie to give more control over where the player goes)
 }

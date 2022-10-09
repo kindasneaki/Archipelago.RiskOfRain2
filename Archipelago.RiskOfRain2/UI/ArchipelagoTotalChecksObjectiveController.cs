@@ -27,6 +27,7 @@ namespace Archipelago.RiskOfRain2.UI
         {
             ObjectivePanelController.collectObjectiveSources += ObjectivePanelController_collectObjectiveSources;
             // TODO the objective tracker should track all current locations in the stage
+            // TODO perhaps a scheme where x/x/x/x/x is displayed would be fine
         }
 
         private static void ObjectivePanelController_collectObjectiveSources(RoR2.CharacterMaster arg1, List<ObjectiveSourceDescriptor> arg2)

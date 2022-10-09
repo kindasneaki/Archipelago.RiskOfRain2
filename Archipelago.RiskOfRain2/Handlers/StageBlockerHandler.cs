@@ -411,6 +411,10 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private bool Run_CanPickStage(On.RoR2.Run.orig_CanPickStage orig, Run self, SceneDef scenedef)
         {
+            // TODO make the player not be able to get stuck without a full loop
+            // Trial implmentation can be on being fully blocked,
+            //  keep the player on the same orderedstage and on being fully blocked again, move them back to orderedstage 1.
+
             Log.LogDebug($"Checking CanPickStage for {scenedef.nameToken}...");
             int index = (int) scenedef.sceneDefIndex;
             if (CheckBlocked(index))
