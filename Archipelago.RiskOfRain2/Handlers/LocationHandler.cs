@@ -289,6 +289,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private bool chestblockitem = false; // used to keep track of when the chest's item(s) are blocked as a location check
         private bool chanceshrineblockitem = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
+        private bool chanceshrinebeat = false; // used to keep track of if the chance shrine intended on rewarding a check
         private bool bloodshrineblockgold = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
@@ -443,6 +444,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // reset the values in case the shrine was somehow busy when the stage changed
             chestblockitem = false;
             chanceshrineblockitem = false;
+            chanceshrinebeat = false;
             bloodshrineblockgold = false;
             scavbackpackHash = 0;
             scavbackpackWasLocation = false;
@@ -517,6 +519,15 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
 
         /// <summary>
+        /// Determines whether the next shrineBeat() call will return true without calling it.
+        /// </summary>
+        /// <returns>Returns true if shrineBeat() would submit a location.</returns>
+        private bool shrineWillBeLocation()
+        {
+            return (0 == (shrinesUsed + 1) % shrineUseStep) && (0 < checkAvailable(LocationTypes.shrine));
+        }
+
+        /// <summary>
         /// Beats the gold portal shrine when attempting to grant the portal entry.
         /// </summary>
         private void PortalStatueBehavior_GrantPortalEntry_Gold(On.RoR2.PortalStatueBehavior.orig_GrantPortalEntry orig, PortalStatueBehavior self)
@@ -532,12 +543,13 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
         {
-            // TODO this should not block gold unless checks are being performed
-            bloodshrineblockgold = true;
+            Log.LogDebug("ShrineBloodBehavior_AddShrineStack"); // XXX remove after gold blocking is verified to not perma-block gold
+            bloodshrineblockgold = shrineWillBeLocation(); // block gold only when it will be a check
+            Log.LogDebug($"Intend to block gold: {bloodshrineblockgold}"); // XXX
             orig(self, interactor); // XXX somehow block the message about giving money
-            shrineBeat(); // using the blood shrine beats it
-            // TODO if shrineBeat() breaks, the shrine does not let gold get through
             bloodshrineblockgold = false;
+            // we call beat shrine after setting bloodshrineblockgold to false to let money be collected in case shrineBeat() causes an exception
+            shrineBeat(); // using the blood shrine beats it
         }
 
         /// <summary>
@@ -545,8 +557,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
         {
-            // TODO perhaps blocking gold could be an option
             if (!bloodshrineblockgold) orig(self, amount);
+            else Log.LogDebug($"CharacterMaster_GiveMoney: Gold blocked because blood shrine."); // XXX
         }
 
         /// <summary>
@@ -554,19 +566,26 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
         {
-            // TODO this should not block items unless checks are being performed
-            chanceshrineblockitem = true;
+            Log.LogDebug("ShrineChanceBehavior_AddShrineStack"); // XXX remove after item blocking is verified to not perma-block items
+            chanceshrineblockitem = shrineWillBeLocation();
+            Log.LogDebug($"Intend to block item: {chanceshrineblockitem}"); // XXX
+            chanceshrinebeat = false; // set the value to false, if it is set to true we know an item dropped because of the shrine
             orig(self, activator);
+            Log.LogDebug($"Item drop detected: {chanceshrinebeat}"); // XXX
             chanceshrineblockitem = false;
+            if (chanceshrinebeat) shrineBeat();
         }
 
         private void PickupDropletController_CreatePickupDroplet_ChanceShrine(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
+            // when an item dropplet is made, we will consider the shrine beat
+            chanceshrinebeat = true;
+            // Note, this will set the value to true even when the item is not from a shrine.
+            // This is why the value needs to be set to false when the shrine intends to actually use the value and observe it.
+
             // check if the item being dropped is being asked to not drop
             if (chanceshrineblockitem)
             {
-                shrineBeat();
-                // TODO if shrineBeat() breaks, the shrine may not allow access back to chance shrines
                 Log.LogDebug($"chance shrine item {pickupIndex} was used to satisfy a location and thus is consumed");
                 return;
             }
@@ -597,6 +616,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void BossGroup_DropRewards(On.RoR2.BossGroup.orig_DropRewards orig, BossGroup self)
         {
+            // TODO should mountain behaving like a check remove the item drop?
             orig(self);
             for (int n = 0; n < self.bonusRewardCount; n++)
             {
@@ -666,9 +686,12 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void SceneDirector_PopulateScene(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self)
         {
+            // XXX somehow SceneDirector_PopulateScene can get called several times in a row, thus spawning a bunch of scanners... why do the calls happen?
+            Log.LogDebug("SceneDirector_PopulateScene"); // XXX remove after figuring out why this can get called repeatedly
+            // XXX perhaps a solution could be to use flags similar to shrines if there is no apparent reason why scene population can repeat
+
             orig(self); // let the director do it's own thing first as to not get in the way
 
-            // TODO somehow SceneDirector_PopulateScene can get called several times in a row, thus spawning a bunch of scanners... why do the calls happen?
             if (0 < checkAvailable(LocationTypes.radio_scanner))
             // we always want to always spawn a radio scanner if it is a location
             {
@@ -711,8 +734,6 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void PortalStatueBehavior_GrantPortalEntry_Blue(On.RoR2.PortalStatueBehavior.orig_GrantPortalEntry orig, PortalStatueBehavior self)
         {
-            Log.LogDebug("PortalStatueBehavior_GrantPortalEntry"); // XXX
-
             if (self.portalType != PortalStatueBehavior.PortalType.Shop)
             {
                 orig(self);
@@ -720,15 +741,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             } // the below code is only applied to blue portal, ie an altar was used
 
 
-            Log.LogDebug("altar used ie blue portal"); // XXX
-            if (0 == checkAvailable(LocationTypes.newt_altar))
+            Log.LogDebug("intercepted blue portal ie altar used; attempt to send check");
+            if (false == sendNextAvailable(LocationTypes.newt_altar))
             {
-                // there are no checks, treat the altar as if it were a vanilla altar
+                Log.LogDebug("no check performed; granting blue portal");
                 orig(self);
                 return;
             }
-
-            sendNextAvailable(LocationTypes.newt_altar);
+            else Log.LogDebug("check performed; denying blue portal");
 
             // don't block the other newts, more than one newt in a stage is rare and if also rewards knowing where newts can spawn when you can find and get to two
 
