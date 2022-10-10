@@ -100,6 +100,7 @@ namespace Archipelago.RiskOfRain2
                 if (Convert.ToBoolean(classicmode))
                 {
                     Log.LogDebug("Client detected classic_mode");
+                    // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived
                 }
                 else
                 {
