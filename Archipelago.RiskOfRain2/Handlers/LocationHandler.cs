@@ -227,8 +227,9 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void Hook()
         {
-            // Reset
+            // Etc
             On.RoR2.Stage.BeginAdvanceStage += Stage_BeginAdvanceStage;
+            On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
@@ -255,8 +256,9 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void UnHook()
         {
-            // Reset
+            // Etc
             On.RoR2.Stage.BeginAdvanceStage -= Stage_BeginAdvanceStage;
+            On.RoR2.SceneCollection.AddToWeightedSelection -= SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
@@ -449,6 +451,28 @@ namespace Archipelago.RiskOfRain2.Handlers
             scavbackpackHash = 0;
             scavbackpackWasLocation = false;
             scavbackpackblockitem = false;
+        }
+
+        private void SceneCollection_AddToWeightedSelection(On.RoR2.SceneCollection.orig_AddToWeightedSelection orig, SceneCollection self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
+        {
+            // In explore mode we will give help the player a little by adjusting the RNG to favor locations where checks need to still be performed.
+            // This should help the player not get stuck in an RNG hell where they simply cannot roll into the stages they need to go to to complte things.
+
+            orig(self, dest, canAdd);
+            if (null == dest) return; // prevent NRE
+            for (int i=0; i < dest.Count; i++)
+            {
+                // add 1 weight to per location left in an environment
+                int environment_index = (int) dest.choices[i].value.sceneDefIndex;
+                if (currentlocations.TryGetValue(environment_index, out var locations))
+                {
+                    int addweight = locations.chest_count + locations.shrine_count + locations.scavenger_count + locations.radio_scanner_count + locations.newt_alter_count;
+                    Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight} locations, adjusting weight.");
+                    dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);
+                    Log.LogDebug($"Adjusted weight to {dest.choices[i].weight}.");
+                }
+                else Log.LogDebug($"Environmnet {environment_index} with weight {dest.choices[i].weight} does not have locations.");
+            }
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////

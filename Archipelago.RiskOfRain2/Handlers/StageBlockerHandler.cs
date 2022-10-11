@@ -52,6 +52,9 @@ namespace Archipelago.RiskOfRain2.Handlers
         // uses scene names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         List<int> blocked_stages;
 
+        private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
+        private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
+
         public StageBlockerHandler()
         {
             Log.LogDebug($"StageBlocker handler constructor.");
@@ -62,7 +65,6 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void Hook()
         {
-            On.RoR2.Run.CanPickStage += Run_CanPickStage;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals += TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene += SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter += ReadyToEndGame_OnEnter;
@@ -72,11 +74,12 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Interactor.PerformInteraction += Interactor_PerformInteraction;
             On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
             On.EntityStates.LunarTeleporter.Active.OnEnter += Active_OnEnter;
+            On.RoR2.Run.CanPickStage += Run_CanPickStage;
+            On.RoR2.Run.PickNextStageScene += Run_PickNextStageScene;
         }
 
         public void UnHook()
         {
-            On.RoR2.Run.CanPickStage -= Run_CanPickStage;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals -= TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene -= SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter -= ReadyToEndGame_OnEnter;
@@ -86,6 +89,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Interactor.PerformInteraction -= Interactor_PerformInteraction;
             On.RoR2.SceneExitController.SetState -= SceneExitController_SetState;
             On.EntityStates.LunarTeleporter.Active.OnEnter -= Active_OnEnter;
+            On.RoR2.Run.CanPickStage -= Run_CanPickStage;
+            On.RoR2.Run.PickNextStageScene -= Run_PickNextStageScene;
         }
 
         public void BlockAll()
@@ -198,8 +203,10 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             if (SceneExitController.ExitState.Finished == newState && self.useRunNextStageScene)
             {
+                manuallyPickingStage = true;
                 Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
                 Log.LogDebug("SceneExitController_SetState forcefully reroll next stagescene");
+                manuallyPickingStage = false;
             }
             orig(self, newState);
         }
@@ -411,10 +418,6 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private bool Run_CanPickStage(On.RoR2.Run.orig_CanPickStage orig, Run self, SceneDef scenedef)
         {
-            // TODO make the player not be able to get stuck without a full loop
-            // Trial implmentation can be on being fully blocked,
-            //  keep the player on the same orderedstage and on being fully blocked again, move them back to orderedstage 1.
-
             Log.LogDebug($"Checking CanPickStage for {scenedef.nameToken}...");
             int index = (int) scenedef.sceneDefIndex;
             if (CheckBlocked(index))
@@ -428,7 +431,58 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             return orig(self, scenedef);
         }
-        // TODO perhaps if no stages can be picked as destinations, an alternative environment for the given stage should be used (so that the player isn't stuck on a single stage)
+
+        private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
+        {
+            // When the does not have a valid next environment, we will move them to an environment within the same orderedstage.
+            // When this happens, we will consider the player as "lost".
+            // If the player doesn't have a next environment when lost, the player will be moved back to orderedstage 1.
+            // The reason for this is if the player is playing with explore mode, the player's next environment could be in a different already unlocked environment.
+            // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
+
+            Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+
+            // there are 2 conditions when we should mess with this call:
+            // - the call to PickNextStageScene should have originated from stage blocker
+            //      (since it gets called at the beginning of the scene by the game, and at the end by the stage blocker)
+            // - this should do nothing special unless the current scene happens to be an ordered stage
+            if (manuallyPickingStage && SceneCatalog.mostRecentSceneDef &&  1 <= SceneCatalog.mostRecentSceneDef.stageOrder && 5 >= SceneCatalog.mostRecentSceneDef.stageOrder)
+            {
+                // populate choices (in some manner) when there are no choices
+                if (0 == choices.Count)
+                {
+                    Log.LogDebug("no choices for next scene; setting up alternate choices");
+
+                    bool appearsLost = true;
+                    if (prevOrderedStage && prevOrderedStage.stageOrder != SceneCatalog.mostRecentSceneDef.stageOrder) appearsLost = false;
+                    // the player appears to be currently lost unless they are on a different stage than the last time this was called
+
+                    if (prevOrderedStage) Log.LogDebug($"prev scene {prevOrderedStage.sceneDefIndex} in stage {prevOrderedStage.stageOrder}");
+                    else Log.LogDebug("no prev scene");
+
+                    if (appearsLost)
+                    {
+                        Log.LogDebug("adding choices for stage 1");
+                        // when lost, return to the stage 1
+                        self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
+                        ChatMessage.Send("You appear to be lost..."); // TODO somehow send after changing scenes
+                    }
+                    else
+                    {
+                        Log.LogDebug("adding choices using the previous stage destinations");
+                        // when not yet lost, rereturn to the current stage (possibly a different environment)
+                        prevOrderedStage.AddDestinationsToWeightedSelection(choices, self.CanPickStage);
+                        ChatMessage.Send("You start to feel lost..."); // TODO somehow send after changing scenes
+                    }
+                }
+                else Log.LogDebug("there are choices for the next scene; skipping tampering said choices");
+
+                prevOrderedStage = SceneCatalog.mostRecentSceneDef;
+            }
+
+            orig(self, choices);
+            Log.LogDebug($"next scene {self.nextStageScene.sceneDefIndex} in stage {self.nextStageScene.stageOrder}");
+        }
 
     }
 }
