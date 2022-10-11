@@ -173,7 +173,7 @@ namespace Archipelago.RiskOfRain2
 
             Deathlinkhandler?.UnHook();
             Stageblockerhandler?.UnHook();
-            Locationhandler?.Hook();
+            Locationhandler?.UnHook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
