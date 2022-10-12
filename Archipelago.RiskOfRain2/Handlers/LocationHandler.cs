@@ -230,6 +230,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // Etc
             On.RoR2.SceneCatalog.OnActiveSceneChanged += SceneCatalog_OnActiveSceneChanged;
+            On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
@@ -506,7 +507,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);
                     Log.LogDebug($"Adjusted weight to {dest.choices[i].weight}.");
                 }
-                else Log.LogDebug($"Environmnet {environment_index} with weight {dest.choices[i].weight} does not have locations.");
+                else Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} does not have locations.");
             }
         }
 
