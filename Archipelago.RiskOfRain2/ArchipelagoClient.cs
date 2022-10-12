@@ -147,6 +147,11 @@ namespace Archipelago.RiskOfRain2
          
             UnhookGame();
             session = null;
+
+            // In the case the player joins a lobby that uses different settings, the previous objects may still exist and may be called again when hooks are started.
+            // To prevent this, the old objects will be thrown away when disposing.
+            Stageblockerhandler = null;
+            Locationhandler = null;
         }
 
         private void HookGame()
@@ -156,9 +161,6 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
 
-            // TODO It is propobably quite possible of undefined behavior to arise
-            // In the case the player joins a lobby that uses different settings, the previous handlers will still activate if they are not replaced
-            // the old ones probably need to be trashed after closing a socket
             Deathlinkhandler?.Hook();
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
