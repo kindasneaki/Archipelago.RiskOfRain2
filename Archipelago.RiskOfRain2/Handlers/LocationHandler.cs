@@ -1,5 +1,6 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Packets;
+using Archipelago.RiskOfRain2.UI;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -228,8 +229,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public void Hook()
         {
             // Etc
-            On.RoR2.Stage.BeginAdvanceStage += Stage_BeginAdvanceStage;
-            On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
+            On.RoR2.SceneCatalog.OnActiveSceneChanged += SceneCatalog_OnActiveSceneChanged;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
@@ -257,7 +257,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public void UnHook()
         {
             // Etc
-            On.RoR2.Stage.BeginAdvanceStage -= Stage_BeginAdvanceStage;
+            On.RoR2.SceneCatalog.OnActiveSceneChanged -= SceneCatalog_OnActiveSceneChanged;
             On.RoR2.SceneCollection.AddToWeightedSelection -= SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
@@ -283,6 +283,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Blue;
         }
 
+        public ArchipelagoLocationCheckProgressBarUI itemBar = null;
+        public ArchipelagoLocationCheckProgressBarUI shrineBar = null;
+
         private uint chestitemsPickedUp = 0; // is used to count the number of items
         private uint shrinesUsed = 0; // is used to count the number of items
         // XXX get this in from the YAML
@@ -296,6 +299,33 @@ namespace Archipelago.RiskOfRain2.Handlers
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
+
+        private void updateBar(LocationTypes loctype)
+        {
+            ArchipelagoLocationCheckProgressBarUI bar = null;
+            int amount = 0;
+            int step = 1;
+            switch (loctype)
+            {
+                case LocationTypes.chest:
+                    bar = itemBar;
+                    amount = (int) chestitemsPickedUp;
+                    step = (int) itemPickupStep;
+                    break;
+                case LocationTypes.shrine:
+                    bar = shrineBar;
+                    amount = (int) shrinesUsed;
+                    step = (int) shrineUseStep;
+                    break;
+            }
+
+            if (null != bar)
+            {
+                bar.UpdateCheckProgress(amount % step, step);
+                // use the default color with checks, use the alt color when out of checks
+                bar.ChangeBarColor(0 < checkAvailable(loctype) ? ArchipelagoLocationCheckProgressBarUI.defaultColor : ArchipelagoLocationCheckProgressBarUI.altColor);
+            }
+        }
 
         private void sendLocation(int id)
         {
@@ -433,10 +463,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <summary>
         /// Resets all overhead variables that should be reinitialized when entering a new environment.
         /// </summary>
-        private void Stage_BeginAdvanceStage(On.RoR2.Stage.orig_BeginAdvanceStage orig, Stage self, SceneDef destinationStage)
+        private void SceneCatalog_OnActiveSceneChanged(On.RoR2.SceneCatalog.orig_OnActiveSceneChanged orig, UnityEngine.SceneManagement.Scene oldScene, UnityEngine.SceneManagement.Scene newScene)
         {
-            Log.LogDebug("Stage_BeginAdvanceStage"); // XXX
-            orig(self, destinationStage);
+            orig(oldScene, newScene);
+            // We want to hook directly to SceneCatalog_OnActiveSceneChanged rather than delegate
+            //  to SceneCatalog_OnActiveSceneChanged so that we can take advantage of the changed mostRecentSceneDef.
 
             // don't reset the counters on moving between stages
             // this could make it absurdly hard to complete checks on very high step sizes
@@ -451,6 +482,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             scavbackpackHash = 0;
             scavbackpackWasLocation = false;
             scavbackpackblockitem = false;
+
+            // update the bars for the new scene
+            updateBar(LocationTypes.chest);
+            updateBar(LocationTypes.shrine);
         }
 
         private void SceneCollection_AddToWeightedSelection(On.RoR2.SceneCollection.orig_AddToWeightedSelection orig, SceneCollection self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
@@ -490,6 +525,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 if (0 < checkAvailable(LocationTypes.chest))
                 {
+                    // TODO perhaps we should count all items, so the player can get ready for a check immediately in the next environment
                     chestitemsPickedUp++;
                     if (true) // TODO maybe items should also go to the player?
                     {
@@ -501,6 +537,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     {
                         sendNextAvailable(LocationTypes.chest);
                     }
+                    updateBar(LocationTypes.chest);
                 }
             }
 
@@ -533,13 +570,16 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <returns>Returns true if a location was submitted.</returns>
         private bool shrineBeat()
         {
+            bool locationsubmitted = false;
             if (0 < checkAvailable(LocationTypes.shrine))
             {
+                // TODO perhaps we should count all shrine, so the player can get ready for a check immediately in the next environment
                 shrinesUsed++;
                 Log.LogDebug("shrine counted as towards the locations");
-                if (0 == shrinesUsed % shrineUseStep) return sendNextAvailable(LocationTypes.shrine);
+                if (0 == shrinesUsed % shrineUseStep) locationsubmitted = sendNextAvailable(LocationTypes.shrine);
+                updateBar(LocationTypes.shrine);
             }
-            return false;
+            return locationsubmitted;
         }
 
         /// <summary>

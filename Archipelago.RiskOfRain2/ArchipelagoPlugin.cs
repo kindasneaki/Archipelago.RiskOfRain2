@@ -72,9 +72,9 @@ namespace Archipelago.RiskOfRain2
         {
             if (!NetworkServer.active && isPlayingAP)
             {
-                if (AP.LocationCheckBar != null)
+                if (AP.itemCheckBar != null)
                 {
-                    AP.LocationCheckBar.Dispose();
+                    AP.itemCheckBar.Dispose();
                 }
             }
         }
@@ -99,9 +99,9 @@ namespace Archipelago.RiskOfRain2
             // They end up with multiple bars if they join multiple sessions otherwise.
             if (!NetworkServer.active && isPlayingAP)
             {
-                if (AP.LocationCheckBar != null)
+                if (AP.itemCheckBar != null)
                 {
-                    AP.LocationCheckBar.Dispose();
+                    AP.itemCheckBar.Dispose();
                 }
             }
         }
@@ -137,7 +137,7 @@ namespace Archipelago.RiskOfRain2
         {
             if (!NetworkServer.active)
             {
-                AP.LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
+                AP.itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
                 isPlayingAP = true;
             }
         }

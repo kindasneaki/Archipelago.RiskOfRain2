@@ -15,27 +15,46 @@ namespace Archipelago.RiskOfRain2.UI
     {
         public int ItemPickupStep { get; set; }
         public int CurrentItemCount { get; set; }
+        public Color CurrentColor { get; set; }
 
         private HUD hud;
         private ArchipelagoLocationCheckProgressBarController locationCheckBar;
         private GameObject container;
+        private Vector2 textoffset;
+        private Vector2 baroffset;
+        private string textcontent;
 
-        public ArchipelagoLocationCheckProgressBarUI()
+        public static readonly Color defaultColor = new Color(.8f, .5f, 1, 1);
+        public static readonly Color altColor = new Color(1f, .8f, .5f, 1);
+
+        public ArchipelagoLocationCheckProgressBarUI(Vector2 textoffset, Vector2 baroffset, string text = "Location Check Progress: ")
         {
-            SyncLocationCheckProgress.OnLocationSynced += SyncLocationCheckProgress_LocationSynced;
             On.RoR2.UI.HUD.Awake += HUD_Awake;
+            this.textoffset = textoffset;
+            this.baroffset = baroffset;
+            textcontent = text;
+            CurrentColor = defaultColor;
         }
 
-        // TODO make the shrines and chests make progress on this bar
-        private void SyncLocationCheckProgress_LocationSynced(int count, int step)
+        public void UpdateCheckProgress(int count, int step)
         {
             ItemPickupStep = step;
             CurrentItemCount = count;
 
             if (locationCheckBar != null)
             {
-                locationCheckBar.itemPickupStep = step;
-                locationCheckBar.currentItemCount = count;
+                locationCheckBar.steps = step;
+                locationCheckBar.fill = count;
+            }
+        }
+
+        public void ChangeBarColor(Color newcolor)
+        {
+            CurrentColor = newcolor;
+
+            if (locationCheckBar != null)
+            {
+                locationCheckBar.color = newcolor;
             }
         }
 
@@ -43,7 +62,6 @@ namespace Archipelago.RiskOfRain2.UI
         {
             hud = null;
             On.RoR2.UI.HUD.Awake -= HUD_Awake;
-            SyncLocationCheckProgress.OnLocationSynced -= SyncLocationCheckProgress_LocationSynced;
 
             GameObject.Destroy(container);
         }
@@ -66,15 +84,16 @@ namespace Archipelago.RiskOfRain2.UI
             var progressBar = CreateProgressBar();
             progressBar.transform.SetParent(container.transform);
             progressBar.transform.ResetScaleAndRotation();
-            progressBar.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+            progressBar.GetComponent<RectTransform>().anchoredPosition = baroffset;
 
             var rectTransform = container.AddComponent<RectTransform>();
             container.transform.SetParent(hud.expBar.transform.parent.parent);
             rectTransform.ResetAnchorsAndOffsets();
-            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.anchoredPosition = textoffset;
             container.transform.ResetScaleAndRotation();
 
-            locationCheckBar.canvas.SetColor(new Color(.8f, .5f, 1, 1));
+            locationCheckBar.canvas.SetColor(CurrentColor);
+            locationCheckBar.color = CurrentColor;
 
             this.container = container;
         }
@@ -87,7 +106,7 @@ namespace Archipelago.RiskOfRain2.UI
             rect.ResetAnchorsAndOffsets();
 
             var text = GameObject.Instantiate(hud.levelText.targetText);
-            text.text = "Location Check Progress: ";
+            text.text = textcontent;
             text.transform.SetParent(container.transform);
             text.transform.ResetScaleAndRotation();
 
@@ -112,8 +131,8 @@ namespace Archipelago.RiskOfRain2.UI
             rectTransform.offsetMax = new Vector2(0f, 4f);
 
             locationCheckBar = progressBarGameObject.AddComponent<ArchipelagoLocationCheckProgressBarController>();
-            locationCheckBar.currentItemCount = CurrentItemCount;
-            locationCheckBar.itemPickupStep = ItemPickupStep;
+            locationCheckBar.fill = CurrentItemCount;
+            locationCheckBar.steps = ItemPickupStep;
 
             var fillPanel = progressBarGameObject.transform.Find("ShrunkenRoot/FillPanel");
             locationCheckBar.fillRectTransform = fillPanel.GetComponent<RectTransform>();

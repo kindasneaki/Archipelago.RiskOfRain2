@@ -29,7 +29,8 @@ namespace Archipelago.RiskOfRain2
         internal LocationHandler Locationhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
-        public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
+        public ArchipelagoLocationCheckProgressBarUI itemCheckBar;
+        public ArchipelagoLocationCheckProgressBarUI shrineCheckBar;
 
         private ArchipelagoSession session;
         private DeathLinkService deathLinkService;
@@ -49,7 +50,8 @@ namespace Archipelago.RiskOfRain2
 
             session = ArchipelagoSessionFactory.CreateSession(url);
             ItemLogic = new ArchipelagoItemLogicController(session);
-            LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
+            itemCheckBar = null;
+            shrineCheckBar = null;
 
             //List<string> taglist = tags is not null ? tags.ToList<string>() : new List<string>();
             // any dynamic modification to the given tags should be done here
@@ -101,16 +103,27 @@ namespace Archipelago.RiskOfRain2
                 {
                     Log.LogDebug("Client detected classic_mode");
                     // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived
+                    SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
                 }
                 else
                 {
                     Log.LogDebug("Client detected explore_mode");
                     // only start the new location handler for explore mode
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+
+                    itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
+
+                    shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
+                    shrineCheckBar.ItemPickupStep = 2; // XXX get from yaml
+
+                    Locationhandler.itemBar = itemCheckBar;
+                    Locationhandler.shrineBar = shrineCheckBar;
                 }
             }
+            // make the bar if for it has not been created because classic mode or the slot data was missing
+            if (null == itemCheckBar) itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
 
-            LocationCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
+            itemCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
 
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Socket.SocketClosed += Session_SocketClosed;
@@ -140,11 +153,17 @@ namespace Archipelago.RiskOfRain2
                 ItemLogic.Dispose();
             }
             
-            if (LocationCheckBar != null)
+            if (itemCheckBar != null)
             {
-                LocationCheckBar.Dispose();
+                SyncLocationCheckProgress.OnLocationSynced -= itemCheckBar.UpdateCheckProgress;
+                itemCheckBar.Dispose();
             }
-         
+
+            if (shrineCheckBar != null)
+            {
+                shrineCheckBar.Dispose();
+            }
+
             UnhookGame();
             session = null;
 
@@ -152,6 +171,8 @@ namespace Archipelago.RiskOfRain2
             // To prevent this, the old objects will be thrown away when disposing.
             Stageblockerhandler = null;
             Locationhandler = null;
+            itemCheckBar = null;
+            shrineCheckBar = null;
         }
 
         private void HookGame()
@@ -190,19 +211,19 @@ namespace Archipelago.RiskOfRain2
 
         private void ItemLogicHandler_ItemDropProcessed(int pickedUpCount)
         {
-            if (LocationCheckBar != null)
+            if (itemCheckBar != null)
             {
-                LocationCheckBar.CurrentItemCount = pickedUpCount;
-                if ((LocationCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep) == 0)
+                itemCheckBar.CurrentItemCount = pickedUpCount;
+                if ((itemCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep) == 0)
                 {
-                    LocationCheckBar.CurrentItemCount = 0;
+                    itemCheckBar.CurrentItemCount = 0;
                 }
                 else
                 {
-                    LocationCheckBar.CurrentItemCount = LocationCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep;
+                    itemCheckBar.CurrentItemCount = itemCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep;
                 }
             }
-            new SyncLocationCheckProgress(LocationCheckBar.CurrentItemCount, LocationCheckBar.ItemPickupStep).Send(NetworkDestination.Clients);
+            new SyncLocationCheckProgress(itemCheckBar.CurrentItemCount, itemCheckBar.ItemPickupStep).Send(NetworkDestination.Clients);
         }
 
         private void ChatBox_SubmitChat(On.RoR2.UI.ChatBox.orig_SubmitChat orig, ChatBox self)
