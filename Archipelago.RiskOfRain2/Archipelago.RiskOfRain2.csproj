@@ -29,8 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="InLobbyConfig">
-      <HintPath>DLLs\InLobbyConfig.dll</HintPath>
+	  <Reference Include="InLobbyConfig">
+      <HintPath>..\Libs\InLobbyConfig.dll</HintPath>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
