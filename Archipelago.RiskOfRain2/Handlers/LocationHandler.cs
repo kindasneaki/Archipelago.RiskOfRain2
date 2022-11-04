@@ -518,28 +518,38 @@ namespace Archipelago.RiskOfRain2.Handlers
         // The idea is to count the number of items that will be spawned and then intercept them as they are spawning
         //  to prevent only consume items we want to use as locations.
 
+        /// <summary>
+        /// Call on opening a chest. This accounts for the step in item pickups uses and submits locations.
+        /// </summary>
+        /// <returns>Returns true if a location was submitted.</returns>
+        private bool chestOpened()
+        {
+            bool locationavailable = 0 < checkAvailable(LocationTypes.chest);
+
+            // only count when checks are avaiable OR when counting does not roll over
+            if (locationavailable || 0 != (chestitemsPickedUp + 1) % itemPickupStep)
+            {
+                chestitemsPickedUp++;
+                Log.LogDebug("chest counted as towards the locations");
+                updateBar(LocationTypes.chest);
+            }
+            else
+            {
+                Log.LogDebug("chest not counted as towards the locations");
+            }
+
+            // only send checks when rolling over
+            if (locationavailable && 0 == chestitemsPickedUp % itemPickupStep) return sendNextAvailable(LocationTypes.chest);
+            return false;
+        }
+
         private void ChestBehavior_ItemDrop_Chest(On.RoR2.ChestBehavior.orig_ItemDrop orig, RoR2.ChestBehavior self)
         {
             // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
             // Therefore we need to manually make sure the call here is not from the backpack.
             if(NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
             {
-                if (0 < checkAvailable(LocationTypes.chest))
-                {
-                    // TODO perhaps we should count all items, so the player can get ready for a check immediately in the next environment
-                    chestitemsPickedUp++;
-                    if (true) // TODO maybe items should also go to the player?
-                    {
-                        // used to enforce don't drop the item within PickupDropletController_CreatePickupDroplet
-                        chestblockitem = 0 == chestitemsPickedUp % itemPickupStep;
-                    }
-
-                    if (0 == chestitemsPickedUp % itemPickupStep)
-                    {
-                        sendNextAvailable(LocationTypes.chest);
-                    }
-                    updateBar(LocationTypes.chest);
-                }
+                chestblockitem = chestOpened();
             }
 
             orig(self); // the original will end up calling PickupDropletController_CreatePickupDroplet as well as other things
@@ -571,16 +581,23 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <returns>Returns true if a location was submitted.</returns>
         private bool shrineBeat()
         {
-            bool locationsubmitted = false;
-            if (0 < checkAvailable(LocationTypes.shrine))
+            bool locationavailable = 0 < checkAvailable(LocationTypes.shrine);
+
+            // only count when checks are avaiable OR when counting does not roll over
+            if (locationavailable || 0 != (shrinesUsed + 1) % shrineUseStep)
             {
-                // TODO perhaps we should count all shrine, so the player can get ready for a check immediately in the next environment
                 shrinesUsed++;
                 Log.LogDebug("shrine counted as towards the locations");
-                if (0 == shrinesUsed % shrineUseStep) locationsubmitted = sendNextAvailable(LocationTypes.shrine);
                 updateBar(LocationTypes.shrine);
             }
-            return locationsubmitted;
+            else
+            {
+                Log.LogDebug("shrine not counted as towards the locations");
+            }
+
+            // only send checks when rolling over
+            if (locationavailable && 0 == shrinesUsed % shrineUseStep) return sendNextAvailable(LocationTypes.shrine);
+            return false;
         }
 
         /// <summary>
