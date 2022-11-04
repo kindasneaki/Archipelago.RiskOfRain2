@@ -124,6 +124,7 @@ namespace Archipelago.RiskOfRain2
 
                         // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
                         ItemPickupStep = Convert.ToInt32(connectedPacket.SlotData["itemPickupStep"]) + 1;
+                        // TODO ItemPickupStep should be set by ArchipelagoClient.cs instead of here (for consistency)
                         TotalChecks = connectedPacket.LocationsChecked.Count() + connectedPacket.MissingChecks.Count();
                         
                         CurrentChecks = connectedPacket.LocationsChecked.Count();

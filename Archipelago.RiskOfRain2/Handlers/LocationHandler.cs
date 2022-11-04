@@ -287,11 +287,12 @@ namespace Archipelago.RiskOfRain2.Handlers
         public ArchipelagoLocationCheckProgressBarUI itemBar = null;
         public ArchipelagoLocationCheckProgressBarUI shrineBar = null;
 
+        // NOTE the counters are not used to store the actual count, they used for detecting when to send locations
         private uint chestitemsPickedUp = 0; // is used to count the number of items
         private uint shrinesUsed = 0; // is used to count the number of items
-        // XXX get this in from the YAML
-        private uint itemPickupStep = 2; // is the interval at which archipelago locations are sent from chest-like objects; 1 is every, 2 is every other, etc
-        private uint shrineUseStep = 2; // is the interval at which archipelago locations are sent from shrine objects; 1 is every, 2 is every other, etc
+
+        public uint itemPickupStep = 3; // is the interval at which archipelago locations are sent from chest-like objects; 1 is every, 2 is every other, etc
+        public uint shrineUseStep = 3; // is the interval at which archipelago locations are sent from shrine objects; 1 is every, 2 is every other, etc
 
         private bool chestblockitem = false; // used to keep track of when the chest's item(s) are blocked as a location check
         private bool chanceshrineblockitem = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked

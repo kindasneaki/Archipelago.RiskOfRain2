@@ -76,6 +76,21 @@ namespace Archipelago.RiskOfRain2
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
             }
 
+            uint itemPickupStep = 3;
+            uint shrineUseStep = 3;
+            if (successResult.SlotData.TryGetValue("itemPickupStep", out var oitemPickupStep))
+            {
+                itemPickupStep = Convert.ToUInt32(oitemPickupStep);
+                Log.LogDebug($"itemPickupStep from slot data: {itemPickupStep}");
+                itemPickupStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
+            }
+            if (successResult.SlotData.TryGetValue("shrineUseStep", out var oshrineUseStep))
+            {
+                shrineUseStep = Convert.ToUInt32(oshrineUseStep);
+                Log.LogDebug($"shrineUseStep from slot data: {shrineUseStep}");
+                shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
+            }
+
             if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enableBlocker))
             {
                 // block the stages if they are expected to be recieved as items
@@ -114,10 +129,12 @@ namespace Archipelago.RiskOfRain2
                     itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
 
                     shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
-                    shrineCheckBar.ItemPickupStep = 2; // XXX get from yaml
+                    shrineCheckBar.ItemPickupStep = (int)shrineUseStep;
 
                     Locationhandler.itemBar = itemCheckBar;
                     Locationhandler.shrineBar = shrineCheckBar;
+                    Locationhandler.itemPickupStep = itemPickupStep;
+                    Locationhandler.shrineUseStep = shrineUseStep;
                 }
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
@@ -128,7 +145,7 @@ namespace Archipelago.RiskOfRain2
                 SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
             }
 
-            itemCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
+            itemCheckBar.ItemPickupStep = (int)itemPickupStep;
 
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Socket.SocketClosed += Session_SocketClosed;
