@@ -103,7 +103,6 @@ namespace Archipelago.RiskOfRain2
                 {
                     Log.LogDebug("Client detected classic_mode");
                     // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived
-                    SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
                 }
                 else
                 {
@@ -111,6 +110,7 @@ namespace Archipelago.RiskOfRain2
                     // only start the new location handler for explore mode
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
 
+                    // TODO there is a more likely a more reasonable location to create the UI for explore mode
                     itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
 
                     shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
@@ -121,7 +121,12 @@ namespace Archipelago.RiskOfRain2
                 }
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
-            if (null == itemCheckBar) itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
+            if (null == itemCheckBar)
+            {
+                Log.LogDebug("Setting up bar for classic");
+                itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
+                SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
+            }
 
             itemCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
 
