@@ -167,6 +167,7 @@ namespace Archipelago.RiskOfRain2
             if (isPlayingAP)
             {
                 ArchipelagoTotalChecksObjectiveController.RemoveObjective();
+                ArchipelagoLocationsInEnvironmentController.RemoveObjective();
             }
         }
 

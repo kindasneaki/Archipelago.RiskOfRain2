@@ -8,13 +8,13 @@ using static RoR2.UI.ObjectivePanelController;
 
 namespace Archipelago.RiskOfRain2.UI
 {
-    public class ArchipelagoTotalChecksObjectiveController
+    public class ArchipelagoLocationsInEnvironmentController
     {
-        public class TotalChecksObjectiveTracker : ObjectiveTracker
+        public class ChecksInEnvironment : ObjectiveTracker
         {
             public override string GenerateString()
             {
-                return $"Complete location checks: {CurrentChecks}/{TotalChecks}";
+                return $"Environment locations: {chest_count}/{shrine_count}/{scavenger_count}/{radio_scanner_count}/{newt_alter_count}";
             }
 
             public override bool IsDirty()
@@ -23,9 +23,14 @@ namespace Archipelago.RiskOfRain2.UI
             }
         }
 
-        static ArchipelagoTotalChecksObjectiveController()
+        static ArchipelagoLocationsInEnvironmentController()
         {
             ObjectivePanelController.collectObjectiveSources += ObjectivePanelController_collectObjectiveSources;
+        }
+
+        public static void disable()
+        {
+            ObjectivePanelController.collectObjectiveSources -= ObjectivePanelController_collectObjectiveSources;
         }
 
         private static void ObjectivePanelController_collectObjectiveSources(RoR2.CharacterMaster arg1, List<ObjectiveSourceDescriptor> arg2)
@@ -35,15 +40,17 @@ namespace Archipelago.RiskOfRain2.UI
                 arg2.Add(new ObjectiveSourceDescriptor()
                 {
                     master = arg1,
-                    objectiveType = typeof(TotalChecksObjectiveTracker),
+                    objectiveType = typeof(ChecksInEnvironment),
                     source = null
                 });
             }
         }
 
-        public static int CurrentChecks { get; set; }
-
-        public static int TotalChecks { get; set; }
+        public static int chest_count { get; set; }
+        public static int shrine_count { get; set; }
+        public static int scavenger_count { get; set; }
+        public static int radio_scanner_count { get; set; }
+        public static int newt_alter_count { get; set; }
 
         private static bool addObjective;
 

@@ -427,30 +427,46 @@ namespace Archipelago.RiskOfRain2.Handlers
                     next_index = originallocationstemplate.chest_count - locationsinenvironment.chest_count;
                     offset_in_allocation = ArchipelagoLocationOffsets.offset_ChestsPerEnvironment;
                     locationsinenvironment.chest_count--;
+                    ArchipelagoLocationsInEnvironmentController.chest_count = locationsinenvironment.chest_count;
                     break;
                 case LocationTypes.shrine:
                     next_index = originallocationstemplate.shrine_count - locationsinenvironment.shrine_count;
                     offset_in_allocation = ArchipelagoLocationOffsets.offset_ShrinesPerEnvironment;
                     locationsinenvironment.shrine_count--;
+                    ArchipelagoLocationsInEnvironmentController.shrine_count = locationsinenvironment.shrine_count;
                     break;
                 case LocationTypes.scavenger:
                     next_index = originallocationstemplate.scavenger_count - locationsinenvironment.scavenger_count;
                     offset_in_allocation = ArchipelagoLocationOffsets.offset_ScavengersPerEnvironment;
                     locationsinenvironment.scavenger_count--;
+                    ArchipelagoLocationsInEnvironmentController.scavenger_count = locationsinenvironment.scavenger_count;
                     break;
                 case LocationTypes.radio_scanner:
                     next_index = originallocationstemplate.radio_scanner_count - locationsinenvironment.radio_scanner_count;
                     offset_in_allocation = ArchipelagoLocationOffsets.offset_ScannersPerEnvironment;
                     locationsinenvironment.radio_scanner_count--;
+                    ArchipelagoLocationsInEnvironmentController.radio_scanner_count = locationsinenvironment.radio_scanner_count;
                     break;
                 case LocationTypes.newt_altar:
                     next_index = originallocationstemplate.newt_alter_count - locationsinenvironment.newt_alter_count;
                     offset_in_allocation = ArchipelagoLocationOffsets.offset_AltarsPerEnvironment;
                     locationsinenvironment.newt_alter_count--;
+                    ArchipelagoLocationsInEnvironmentController.newt_alter_count = locationsinenvironment.newt_alter_count;
                     break;
                 default:
                     return false; // TODO maybe thrown an exception?
             }
+
+            // update UI to the results of sending the location
+            ArchipelagoTotalChecksObjectiveController.CurrentChecks++;
+            if (
+                0 == ArchipelagoLocationsInEnvironmentController.chest_count +
+                ArchipelagoLocationsInEnvironmentController.shrine_count +
+                ArchipelagoLocationsInEnvironmentController.scavenger_count +
+                ArchipelagoLocationsInEnvironmentController.radio_scanner_count +
+                ArchipelagoLocationsInEnvironmentController.newt_alter_count
+                ) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            else ArchipelagoLocationsInEnvironmentController.AddObjective();
 
             currentlocations[(int)currentenvironment] = locationsinenvironment; // save changes to the count
 
@@ -488,6 +504,22 @@ namespace Archipelago.RiskOfRain2.Handlers
             // update the bars for the new scene
             updateBar(LocationTypes.chest);
             updateBar(LocationTypes.shrine);
+
+            // update the UI to match the new environment
+            ArchipelagoLocationsInEnvironmentController.chest_count = checkAvailable(LocationTypes.chest);
+            ArchipelagoLocationsInEnvironmentController.shrine_count = checkAvailable(LocationTypes.shrine);
+            ArchipelagoLocationsInEnvironmentController.scavenger_count = checkAvailable(LocationTypes.scavenger);
+            ArchipelagoLocationsInEnvironmentController.radio_scanner_count = checkAvailable(LocationTypes.radio_scanner);
+            ArchipelagoLocationsInEnvironmentController.newt_alter_count = checkAvailable(LocationTypes.newt_altar);
+            if (
+                0 == ArchipelagoLocationsInEnvironmentController.chest_count +
+                ArchipelagoLocationsInEnvironmentController.shrine_count +
+                ArchipelagoLocationsInEnvironmentController.scavenger_count +
+                ArchipelagoLocationsInEnvironmentController.radio_scanner_count +
+                ArchipelagoLocationsInEnvironmentController.newt_alter_count
+                ) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            else ArchipelagoLocationsInEnvironmentController.AddObjective();
+            // TODO maybe the make sure the ArchipelagoTotalChecksObjectiveController.CurrentChecks gets synced here (since sending a location increments it and could possibly desync it?)
         }
 
         private void SceneCollection_AddToWeightedSelection(On.RoR2.SceneCollection.orig_AddToWeightedSelection orig, SceneCollection self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
