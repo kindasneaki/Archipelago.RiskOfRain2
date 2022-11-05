@@ -731,15 +731,19 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void BossGroup_DropRewards(On.RoR2.BossGroup.orig_DropRewards orig, BossGroup self)
         {
-            // TODO should mountain behaving like a check remove the item drop?
-            orig(self);
-            for (int n = 0; n < self.bonusRewardCount; n++)
+            Log.LogDebug($"bonusRewardCount initially: {self.bonusRewardCount}");
+            for (int n = self.bonusRewardCount; n > 0; n--)
             {
                 Log.LogDebug("bonusRewardCount means a mountain shrine was beat");
                 // the only way to raise the bonusRewardCount of a boss is via a mountain shrine
 
-                shrineBeat(); // beat the mountain shrine per mountain activated when the teleporter finishes
+                // beat the mountain shrine per mountain activated when the teleporter finishes
+                if (shrineBeat()) self.bonusRewardCount--;
+                // each location sent should mean one less bonus
             }
+            Log.LogDebug($"bonusRewardCount adjusted: {self.bonusRewardCount}");
+
+            orig(self);
         }
 
         /// <summary>
