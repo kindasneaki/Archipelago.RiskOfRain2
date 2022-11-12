@@ -23,6 +23,7 @@ namespace Archipelago.RiskOfRain2
     {
         public int PickedUpItemCount { get; set; }
         public int ItemPickupStep { get; set; }
+        public long ItemStartId { get; private set; }
         public int CurrentChecks { get; set; }
         public int TotalChecks { get; set; }
 
@@ -52,6 +53,10 @@ namespace Archipelago.RiskOfRain2
         public ArchipelagoItemLogicController(ArchipelagoSession session)
         {
             this.session = session;
+
+            // get the initial id from the seed for backwards compatibility
+            ItemStartId = session.Locations.GetLocationIdFromName("Risk of Rain 2", "ItemPickup1");
+
             // TODO all the hooks for ArchipelagoItemLogicController should probably be moved into a hook method
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
             session.Socket.PacketReceived += Session_PacketReceived;
@@ -126,17 +131,39 @@ namespace Archipelago.RiskOfRain2
                         ItemPickupStep = Convert.ToInt32(connectedPacket.SlotData["itemPickupStep"]) + 1;
                         // TODO ItemPickupStep should be set by ArchipelagoClient.cs instead of here (for consistency)
                         TotalChecks = connectedPacket.LocationsChecked.Count() + connectedPacket.MissingChecks.Count();
-                        
-                        CurrentChecks = connectedPacket.LocationsChecked.Count();
+                        Log.LogDebug($"Missing Checks {connectedPacket.MissingChecks.Count()} totalChecks {TotalChecks} Locations Checked {connectedPacket.LocationsChecked.Count()}");
+
+                        // in the case the id is incorrectly set, attempt to set it again
+                        if (ItemStartId == -1)
+                        {
+                            ItemStartId = session.Locations.GetLocationIdFromName("Risk of Rain 2", "ItemPickup1");
+                            // in case that fails, just manually set it to a default value
+                            if (ItemStartId == -1) ItemStartId = 38000;
+                            // NOTE: that this solution will sometimes result in the id just being blatently wrong the first time someone attempts to join a seed.
+                            // A more rubust way of checking the first id could be done but is not worth the effort.
+                            // The player can just restart the lobby and the datapackage should be fixed.
+
+                            // TODO maybe go back and write a more rubust way to make sure the CurrentChecks make sense when the DataPackage Packet is recieved
+                        }
+
+                        if (connectedPacket.MissingChecks.Count() == 0)
+                        {
+                            CurrentChecks = TotalChecks;
+                            finishedAllChecks = true;
+                        }
+                        else
+                        {
+                            // resume pickups with the first missing item
+                            CurrentChecks = (int)(connectedPacket.MissingChecks.Min() - ItemStartId);
+                        }
 
                         ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
                         ArchipelagoTotalChecksObjectiveController.TotalChecks = TotalChecks;
 
                         new SyncTotalCheckProgress(CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);
-
                         // Add up pickedUpItemCount so that resuming a game is possible. The intended behavior is that you immediately receive
                         // all of the items you are granted. This is for restarting (in case you lose a run but are not in commencement). 
-                        PickedUpItemCount = connectedPacket.LocationsChecked.Count() * ItemPickupStep;
+                        PickedUpItemCount = CurrentChecks * ItemPickupStep;
                         break;
                     }
             }
@@ -373,11 +400,11 @@ namespace Archipelago.RiskOfRain2
         private bool HandleItemDrop()
         {
             PickedUpItemCount += 1;
-
+            Log.LogDebug($"PickedUpItemCount + 1 {PickedUpItemCount}  ItemPickupStep {ItemPickupStep}");
             if ((PickedUpItemCount % ItemPickupStep) == 0)
             {
                 CurrentChecks = PickedUpItemCount / ItemPickupStep;
-
+                Log.LogDebug($"Current Checks {CurrentChecks}");
                 ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
 
                 if (CurrentChecks == TotalChecks)
@@ -385,11 +412,8 @@ namespace Archipelago.RiskOfRain2
                     ArchipelagoTotalChecksObjectiveController.CurrentChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;
                     finishedAllChecks = true;
                 }
-
                 var itemSendName = $"ItemPickup{CurrentChecks}";
-                //var itemLocationId = session.Locations.GetLocationIdFromName("Risk of Rain 2", itemSendName);
-                // TODO come back and move magic number to variable
-                var itemLocationId = 38000 + CurrentChecks - 1; // subtract 1 because this count starts at 1
+                var itemLocationId = ItemStartId + CurrentChecks;
                 Log.LogDebug($"Sent out location {itemSendName} (id: {itemLocationId})");
 
                 var packet = new LocationChecksPacket();
