@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 using Archipelago.RiskOfRain2.Extensions;
 using Archipelago.RiskOfRain2.Net;
@@ -19,11 +20,16 @@ namespace Archipelago.RiskOfRain2.UI
         private HUD hud;
         private ArchipelagoLocationCheckProgressBarController locationCheckBar;
         private GameObject container;
+        //private CharacterSelectController characterSelectController;
+        //private Canvas canvas;
+        //private HGTextMeshProUGUI connectText;
+        //private CharacterSelectController contr;
 
         public ArchipelagoLocationCheckProgressBarUI()
         {
             SyncLocationCheckProgress.OnLocationSynced += SyncLocationCheckProgress_LocationSynced;
             On.RoR2.UI.HUD.Awake += HUD_Awake;
+            //On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
         }
 
         private void SyncLocationCheckProgress_LocationSynced(int count, int step)
@@ -42,6 +48,7 @@ namespace Archipelago.RiskOfRain2.UI
         {
             hud = null;
             On.RoR2.UI.HUD.Awake -= HUD_Awake;
+            //On.RoR2.UI.CharacterSelectController.Awake -= CharacterSelectController_Awake;
             SyncLocationCheckProgress.OnLocationSynced -= SyncLocationCheckProgress_LocationSynced;
 
             GameObject.Destroy(container);
@@ -53,6 +60,27 @@ namespace Archipelago.RiskOfRain2.UI
             hud = self;
             PopulateHUD();
         }
+
+/*        private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, CharacterSelectController self) {
+            orig(self);
+            Log.LogDebug("CharacterSelectController hooked");
+            characterSelectController = self;
+            PopulateButton();
+        }
+        private void PopulateButton()
+        {
+            var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
+            var readyPanel = contr.transform.Find("SafeArea/ReadyPanel");
+            var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage");
+            var panel = new GameObject("ConnectPanel");
+            panel.transform.SetParent(readyPanel);
+            canvas = panel.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+
+            var canvasTransform = canvas.transform;
+            canvasTransform.position = new Vector3(0, 0, 0);
+            canvasTransform.localScale = Vector3.one;
+        }*/
 
         private void PopulateHUD()
         {
