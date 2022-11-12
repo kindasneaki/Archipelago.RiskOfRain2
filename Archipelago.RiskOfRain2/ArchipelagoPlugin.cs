@@ -48,6 +48,7 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoStartMessage.OnArchipelagoSessionStart += ArchipelagoStartMessage_OnArchipelagoSessionStart;
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
             ArchipelagoConsoleCommand.OnArchipelagoCommandCalled += ArchipelagoConsoleCommand_ArchipelagoCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
 
@@ -128,6 +129,10 @@ namespace Archipelago.RiskOfRain2
 
             AP.Connect(uri.Uri, slot, password);
             //StartCoroutine(AP.AttemptConnection());
+        }
+        private void ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled()
+        {
+            AP.Dispose();
         }
 
         /// <summary>

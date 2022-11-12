@@ -35,6 +35,13 @@ namespace Archipelago.RiskOfRain2
 
         public void Connect(Uri url, string slotName, string password = null)
         {
+            if (session != null)
+            {
+                if(session.Socket.Connected)
+                {
+                    return;
+                }
+            }
             ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
             Dispose();
 
