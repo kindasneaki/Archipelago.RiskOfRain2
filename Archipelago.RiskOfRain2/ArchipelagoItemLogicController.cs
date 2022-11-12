@@ -127,7 +127,6 @@ namespace Archipelago.RiskOfRain2
                         }
                         // Add up pickedUpItemCount so that resuming a game is possible. The intended behavior is that you immediately receive
                         // all of the items you are granted. This is for restarting (in case you lose a run but are not in commencement). 
-                        // TODO
                         
                         break;
                     }
@@ -303,7 +302,6 @@ namespace Archipelago.RiskOfRain2
 
         private bool HandleItemDrop()
         {
-            //TODO
             PickedUpItemCount += 1;
             Log.LogDebug($"PickedUpItemCount + 1 {PickedUpItemCount}  ItemPickupStep {ItemPickupStep}");
             if ((PickedUpItemCount % ItemPickupStep) == 0)

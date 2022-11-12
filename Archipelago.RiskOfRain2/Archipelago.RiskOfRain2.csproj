@@ -1,12 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <VersionPrefix>1.1.4</VersionPrefix>
-    <FileUpgradeFlags>40</FileUpgradeFlags>
-    <UpgradeBackupLocation>C:\Users\ryand\Documents\Archipelago.RiskOfRain2\Backup\Archipelago.RiskOfRain2\</UpgradeBackupLocation>
-    <OldToolsVersion>2.0</OldToolsVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
@@ -21,14 +18,6 @@
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="R2API" Version="4.4.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Assets\**" />
-    <Compile Remove="libs\**" />
-    <EmbeddedResource Remove="Assets\**" />
-    <EmbeddedResource Remove="libs\**" />
-    <None Remove="Assets\**" />
-    <None Remove="libs\**" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="InLobbyConfig">
