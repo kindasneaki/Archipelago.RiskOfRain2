@@ -453,27 +453,11 @@ namespace Archipelago.RiskOfRain2.Handlers
                 {
                     Log.LogDebug("no choices for next scene; setting up alternate choices");
 
-                    bool appearsLost = true;
-                    if (prevOrderedStage && prevOrderedStage.stageOrder != SceneCatalog.mostRecentSceneDef.stageOrder) appearsLost = false;
-                    // the player appears to be currently lost unless they are on a different stage than the last time this was called
-
                     if (prevOrderedStage) Log.LogDebug($"prev scene {prevOrderedStage.sceneDefIndex} in stage {prevOrderedStage.stageOrder}");
                     else Log.LogDebug("no prev scene");
 
-                    if (appearsLost)
-                    {
-                        Log.LogDebug("adding choices for stage 1");
-                        // when lost, return to the stage 1
-                        self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
-                        ChatMessage.Send("You appear to be lost..."); // TODO somehow send after changing scenes
-                    }
-                    else
-                    {
-                        Log.LogDebug("adding choices using the previous stage destinations");
-                        // when not yet lost, rereturn to the current stage (possibly a different environment)
-                        prevOrderedStage.AddDestinationsToWeightedSelection(choices, self.CanPickStage);
-                        ChatMessage.Send("You start to feel lost..."); // TODO somehow send after changing scenes
-                    }
+                    Log.LogDebug("adding choices for stage 1");
+                    self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
                 }
                 else Log.LogDebug("there are choices for the next scene; skipping tampering said choices");
 
