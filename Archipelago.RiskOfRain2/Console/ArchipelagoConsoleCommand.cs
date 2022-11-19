@@ -9,7 +9,9 @@ namespace Archipelago.RiskOfRain2.Console
     public static class ArchipelagoConsoleCommand
     {
         public delegate void ArchipelagoConsoleCommandHandler(string url, int port, string slot, string password);
+        public delegate void OnArchipelagoDisconnectCommandHandler();
         public static event ArchipelagoConsoleCommandHandler OnArchipelagoCommandCalled;
+        public static event OnArchipelagoDisconnectCommandHandler OnArchipelagoDisconnectCommandCalled;
 
         [ConCommand(
     commandName = "archipelago",
@@ -17,7 +19,12 @@ namespace Archipelago.RiskOfRain2.Console
     helpText = "Connects to Archipelago. Syntax: archipelago <url> <port> <slot> [password]")]
         private static void ArchipelagoConCommand(ConCommandArgs args)
         {
-            if (args.Count < 3 || args.Count > 4)
+            if (args.Count == 1 && args.GetArgString(0).ToLower() == "disconnect")
+            {
+                OnArchipelagoDisconnectCommandCalled();
+                return;
+            }
+            else if (args.Count < 3 || args.Count > 4)
             {
                 ChatMessage.Send("Invalid command. Correct Syntax: archipelago <url> <port> <slot> [password]");
                 return;
