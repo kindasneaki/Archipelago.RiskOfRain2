@@ -259,9 +259,13 @@ namespace Archipelago.RiskOfRain2
 
         private void DisplayPickupNotification(PickupIndex index)
         {
+            PickupDef pickupDef = PickupCatalog.GetPickupDef(index);
+            var color = pickupDef.baseColor;
+            var index_text = pickupDef.nameToken;
             foreach (var player in PlayerCharacterMasterController.instances)
             {
                 CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
+                Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
             }
         }
 

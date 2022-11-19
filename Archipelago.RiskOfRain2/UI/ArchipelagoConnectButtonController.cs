@@ -1,18 +1,7 @@
-﻿using Archipelago.RiskOfRain2.Extensions;
-using R2API.Utils;
+﻿using R2API.Utils;
 using RoR2.UI;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.IO;
-using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using UnityEditor;
-using UnityEngine.AddressableAssets;
-using JetBrains.Annotations;
 using UnityEngine.Events;
 
 namespace Archipelago.RiskOfRain2.UI
@@ -21,10 +10,7 @@ namespace Archipelago.RiskOfRain2.UI
     public class ArchipelagoConnectButtonController : MonoBehaviour
     {
         private CharacterSelectController contr;
-        public GameObject connectButton;
-        public GameObject connectCanvas;
         public GameObject connectPanel;
-        public AssetBundle asset;
         public ConnectClick connectClick;
         public UnityAction ConnectButtonClicked;
         public string assetName = "ConnectPanel";
@@ -64,13 +50,10 @@ namespace Archipelago.RiskOfRain2.UI
         {
             orig(self);
             contr = self;
-            
-            PopulateCharacterSelectController();
-
-        }
-        private void PopulateCharacterSelectController()
-        {
+            var showChat = contr.transform.Find("SafeArea/ChatboxPanel");
+            showChat.gameObject.SetActive(true);
             CreateButton();
+
         }
         public void ButtonTest()
         {
