@@ -27,7 +27,7 @@ namespace Archipelago.RiskOfRain2
         public int TotalChecks { get; set; }
 
         public long[] ChecksTogether { get; set; }
-        //public long[] MissingChecks { get; set; }
+        public long[] MissingChecks { get; set; }
 
         public delegate void ItemDropProcessedHandler(int pickedUpCount);
         public event ItemDropProcessedHandler OnItemDropProcessed;
@@ -106,7 +106,6 @@ namespace Archipelago.RiskOfRain2
                         // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
                         ItemPickupStep = Convert.ToInt32(connectedPacket.SlotData["itemPickupStep"]) + 1;
                         TotalChecks = connectedPacket.LocationsChecked.Count() + connectedPacket.MissingChecks.Count();
-                        // Missing Checks only has the first missing item for some reason
 
 /*                        for (int i = 0; i < connectedPacket.MissingChecks.Length; i++)
                         {
@@ -116,9 +115,14 @@ namespace Archipelago.RiskOfRain2
                         {
                             Log.LogInfo($"Locations Checks {connectedPacket.LocationsChecked[i]}");
                         }*/
-
+                        
                         ChecksTogether = connectedPacket.LocationsChecked.Concat(connectedPacket.MissingChecks).ToArray();
-                        //MissingChecks = connectedPacket.MissingChecks;
+                        ChecksTogether = ChecksTogether.OrderBy(n => n).ToArray();
+                        for (int i = 0; i < ChecksTogether.Length; i++)
+                        {
+                            Log.LogInfo($"Checks Together {ChecksTogether[i]}");
+                        }
+                        MissingChecks = connectedPacket.MissingChecks;
                         // Old way
                         // CurrentChecks = TotalChecks - connectedPacket.MissingChecks.Count();
                         Log.LogDebug($"Missing Checks {connectedPacket.MissingChecks.Count()} totalChecks {TotalChecks} Locations Checked {connectedPacket.LocationsChecked.Count()}");
@@ -328,21 +332,9 @@ namespace Archipelago.RiskOfRain2
             Log.LogDebug($"PickedUpItemCount + 1 {PickedUpItemCount}  ItemPickupStep {ItemPickupStep}");
             if ((PickedUpItemCount % ItemPickupStep) == 0)
             {
-                //This would work if MissingChecks only had the actuall items missing, and not just the first missing
-
-                //MissingChecks = MissingChecks.Skip(1).ToArray();
-                //var missingIndex = Array.IndexOf(ChecksTogether, MissingChecks[0]);
-                //CurrentChecks = missingIndex;
-                //PickedUpItemCount = missingIndex * ItemPickupStep;
-                CurrentChecks = PickedUpItemCount / ItemPickupStep;
-                Log.LogDebug($"Current Checks {CurrentChecks}");
-                ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
-
-                if (CurrentChecks == TotalChecks)
-                {
-                    ArchipelagoTotalChecksObjectiveController.CurrentChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;
-                    finishedAllChecks = true;
-                }
+                CurrentChecks++;
+                //CurrentChecks = PickedUpItemCount / ItemPickupStep;
+                //ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
                 var itemSendName = $"ItemPickup{CurrentChecks}";
                 var itemLocationId = session.Locations.GetLocationIdFromName("Risk of Rain 2", itemSendName);
                 Log.LogDebug($"Sent out location {itemSendName} (id: {itemLocationId})");
@@ -351,6 +343,18 @@ namespace Archipelago.RiskOfRain2
                 packet.Locations = new List<long> { itemLocationId }.ToArray();
 
                 session.Socket.SendPacket(packet);
+                if (CurrentChecks == TotalChecks)
+                {
+                    ArchipelagoTotalChecksObjectiveController.CurrentChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;
+                    finishedAllChecks = true;
+                }
+                MissingChecks = MissingChecks.Skip(1).ToArray();
+                var missingIndex = Array.IndexOf(ChecksTogether, MissingChecks[0]);
+                CurrentChecks = missingIndex;
+                PickedUpItemCount = missingIndex * ItemPickupStep;
+                //CurrentChecks = PickedUpItemCount / ItemPickupStep;
+                Log.LogDebug($"Current Checks {CurrentChecks}");
+                ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
                 return false;
             }
             return true;

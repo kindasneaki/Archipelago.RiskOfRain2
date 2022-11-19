@@ -258,7 +258,6 @@ namespace Archipelago.RiskOfRain2
                                         break;
                                     }
                             }
-                            Log.LogDebug($"part.Text {part.Text} part.Color {part.Color}");
                         }
                         ChatMessage.Send(text);
                         //ChatMessage.SendColored(text, Color.cyan);
