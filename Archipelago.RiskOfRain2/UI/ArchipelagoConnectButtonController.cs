@@ -3,6 +3,7 @@ using RoR2.UI;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Archipelago.RiskOfRain2.UI
 {
@@ -70,19 +71,27 @@ namespace Archipelago.RiskOfRain2.UI
             cb.AddComponent<MPEventSystemLocator>();
             cb.AddComponent<HGGamepadInputEvent>();
             cb.transform.SetParent(readyPanel, false);
-            cb.transform.localPosition = new Vector3(100, -500, 0);
+            cb.transform.localPosition = new Vector3(125, 0, 0);
             cb.transform.localScale = Vector3.one;
             RectTransform rectTransform = cb.GetComponent<RectTransform>();
             //rectTransform.anchoredPosition = Vector2.zero;
 
-            var button = cb.transform.GetChild(0).gameObject;
+            var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
+            Log.LogDebug("buttonPanel");
+            //var button = buttonPanel.transform.GetChild(0).gameObject;
             button.AddComponent<HGButton>();
             button.AddComponent<HGGamepadInputEvent>();
             button.GetComponent<HGGamepadInputEvent>().actionName = "ButtonTest";
 
             var outline = Instantiate(baseHoverOutlineSprite);
             outline.transform.SetParent(button.transform);
-            
+            outline.transform.localPosition = button.transform.localPosition;
+            button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
+            button.GetComponent<HGButton>().showImageOnHover = true;
+            button.GetComponent<HGButton>().allowAllEventSystems = true;
+            button.GetComponent<Image>().sprite = readyButton.gameObject.GetComponent<Image>().sprite;
+
+
 
         }
     }

@@ -3,19 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
-using Archipelago.MultiClient.Net.Models;
 using Archipelago.MultiClient.Net.Packets;
+using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.RiskOfRain2.Extensions;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
-using HarmonyLib;
-using R2API;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
-using RoR2.UI;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using System.Collections.ObjectModel;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -54,7 +52,7 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
-
+            session.Locations.CheckedLocationsUpdated += Check_Locations;
             Log.LogDebug("Okay finished hooking.");
             smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("Assets/RoR2/Junk/Characters/Bandit/Skills/SmokescreenEffect.prefab").WaitForCompletion();
             Log.LogDebug("Okay, finished getting prefab.");
@@ -90,12 +88,41 @@ namespace Archipelago.RiskOfRain2
             Log.LogDebug("Ok, finished browsing catalog.");
         }
 
-        private void Items_ItemReceived(MultiClient.Net.Helpers.ReceivedItemsHelper helper)
+        private void Items_ItemReceived(ReceivedItemsHelper helper)
         {
             var newItem = helper.DequeueItem();
             EnqueueItem(newItem.Item);
         }
+        private void Check_Locations(ReadOnlyCollection<long> item)
+        {
+            long[] missing = new long[item.Count];
+            item.CopyTo(missing, 0);
 
+            if (MissingChecks != null)
+            {
+                for(int i = 0; i < missing.Length; i++)
+                {
+                    var missingList = new List<long>(MissingChecks);
+                    var missingIndex = Array.IndexOf(MissingChecks, missing[i]);
+                    missingList.RemoveAt(missingIndex);
+                    MissingChecks = missingList.ToArray();
+                }
+                Update_MissingChecks();
+            }
+
+        }
+        private void Update_MissingChecks()
+        {
+            if(MissingChecks.Count() > 0 && ChecksTogether != null)
+            {
+                var missingIndex = Array.IndexOf(ChecksTogether, MissingChecks[0]);
+                Log.LogInfo($"Last item collected is {missingIndex}/{TotalChecks} next missing id is {MissingChecks[0]}");
+                CurrentChecks = missingIndex;
+                PickedUpItemCount = missingIndex * ItemPickupStep;
+                ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
+            }
+            
+        }
         private void Session_PacketReceived(ArchipelagoPacketBase packet)
         {
             switch (packet.PacketType)
@@ -118,11 +145,6 @@ namespace Archipelago.RiskOfRain2
                         
                         ChecksTogether = connectedPacket.LocationsChecked.Concat(connectedPacket.MissingChecks).ToArray();
                         ChecksTogether = ChecksTogether.OrderBy(n => n).ToArray();
-                        for (int i = 0; i < ChecksTogether.Length; i++)
-                        {
-                            Log.LogInfo($"Checks Together {ChecksTogether[i]}");
-                        }
-                        MissingChecks = connectedPacket.MissingChecks;
                         // Old way
                         // CurrentChecks = TotalChecks - connectedPacket.MissingChecks.Count();
                         Log.LogDebug($"Missing Checks {connectedPacket.MissingChecks.Count()} totalChecks {TotalChecks} Locations Checked {connectedPacket.LocationsChecked.Count()}");
@@ -348,13 +370,6 @@ namespace Archipelago.RiskOfRain2
                     ArchipelagoTotalChecksObjectiveController.CurrentChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;
                     finishedAllChecks = true;
                 }
-                MissingChecks = MissingChecks.Skip(1).ToArray();
-                var missingIndex = Array.IndexOf(ChecksTogether, MissingChecks[0]);
-                CurrentChecks = missingIndex;
-                PickedUpItemCount = missingIndex * ItemPickupStep;
-                //CurrentChecks = PickedUpItemCount / ItemPickupStep;
-                Log.LogDebug($"Current Checks {CurrentChecks}");
-                ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
                 return false;
             }
             return true;

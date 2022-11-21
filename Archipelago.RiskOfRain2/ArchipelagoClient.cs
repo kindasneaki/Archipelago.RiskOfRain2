@@ -2,6 +2,7 @@
 using System.Linq;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
+using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
