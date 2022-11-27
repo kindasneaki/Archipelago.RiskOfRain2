@@ -31,11 +31,10 @@ namespace Archipelago.RiskOfRain2
         private ArchipelagoClient AP;
         //private bool isInLobbyConfigLoaded = false;
         private string apServerUri = "archipelago.gg";
-        private int apServerPort = 63832;
-        //private int apServerPort = 38281;
+        private int apServerPort = 38281;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        private string apSlotName = "SneakiRoR";
+        private string apSlotName = "";
         //private string apSlotName;
         private string apPassword;
 
