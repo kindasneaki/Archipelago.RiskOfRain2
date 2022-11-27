@@ -97,7 +97,6 @@ namespace Archipelago.RiskOfRain2
         {
             long[] missing = new long[item.Count];
             item.CopyTo(missing, 0);
-
             if (MissingChecks != null)
             {
                 for(int i = 0; i < missing.Length; i++)
@@ -145,6 +144,7 @@ namespace Archipelago.RiskOfRain2
                         
                         ChecksTogether = connectedPacket.LocationsChecked.Concat(connectedPacket.MissingChecks).ToArray();
                         ChecksTogether = ChecksTogether.OrderBy(n => n).ToArray();
+                        MissingChecks = connectedPacket.MissingChecks;
                         // Old way
                         // CurrentChecks = TotalChecks - connectedPacket.MissingChecks.Count();
                         Log.LogDebug($"Missing Checks {connectedPacket.MissingChecks.Count()} totalChecks {TotalChecks} Locations Checked {connectedPacket.LocationsChecked.Count()}");

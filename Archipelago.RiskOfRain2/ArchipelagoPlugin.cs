@@ -5,7 +5,6 @@ using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using BepInEx;
 using BepInEx.Bootstrap;
-using InLobbyConfig.Fields;
 using R2API;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
@@ -19,7 +18,7 @@ namespace Archipelago.RiskOfRain2
 {
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
-    [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.HardDependency)]
+    //[BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.HardDependency)]
     [R2APISubmoduleDependency(nameof(NetworkingAPI), nameof(PrefabAPI), nameof(CommandHelper))]
     public class ArchipelagoPlugin : BaseUnityPlugin
     {
@@ -30,7 +29,7 @@ namespace Archipelago.RiskOfRain2
         internal static ArchipelagoPlugin Instance { get; private set; }
 
         private ArchipelagoClient AP;
-        private bool isInLobbyConfigLoaded = false;
+        //private bool isInLobbyConfigLoaded = false;
         private string apServerUri = "archipelago.gg";
         private int apServerPort = 63832;
         //private int apServerPort = 38281;
@@ -59,14 +58,11 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
-            isInLobbyConfigLoaded = Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig");
+            //isInLobbyConfigLoaded = Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig");
             var connectButton = new GameObject("ArchipelagoConnectButtonController");
             connectButton.AddComponent<ArchipelagoConnectButtonController>();
 
-            if (isInLobbyConfigLoaded)
-            {
-                CreateInLobbyMenu();
-            }
+            CreateLobbyFields();
 
             NetworkingAPI.RegisterMessageType<SyncLocationCheckProgress>();
             NetworkingAPI.RegisterMessageType<ArchipelagoStartMessage>();
@@ -199,19 +195,32 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        private void CreateInLobbyMenu()
+        /*        private void CreateInLobbyMenu()
+                {
+                    var configEntry = new InLobbyConfig.ModConfigEntry();
+                    configEntry.DisplayName = "Archipelago";
+                    configEntry.SectionFields.Add("Archipelago Client Config", new List<IConfigField>
+                    {
+                        new StringConfigField("Archipelago Slot Name", () => apSlotName, (newValue) => apSlotName = newValue),
+                        new StringConfigField("Archipelago Server Password", () => apPassword, (newValue) => apPassword = newValue),
+                        new StringConfigField("Archipelago Server URL", () => apServerUri, (newValue) => apServerUri = newValue),
+                        new IntConfigField("Archipelago Server Port", () => apServerPort, (newValue) => apServerPort = newValue),
+                        new BooleanConfigField("Enable Archipelago?", () => willConnectToAP, (newValue) => willConnectToAP = newValue)
+                    });
+                    InLobbyConfig.ModConfigCatalog.Add(configEntry);
+                }*/
+        private void CreateLobbyFields()
         {
-            var configEntry = new InLobbyConfig.ModConfigEntry();
-            configEntry.DisplayName = "Archipelago";
-            configEntry.SectionFields.Add("Archipelago Client Config", new List<IConfigField>
-            {
-                new StringConfigField("Archipelago Slot Name", () => apSlotName, (newValue) => apSlotName = newValue),
-                new StringConfigField("Archipelago Server Password", () => apPassword, (newValue) => apPassword = newValue),
-                new StringConfigField("Archipelago Server URL", () => apServerUri, (newValue) => apServerUri = newValue),
-                new IntConfigField("Archipelago Server Port", () => apServerPort, (newValue) => apServerPort = newValue),
-                new BooleanConfigField("Enable Archipelago?", () => willConnectToAP, (newValue) => willConnectToAP = newValue)
-            });
-            InLobbyConfig.ModConfigCatalog.Add(configEntry);
+            ArchipelagoConnectButtonController.OnSlotChanged = (newValue) => apSlotName = newValue;
+            ArchipelagoConnectButtonController.OnPasswordChanged = (newValue) => apPassword = newValue;
+            ArchipelagoConnectButtonController.OnUrlChanged = (newValue) => apServerUri = newValue;
+            ArchipelagoConnectButtonController.OnPortChanged = ChangePort;
+        }
+        private string ChangePort(string newValue)
+        {
+            apServerPort = int.Parse(newValue);
+            Log.LogDebug($"apport = {apServerPort}");
+            return newValue;
         }
     }
 }

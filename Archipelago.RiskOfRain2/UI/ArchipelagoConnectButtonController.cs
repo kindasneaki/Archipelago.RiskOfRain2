@@ -1,6 +1,8 @@
 ﻿using R2API.Utils;
 using RoR2.UI;
+using System;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -13,12 +15,20 @@ namespace Archipelago.RiskOfRain2.UI
         private CharacterSelectController contr;
         public GameObject connectPanel;
         public ConnectClick connectClick;
-        public UnityAction ConnectButtonClicked;
         public string assetName = "ConnectPanel";
         public string bundleName = "connectbundle";
+        public GameObject chat;
+
+        public delegate string SlotChanged(string newValue);
+        public static SlotChanged OnSlotChanged;
+        public delegate string PasswordChanged(string newValue);
+        public static PasswordChanged OnPasswordChanged;
+        public delegate string UrlChanged(string newValue);
+        public static UrlChanged OnUrlChanged;
+        public delegate string PortChanged(string newValue);
+        public static PortChanged OnPortChanged;
         public void Start()
         {
-            ConnectButtonClicked += ButtonTest;
             AssetBundle localAssetBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(ArchipelagoPlugin.Instance.Info.Location), bundleName));
             if (localAssetBundle == null)
             {
@@ -46,21 +56,36 @@ namespace Archipelago.RiskOfRain2.UI
         {
             Log.LogDebug("Awake()");
             On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
+            On.RoR2.UI.CharacterSelectController.Update += CharacterSelectController_Update;
         }
+
+        private void CharacterSelectController_Update(On.RoR2.UI.CharacterSelectController.orig_Update orig, CharacterSelectController self)
+        {
+            orig(self);
+            contr = self;
+            
+            if (chat != null && chat.gameObject.activeSelf == false)
+            {
+                chat.gameObject.SetActive(true);
+                On.RoR2.UI.CharacterSelectController.Update -= CharacterSelectController_Update;
+                
+            }
+            else
+            {
+                chat = contr.transform.Find("SafeArea/ChatboxPanel/").gameObject;
+            }
+
+        }
+
+        //Hook for when the lobby is entered
         internal void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, CharacterSelectController self)
         {
             orig(self);
             contr = self;
-            var showChat = contr.transform.Find("SafeArea/ChatboxPanel");
-            showChat.gameObject.SetActive(true);
             CreateButton();
-
+            CreateFields();
         }
-        public void ButtonTest()
-        {
-            Log.LogDebug("Button Pressed");
-            ChatMessage.Send("Button Pressed");
-        }
+        //Create button for the lobby
         private void CreateButton()
         {
             var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
@@ -74,14 +99,10 @@ namespace Archipelago.RiskOfRain2.UI
             cb.transform.localPosition = new Vector3(125, 0, 0);
             cb.transform.localScale = Vector3.one;
             RectTransform rectTransform = cb.GetComponent<RectTransform>();
-            //rectTransform.anchoredPosition = Vector2.zero;
 
             var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
-            Log.LogDebug("buttonPanel");
-            //var button = buttonPanel.transform.GetChild(0).gameObject;
             button.AddComponent<HGButton>();
             button.AddComponent<HGGamepadInputEvent>();
-            button.GetComponent<HGGamepadInputEvent>().actionName = "ButtonTest";
 
             var outline = Instantiate(baseHoverOutlineSprite);
             outline.transform.SetParent(button.transform);
@@ -90,9 +111,22 @@ namespace Archipelago.RiskOfRain2.UI
             button.GetComponent<HGButton>().showImageOnHover = true;
             button.GetComponent<HGButton>().allowAllEventSystems = true;
             button.GetComponent<Image>().sprite = readyButton.gameObject.GetComponent<Image>().sprite;
+        }
+        //Listeners for the fields to save changed info
+        private void CreateFields()
+        {
+            var inputSlotName = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputSlotName/").gameObject;
+            inputSlotName.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnSlotChanged(value); });
+            var inputPassword = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputPassword/").gameObject;
+            inputPassword.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnPasswordChanged(value); });
+            var inputUrl = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputUrl/").gameObject;
+            inputUrl.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnUrlChanged(value); });
+            inputUrl.GetComponent<TMP_InputField>().text = "archipelago.gg";
+            var inputPort = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputPort/").gameObject;
+            inputPort.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnPortChanged(value); });
+            inputPort.GetComponent<TMP_InputField>().text = "38281";
 
-
-
+            
         }
     }
 }
