@@ -180,7 +180,7 @@ namespace Archipelago.RiskOfRain2
                 
                 AP.Connect(uri.Uri, apSlotName, apPassword);
             }*/
-            isPlayingAP = true;
+            //isPlayingAP = true;
             if (isPlayingAP)
             {
                 ArchipelagoTotalChecksObjectiveController.AddObjective();
@@ -219,7 +219,6 @@ namespace Archipelago.RiskOfRain2
         private string ChangePort(string newValue)
         {
             apServerPort = int.Parse(newValue);
-            Log.LogDebug($"apport = {apServerPort}");
             return newValue;
         }
     }

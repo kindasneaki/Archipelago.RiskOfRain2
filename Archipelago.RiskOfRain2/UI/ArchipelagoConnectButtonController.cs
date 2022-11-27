@@ -39,7 +39,7 @@ namespace Archipelago.RiskOfRain2.UI
             connectClick = connectPanel.AddComponent<ConnectClick>();
             connectClick.Connect = connectPanel;
             localAssetBundle.Unload(false);
-
+            On.RoR2.UI.CharacterSelectController.Update += CharacterSelectController_Update;
 
         }
         public void OnLoadDone(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<GameObject> obj)
@@ -56,8 +56,9 @@ namespace Archipelago.RiskOfRain2.UI
         {
             Log.LogDebug("Awake()");
             On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
-            On.RoR2.UI.CharacterSelectController.Update += CharacterSelectController_Update;
+            
         }
+
 
         private void CharacterSelectController_Update(On.RoR2.UI.CharacterSelectController.orig_Update orig, CharacterSelectController self)
         {
@@ -67,12 +68,7 @@ namespace Archipelago.RiskOfRain2.UI
             if (chat != null && chat.gameObject.activeSelf == false)
             {
                 chat.gameObject.SetActive(true);
-                On.RoR2.UI.CharacterSelectController.Update -= CharacterSelectController_Update;
-                
-            }
-            else
-            {
-                chat = contr.transform.Find("SafeArea/ChatboxPanel/").gameObject;
+                //On.RoR2.UI.CharacterSelectController.Update -= CharacterSelectController_Update;                
             }
 
         }
@@ -82,6 +78,7 @@ namespace Archipelago.RiskOfRain2.UI
         {
             orig(self);
             contr = self;
+            chat = contr.transform.Find("SafeArea/ChatboxPanel/").gameObject;
             CreateButton();
             CreateFields();
         }

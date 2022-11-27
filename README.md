@@ -86,21 +86,22 @@ The player will have the default preset generated item pool with the custom item
 
 I assume you already have an Archipelago server running. Instructions on how to run a server are available on https://archipelago.gg.
 
-Fill in the relevant info and click ConnectToAP to connect to the server
+Fill in the relevant info and click `Connect To AP` to connect to the server
 
 Keep password blank if there is no password on the server.
 
 ![In Lobby UI Example](./docs/img/lobby.png)
 
-Simply check `Enable Archipelago?` and when you start the run it will automatically connect and print a message stating successful connection in your in-game chat.
+Once connected it will print in chat that you have successfully connect!
 
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
 **1.1.4**
 * Fixed Collect Bug.
+* Skip collected checks so you dont just send nothing.
 * Now connect to AP through lobby instead of with ready button.
-    *Chat enabled for single player
+  * Chat enabled for single player
 * Added Color to Players in chat for better readability.
 * Multi Client 4.0 support.
 * Original mod location https://thunderstore.io/package/ArchipelagoMW/Archipelago/
@@ -190,9 +191,9 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 ## Known Issues
 
 * Splitscreen support is unlikely at the moment. It might work, it might not.
+* Connecting to multiple slots on the same multiplayer game will not work and will take just the hosts slot once in game.
 * If you start a new run but join an existing AP session, you will get spammed with notifications for all your pickups.
-* Reconnect breaks location check progress bar.
-
+* Game hitches upon someone forfeit/releaseing their items.
 
 ## To-do/Ideas
 

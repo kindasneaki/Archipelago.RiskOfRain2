@@ -43,7 +43,7 @@ namespace Archipelago.RiskOfRain2
                     return;
                 }
             }
-            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
+            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.cyan);
             Dispose();
 
             LastServerUrl = url;
