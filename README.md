@@ -97,6 +97,11 @@ Once connected it will print in chat that you have successfully connect!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.1.5**
+* Fixed Fields resetting to default after dying.
+* Reconnect by just hitting ready.
+
+
 **1.1.4**
 * Fixed Collect Bug.
 * Skip collected checks so you dont just send nothing.

@@ -30,13 +30,13 @@ namespace Archipelago.RiskOfRain2
 
         private ArchipelagoClient AP;
         //private bool isInLobbyConfigLoaded = false;
-        private string apServerUri = "archipelago.gg";
-        private int apServerPort = 38281;
+        internal static string apServerUri = "archipelago.gg";
+        internal static int apServerPort = 38281;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        private string apSlotName = "";
+        internal static string apSlotName = "";
         //private string apSlotName;
-        private string apPassword;
+        internal static string apPassword;
 
         public ArchipelagoPlugin()
         {
@@ -169,21 +169,23 @@ namespace Archipelago.RiskOfRain2
         private void Run_onRunStartGlobal(Run obj)
         {
             var isHost = NetworkServer.active && RoR2Application.isInMultiPlayer;
-            /*if (willConnectToAP && (isHost || RoR2Application.isInSinglePlayer))
+            if (willConnectToAP && (isHost || RoR2Application.isInSinglePlayer))
             {
-                isPlayingAP = true;
-                var uri = new UriBuilder();
-                uri.Scheme = "ws://";
-                uri.Host = apServerUri;
-                uri.Port = apServerPort;
-                
-                AP.Connect(uri.Uri, apSlotName, apPassword);
-            }*/
-            //isPlayingAP = true;
-            if (isPlayingAP)
-            {
-                ArchipelagoTotalChecksObjectiveController.AddObjective();
+                //isPlayingAP = true;
+
+                if (isPlayingAP)
+                {
+                    var uri = new UriBuilder();
+                    uri.Scheme = "ws://";
+                    uri.Host = apServerUri;
+                    uri.Port = apServerPort;
+
+                    AP.Connect(uri.Uri, apSlotName, apPassword);
+                    ArchipelagoTotalChecksObjectiveController.AddObjective();
+                }
             }
+            //isPlayingAP = true;
+            
         }
 
         private void Run_onRunDestroyGlobal(Run obj)

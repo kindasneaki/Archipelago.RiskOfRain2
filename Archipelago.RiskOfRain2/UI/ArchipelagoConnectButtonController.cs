@@ -13,6 +13,7 @@ namespace Archipelago.RiskOfRain2.UI
     public class ArchipelagoConnectButtonController : MonoBehaviour
     {
         private CharacterSelectController contr;
+        private ArchipelagoPlugin ArchipelagoPlugin;
         public GameObject connectPanel;
         public ConnectClick connectClick;
         public string assetName = "ConnectPanel";
@@ -81,6 +82,7 @@ namespace Archipelago.RiskOfRain2.UI
             chat = contr.transform.Find("SafeArea/ChatboxPanel/").gameObject;
             CreateButton();
             CreateFields();
+            Log.LogDebug("Charater Awake");
         }
         //Create button for the lobby
         private void CreateButton()
@@ -114,14 +116,16 @@ namespace Archipelago.RiskOfRain2.UI
         {
             var inputSlotName = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputSlotName/").gameObject;
             inputSlotName.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnSlotChanged(value); });
+            inputSlotName.GetComponent<TMP_InputField>().text = ArchipelagoPlugin.apSlotName;
             var inputPassword = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputPassword/").gameObject;
             inputPassword.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnPasswordChanged(value); });
+            inputPassword.GetComponent<TMP_InputField>().text = ArchipelagoPlugin.apPassword;
             var inputUrl = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputUrl/").gameObject;
             inputUrl.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnUrlChanged(value); });
-            inputUrl.GetComponent<TMP_InputField>().text = "archipelago.gg";
+            inputUrl.GetComponent<TMP_InputField>().text = ArchipelagoPlugin.apServerUri;
             var inputPort = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputPort/").gameObject;
             inputPort.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnPortChanged(value); });
-            inputPort.GetComponent<TMP_InputField>().text = "38281";
+            inputPort.GetComponent<TMP_InputField>().text = string.Concat(ArchipelagoPlugin.apServerPort);
 
             
         }
