@@ -270,7 +270,10 @@ namespace Archipelago.RiskOfRain2
         {
             // If ending is acceptable, finish the archipelago run.
             if (IsEndingAcceptable(gameEndingDef))
-            {
+            {                
+                // Auto-complete all remaining locations. Substitute for deprecated forced_auto_forfeit.
+                session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
+             
                 var packet = new StatusUpdatePacket();
                 packet.Status = ArchipelagoClientState.ClientGoal;
                 session.Socket.SendPacket(packet);
