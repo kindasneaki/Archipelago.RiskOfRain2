@@ -23,6 +23,7 @@ namespace Archipelago.RiskOfRain2
         public int ItemPickupStep { get; set; }
         public int CurrentChecks { get; set; }
         public int TotalChecks { get; set; }
+        System.Random rnd = new System.Random();
 
         public long[] ChecksTogether { get; set; }
         public long[] MissingChecks { get; set; }
@@ -239,6 +240,30 @@ namespace Archipelago.RiskOfRain2
                         GiveEquipmentToPlayers(lunar);
                     }
                     break;
+                case "Void Item":
+                    int voidWeight = 70 + 40 + 10 + 5;
+                    int voidChoice = rnd.Next(voidWeight);
+                    var voidItem = new PickupIndex();
+                    if (voidChoice <= 70)
+                    {
+                        voidItem = Run.instance.availableVoidTier1DropList.Choice();
+                    }
+                    else if (voidChoice <= 110)
+                    {
+                        voidItem = Run.instance.availableVoidTier2DropList.Choice();
+                    }
+                    else if (voidChoice <= 120)
+                    {
+                        voidItem = Run.instance.availableVoidTier3DropList.Choice();
+                    }
+                    else
+                    {
+                        voidItem = Run.instance.availableVoidBossDropList.Choice();
+                    }
+                    GiveItemToPlayers(voidItem);
+
+                    break;
+
                 case "Equipment":
                     var equipment = Run.instance.availableEquipmentDropList.Choice();
                     GiveEquipmentToPlayers(equipment);
@@ -336,7 +361,8 @@ namespace Archipelago.RiskOfRain2
 
             if (!spawnItem)
             {
-                EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
+                //Errors out.. smokescreenPrefab is null
+                //EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
             }
 
             new SyncTotalCheckProgress(finishedAllChecks ? TotalChecks : CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);

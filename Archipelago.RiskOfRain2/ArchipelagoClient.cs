@@ -28,6 +28,7 @@ namespace Archipelago.RiskOfRain2
 
         private ArchipelagoSession session;
         private bool finalStageDeath = true;
+        private string attemptedSlotName = "";
 
         public ArchipelagoClient()
         {
@@ -43,8 +44,7 @@ namespace Archipelago.RiskOfRain2
                     return;
                 }
             }
-            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.cyan);
-            Dispose();
+            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
 
             LastServerUrl = url;
 
@@ -62,6 +62,7 @@ namespace Archipelago.RiskOfRain2
                     ChatMessage.SendColored(err, Color.red);
                     Log.LogError(err);
                 }
+                Dispose();
                 return;
             }
 
