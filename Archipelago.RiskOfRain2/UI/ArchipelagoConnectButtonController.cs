@@ -15,10 +15,14 @@ namespace Archipelago.RiskOfRain2.UI
         private CharacterSelectController contr;
         private ArchipelagoPlugin ArchipelagoPlugin;
         public GameObject connectPanel;
-        public ConnectClick connectClick;
+        //public ConnectClick connectClick;
         public string assetName = "ConnectPanel";
         public string bundleName = "connectbundle";
         public GameObject chat;
+        public GameObject ConnectPanel;
+        public GameObject MinimizePanel;
+        private string minimizeText = "-";
+        private TMP_FontAsset font;
 
         public delegate string SlotChanged(string newValue);
         public static SlotChanged OnSlotChanged;
@@ -28,6 +32,9 @@ namespace Archipelago.RiskOfRain2.UI
         public static UrlChanged OnUrlChanged;
         public delegate string PortChanged(string newValue);
         public static PortChanged OnPortChanged;
+        public delegate void ConnectClicked();
+        public static ConnectClicked OnConnectClick;
+        public static ConnectClicked OnButtonClick;
         public void Start()
         {
             AssetBundle localAssetBundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(ArchipelagoPlugin.Instance.Info.Location), bundleName));
@@ -37,8 +44,8 @@ namespace Archipelago.RiskOfRain2.UI
                     return;
             }
             connectPanel = localAssetBundle.LoadAsset<GameObject>("ConnectCanvas");
-            connectClick = connectPanel.AddComponent<ConnectClick>();
-            connectClick.Connect = connectPanel;
+            //connectClick = connectPanel.AddComponent<ConnectClick>();
+            //connectClick.Connect = connectPanel;
             localAssetBundle.Unload(false);
             On.RoR2.UI.CharacterSelectController.Update += CharacterSelectController_Update;
 
@@ -55,8 +62,8 @@ namespace Archipelago.RiskOfRain2.UI
         }
         public void Awake()
         {
-            Log.LogDebug("Awake()");
             On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
+            OnButtonClick += ButtonPressed;
             
         }
 
@@ -82,12 +89,15 @@ namespace Archipelago.RiskOfRain2.UI
             chat = contr.transform.Find("SafeArea/ChatboxPanel/").gameObject;
             CreateButton();
             CreateFields();
+            CreateMinimizeButton();
             Log.LogDebug("Charater Awake");
+            ConnectPanel = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel").gameObject;
         }
         //Create button for the lobby
         private void CreateButton()
         {
             var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
+            font = readyButton.GetComponentInChildren<TextMeshProUGUI>().font;
             var readyPanel = contr.transform.Find("SafeArea");
             var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage");
 
@@ -109,7 +119,9 @@ namespace Archipelago.RiskOfRain2.UI
             button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
             button.GetComponent<HGButton>().showImageOnHover = true;
             button.GetComponent<HGButton>().allowAllEventSystems = true;
+            button.GetComponent<HGButton>().onClick.AddListener(() => OnButtonClick());
             button.GetComponent<Image>().sprite = readyButton.gameObject.GetComponent<Image>().sprite;
+            button.GetComponentInChildren<TextMeshProUGUI>().font = font;
         }
         //Listeners for the fields to save changed info
         private void CreateFields()
@@ -126,8 +138,22 @@ namespace Archipelago.RiskOfRain2.UI
             var inputPort = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/InputPort/").gameObject;
             inputPort.GetComponent<TMP_InputField>().onValueChanged.AddListener((string value) => { OnPortChanged(value); });
             inputPort.GetComponent<TMP_InputField>().text = string.Concat(ArchipelagoPlugin.apServerPort);
-
-            
+        }
+        private void CreateMinimizeButton()
+        {
+            var minimizePanel = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Hide");
+            var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Hide/Button").gameObject;
+            button.AddComponent<HGButton>();
+            button.AddComponent<HGGamepadInputEvent>();
+            minimizePanel.GetComponentInChildren<TextMeshProUGUI>().font = font;
+            button.GetComponent<HGButton>().onClick.AddListener(() => OnButtonClick());
+            MinimizePanel = minimizePanel.gameObject;
+        }
+        private void ButtonPressed()
+        {
+            ConnectPanel.SetActive(!ConnectPanel.activeSelf);
+            minimizeText = (minimizeText == "-") ? "AP +" : "-";
+            MinimizePanel.GetComponentInChildren<TextMeshProUGUI>().text = minimizeText;
         }
     }
 }

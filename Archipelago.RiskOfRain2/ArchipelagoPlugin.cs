@@ -47,7 +47,7 @@ namespace Archipelago.RiskOfRain2
             Log.Init(Logger);
 
             AP = new ArchipelagoClient();
-            ConnectClick.OnButtonClick += OnClick_ConnectToArchipelagoWithButton;
+            ArchipelagoConnectButtonController.OnConnectClick += OnClick_ConnectToArchipelagoWithButton;
             AP.OnClientDisconnect += AP_OnClientDisconnect;
             Run.onRunStartGlobal += Run_onRunStartGlobal;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
