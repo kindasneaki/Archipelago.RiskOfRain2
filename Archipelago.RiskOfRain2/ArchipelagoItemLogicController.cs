@@ -450,7 +450,7 @@ namespace Archipelago.RiskOfRain2
                 //CurrentChecks = PickedUpItemCount / ItemPickupStep;
                 //ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
                 var itemSendName = $"ItemPickup{CurrentChecks}";
-                var itemLocationId = ItemStartId + CurrentChecks;
+                var itemLocationId = ItemStartId + CurrentChecks - 1; // because CurrentChecks is incremented first, subtract one to use the current id
                 Log.LogDebug($"Sent out location {itemSendName} (id: {itemLocationId})");
 
                 var packet = new LocationChecksPacket();
