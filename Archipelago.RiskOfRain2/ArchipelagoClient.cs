@@ -41,7 +41,7 @@ namespace Archipelago.RiskOfRain2
 
         }
 
-        public void Connect(Uri url, string slotName, string password = null, string[] tags = null)
+        public void Connect(Uri url, string slotName, string password = null)
         {
             ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
             Dispose();
@@ -53,11 +53,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            //List<string> taglist = tags is not null ? tags.ToList<string>() : new List<string>();
-            // any dynamic modification to the given tags should be done here
-            //tags = taglist.ToArray();
-
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems, tags: tags);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems);
 
             if (!result.Successful)
             {
