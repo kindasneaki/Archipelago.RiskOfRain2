@@ -77,6 +77,7 @@ namespace Archipelago.RiskOfRain2
             if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
+                ChatMessage.SendColored("Connected!", Color.green);
             }
 
             uint itemPickupStep = 3;
@@ -169,6 +170,7 @@ namespace Archipelago.RiskOfRain2
         {
             if (session != null && session.Socket.Connected)
             {
+                Log.LogDebug("dispose called");
                 //breaks
                 //session.Socket.Disconnect();
                 //works
@@ -331,8 +333,17 @@ namespace Archipelago.RiskOfRain2
                             {
                                 case JsonMessagePartType.PlayerId:
                                     {
+                                        //TODO check Player to see if its self
                                         int playerId = int.Parse(part.Text);
-                                        text += session.Players.GetPlayerName(playerId);
+                                        if(playerId == session.ConnectionInfo.Slot)
+                                        {
+                                            text += "<color=#cb42f5>" + session.Players.GetPlayerName(playerId) + "</color>";
+                                        } 
+                                        else
+                                        {
+                                            text += "<color=#3268a8>" + session.Players.GetPlayerName(playerId) + "</color>";
+                                        }
+                                        
                                         break;
                                     }
                                 case JsonMessagePartType.ItemId:
@@ -353,8 +364,10 @@ namespace Archipelago.RiskOfRain2
                                         break;
                                     }
                             }
+                            Log.LogDebug($"part.Text {part.Text} part.Color {part.Color}");
                         }
                         ChatMessage.Send(text);
+                        //ChatMessage.SendColored(text, Color.cyan);
                         break;
                     }
             }

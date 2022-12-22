@@ -27,6 +27,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginAuthor = "Ijwu";
         public const string PluginName = "Archipelago";
         public const string PluginVersion = "1.1.4";
+        internal static ArchipelagoPlugin Instance { get; private set; }
 
         private ArchipelagoClient AP;
         private bool isInLobbyConfigLoaded = false;
@@ -37,11 +38,16 @@ namespace Archipelago.RiskOfRain2
         private string apSlotName;
         private string apPassword;
 
+        public ArchipelagoPlugin()
+        {
+
+        }
         public void Awake()
         {
             Log.Init(Logger);
 
             AP = new ArchipelagoClient();
+            ConnectClick.OnButtonClick += OnClick_ConnectToArchipelagoWithButton;
             AP.OnClientDisconnect += AP_OnClientDisconnect;
             Run.onRunStartGlobal += Run_onRunStartGlobal;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
@@ -51,8 +57,9 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
-
             isInLobbyConfigLoaded = Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig");
+            var connectButton = new GameObject("ArchipelagoConnectButtonController");
+            connectButton.AddComponent<ArchipelagoConnectButtonController>();
 
             if (isInLobbyConfigLoaded)
             {
@@ -67,6 +74,10 @@ namespace Archipelago.RiskOfRain2
             NetworkingAPI.RegisterMessageType<ArchipelagoChatMessage>();
 
             CommandHelper.AddToConsoleWhenReady();
+        }
+        public void Start()
+        {
+            Instance = this;
         }
 
         private void GameNetworkManager_onStopClientGlobal()
@@ -117,7 +128,18 @@ namespace Archipelago.RiskOfRain2
                 //StartCoroutine(AP.AttemptConnection());
             }
         }
+        public void OnClick_ConnectToArchipelagoWithButton()
+        {
+            isPlayingAP = true;
+            var uri = new UriBuilder();
+            uri.Scheme = "ws://";
+            uri.Host = apServerUri;
+            uri.Port = apServerPort;
+            Log.LogDebug($"Server {apServerUri} Port: {apServerPort} Slot: {apSlotName} Password: {apPassword}");
 
+            AP.Connect(uri.Uri, apSlotName, apPassword);
+            //Log.LogDebug("On Click Connect");
+        }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
             willConnectToAP = true;
@@ -150,7 +172,7 @@ namespace Archipelago.RiskOfRain2
         private void Run_onRunStartGlobal(Run obj)
         {
             var isHost = NetworkServer.active && RoR2Application.isInMultiPlayer;
-            if (willConnectToAP && (isHost || RoR2Application.isInSinglePlayer))
+            /*if (willConnectToAP && (isHost || RoR2Application.isInSinglePlayer))
             {
                 isPlayingAP = true;
                 var uri = new UriBuilder();
@@ -159,8 +181,8 @@ namespace Archipelago.RiskOfRain2
                 uri.Port = apServerPort;
                 
                 AP.Connect(uri.Uri, apSlotName, apPassword);
-            }
-
+            }*/
+            isPlayingAP = true;
             if (isPlayingAP)
             {
                 ArchipelagoTotalChecksObjectiveController.AddObjective();
