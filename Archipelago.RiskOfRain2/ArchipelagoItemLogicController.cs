@@ -38,6 +38,7 @@ namespace Archipelago.RiskOfRain2
         private ArchipelagoSession session;
         private Queue<KeyValuePair<long, string>> itemReceivedQueue = new Queue<KeyValuePair<long, string>>();
         private Queue<KeyValuePair<long, string>> environmentReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        // TODO get magic numbers from somewhere else (eg move to LocationHandler.cs)
         private const long environmentRangeLower = 37700;
         private const long environmentRangeUpper = 37999;
         private PickupIndex[] skippedItems;
