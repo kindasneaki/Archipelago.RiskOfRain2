@@ -26,7 +26,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.1.3";
+        public const string PluginVersion = "1.1.4";
 
         private ArchipelagoClient AP;
         private bool isInLobbyConfigLoaded = false;
@@ -48,6 +48,7 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoStartMessage.OnArchipelagoSessionStart += ArchipelagoStartMessage_OnArchipelagoSessionStart;
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
             ArchipelagoConsoleCommand.OnArchipelagoCommandCalled += ArchipelagoConsoleCommand_ArchipelagoCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
 
@@ -106,12 +107,12 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        private void AP_OnClientDisconnect(ushort code, string reason, bool wasClean)
+        private void AP_OnClientDisconnect(string reason)
         {
-            Log.LogWarning($"Archipelago client was disconnected from the server{(wasClean ? " in a dirty manner" : "")}: ({code}) {reason}");
-            ChatMessage.SendColored($"Archipelago client was disconnected from the server.", wasClean ? Color.white : Color.red);
+            Log.LogWarning($"Archipelago client was disconnected from the server because `{reason}`");
+            ChatMessage.SendColored($"Archipelago client was disconnected from the server.", Color.red);
             var isHost = NetworkServer.active && RoR2Application.isInMultiPlayer;
-            if (isPlayingAP && (isHost || RoR2Application.isInSinglePlayer) && !wasClean)
+            if (isPlayingAP && (isHost || RoR2Application.isInSinglePlayer))
             {
                 //StartCoroutine(AP.AttemptConnection());
             }
@@ -128,6 +129,10 @@ namespace Archipelago.RiskOfRain2
 
             AP.Connect(uri.Uri, slot, password);
             //StartCoroutine(AP.AttemptConnection());
+        }
+        private void ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled()
+        {
+            AP.Dispose();
         }
 
         /// <summary>

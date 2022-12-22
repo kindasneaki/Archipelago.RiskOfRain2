@@ -34,10 +34,10 @@ namespace Archipelago.RiskOfRain2
 
         private bool finishedAllChecks = false;
         private ArchipelagoSession session;
-        private Queue<KeyValuePair<int, string>> itemReceivedQueue = new Queue<KeyValuePair<int, string>>();
-        private Queue<KeyValuePair<int, string>> environmentReceivedQueue = new Queue<KeyValuePair<int, string>>();
-        private const int environmentRangeLower = 37700;
-        private const int environmentRangeUpper = 37999;
+        private Queue<KeyValuePair<long, string>> itemReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<KeyValuePair<long, string>> environmentReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private const long environmentRangeLower = 37700;
+        private const long environmentRangeUpper = 37999;
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
@@ -169,7 +169,7 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        public void EnqueueItem(int itemId)
+        public void EnqueueItem(long itemId)
         {
             // convert the itemId to a name here instead of in the main loop
             // this prevents a call to the session in the RoR2Application_Update
@@ -180,11 +180,11 @@ namespace Archipelago.RiskOfRain2
             //  when the run starts.
             if (environmentRangeLower <= itemId && itemId <= environmentRangeUpper)
             {
-                environmentReceivedQueue.Enqueue(new KeyValuePair<int, string>(itemId, itemName));
+                environmentReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
             }
             else
             {
-                itemReceivedQueue.Enqueue(new KeyValuePair<int, string>(itemId, itemName));
+                itemReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
             }
 
         }
@@ -232,20 +232,20 @@ namespace Archipelago.RiskOfRain2
 
         private void HandleReceivedEnvironmentQueueItem()
         {
-            KeyValuePair<int, string> itemReceived = environmentReceivedQueue.Dequeue();
+            KeyValuePair<long, string> itemReceived = environmentReceivedQueue.Dequeue();
 
-            int itemIdRecieved = itemReceived.Key;
+            long itemIdRecieved = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
 
             Log.LogDebug($"Handling environment with itemid {itemIdRecieved} with name {itemNameReceived}");
-            Stageblockerhandler?.UnBlock(itemIdRecieved - environmentRangeLower);
+            Stageblockerhandler?.UnBlock((int)(itemIdRecieved - environmentRangeLower));
         }
 
         private void HandleReceivedItemQueueItem()
         {
-            KeyValuePair<int, string> itemReceived = itemReceivedQueue.Dequeue();
+            KeyValuePair<long, string> itemReceived = itemReceivedQueue.Dequeue();
 
-            int itemIdRecieved = itemReceived.Key;
+            long itemIdRecieved = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
 
             Log.LogDebug($"Handling item with itemid {itemIdRecieved} with name {itemNameReceived}");

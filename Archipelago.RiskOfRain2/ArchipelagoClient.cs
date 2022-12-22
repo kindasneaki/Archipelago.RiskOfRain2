@@ -20,7 +20,7 @@ namespace Archipelago.RiskOfRain2
     //TODO: perhaps only use particular drops as fodder for item pickups (i.e. only chest drops/interactable drops) then set options based on them maybe
     public class ArchipelagoClient : IDisposable
     {
-        public delegate void ClientDisconnected(ushort code, string reason, bool wasClean);
+        public delegate void ClientDisconnected(string reason);
         public event ClientDisconnected OnClientDisconnect;
 
         public Uri LastServerUrl { get; set; }
@@ -43,6 +43,13 @@ namespace Archipelago.RiskOfRain2
 
         public void Connect(Uri url, string slotName, string password = null)
         {
+            if (session != null)
+            {
+                if(session.Socket.Connected)
+                {
+                    return;
+                }
+            }
             ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
             Dispose();
 
@@ -53,7 +60,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, new Version(3,4,0), itemsHandlingFlags: ItemsHandlingFlags.AllItems);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 3, 5));
 
             if (!result.Successful)
             {
@@ -103,7 +110,7 @@ namespace Archipelago.RiskOfRain2
                 if (Convert.ToBoolean(enabledeathlink))
                 {
                     Log.LogDebug("Starting DeathLink service");
-                    deathLinkService = session.CreateDeathLinkServiceAndEnable();
+                    deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
                     Deathlinkhandler = new DeathLinkHandler(deathLinkService);
                 }
             }
@@ -162,7 +169,10 @@ namespace Archipelago.RiskOfRain2
         {
             if (session != null && session.Socket.Connected)
             {
-                session.Socket.Disconnect();
+                //breaks
+                //session.Socket.Disconnect();
+                //works
+                session.Socket.DisconnectAsync();
             }
             
             if (ItemLogic != null)
@@ -262,14 +272,14 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        private void Session_SocketClosed(WebSocketSharp.CloseEventArgs e)
+        private void Session_SocketClosed(string reason)
         {
             Dispose();
             new ArchipelagoEndMessage().Send(NetworkDestination.Clients);
 
             if (OnClientDisconnect != null)
             {
-                OnClientDisconnect(e.Code, e.Reason, e.WasClean);
+                OnClientDisconnect(reason);
             }
         }
 
