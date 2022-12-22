@@ -16,8 +16,6 @@ public class ConnectClick : MonoBehaviour
     }
     public static void ButtonPressed()
     {
-        Debug.LogError("Button Pressed");
-        Log.LogDebug("button pressed");
         if(OnButtonClick != null)
         {
             OnButtonClick();

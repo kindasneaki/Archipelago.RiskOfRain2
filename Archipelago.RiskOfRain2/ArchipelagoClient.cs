@@ -4,6 +4,7 @@ using System.Linq;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
+using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
@@ -50,7 +51,7 @@ namespace Archipelago.RiskOfRain2
                     return;
                 }
             }
-            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
+            ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.cyan);
             Dispose();
 
             LastServerUrl = url;
@@ -364,7 +365,6 @@ namespace Archipelago.RiskOfRain2
                                         break;
                                     }
                             }
-                            Log.LogDebug($"part.Text {part.Text} part.Color {part.Color}");
                         }
                         ChatMessage.Send(text);
                         //ChatMessage.SendColored(text, Color.cyan);

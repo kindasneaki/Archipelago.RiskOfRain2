@@ -58,8 +58,8 @@ Risk of Rain 2:
 
 | Name | Description | Allowed values |
 | ---- | ----------- | -------------- |
-| total_locations | The total number of location checks that will be attributed to the Risk of Rain player. This option is ALSO the total number of items in the item pool for the Risk of Rain player. | 10 - 50 |
-| total_revivals | The total number of items in the Risk of Rain player's item pool (items other players pick up for them) replaced with `Dio's Best Friend`. | 0 - 5 |
+| total_locations | The total number of location checks that will be attributed to the Risk of Rain player. This option is ALSO the total number of items in the item pool for the Risk of Rain player. | 10 - 250 |
+| total_revivals | The total number of items in the Risk of Rain player's item pool (items other players pick up for them) replaced with `Dio's Best Friend`. | 0 - 10 |
 | start_with_revive | Starts the player off with a `Dio's Best Friend`. Functionally equivalent to putting a `Dio's Best Friend` in your `starting_inventory`. | true/false |
 | item_pickup_step | The number of item pickups which you are allowed to claim before they become an Archipelago location check. | 0 - 5 |
 | enable_lunar | Allows for lunar items to be shuffled into the item pool on behalf of the Risk of Rain player. | true/false |
@@ -86,13 +86,13 @@ The player will have the default preset generated item pool with the custom item
 
 I assume you already have an Archipelago server running. Instructions on how to run a server are available on https://archipelago.gg.
 
-There will be a menu button on the right side of the screen. Click it in order to bring up the in lobby mod config. From here you can expand the Archipelago sections and fill in the relevant info.
+Fill in the relevant info and click `Connect To AP` to connect to the server
 
 Keep password blank if there is no password on the server.
 
-![In Lobby UI Example](./docs/img/inlobbyui.png)
+![In Lobby UI Example](./docs/img/lobby.png)
 
-Simply check `Enable Archipelago?` and when you start the run it will automatically connect and print a message stating successful connection in your in-game chat.
+Once connected it will print in chat that you have successfully connect!
 
 ### Other InLobbyConfig Options
 
@@ -104,6 +104,19 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 **0.0.0**
 * Change Default URI to archipelago.gg
 * Added DeathLink support (only works for singleplayer)
+
+**1.1.5**
+* Fixed Fields resetting to default after dying.
+* Reconnect by just hitting ready.
+
+**1.1.4**
+* Fixed Collect Bug.
+* Skip collected checks so you dont just send nothing.
+* Now connect to AP through lobby instead of with ready button.
+  * Chat enabled for single player
+* Added Color to Players in chat for better readability.
+* Multi Client 4.0 support.
+* Original mod location https://thunderstore.io/package/ArchipelagoMW/Archipelago/
 
 **1.1.3**
 * Fixed connection issues.
@@ -190,9 +203,9 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 ## Known Issues
 
 * Splitscreen support is unlikely at the moment. It might work, it might not.
+* Connecting to multiple slots on the same multiplayer game will not work and will take just the hosts slot once in game.
 * If you start a new run but join an existing AP session, you will get spammed with notifications for all your pickups.
-* Reconnect breaks location check progress bar.
-
+* Game hitches upon someone forfeit/releaseing their items.
 
 ## To-do/Ideas
 

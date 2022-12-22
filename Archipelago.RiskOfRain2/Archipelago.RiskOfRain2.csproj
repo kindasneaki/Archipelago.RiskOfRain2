@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionPrefix>1.1.4</VersionPrefix>
+    <VersionPrefix>1.1.5</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
@@ -19,12 +19,7 @@
     </PackageReference>
     <PackageReference Include="R2API" Version="4.4.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="InLobbyConfig">
-      <HintPath>..\Libs\InLobbyConfig.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
+
   <ItemGroup>
     <None Update="connectbundle">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
