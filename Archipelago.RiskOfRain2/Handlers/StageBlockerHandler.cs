@@ -287,13 +287,13 @@ namespace Archipelago.RiskOfRain2.Handlers
                 if (NetworkServer.active)
                 {
                     Log.LogDebug("blocking planetarium as host.");
-                    //// refund the lunar coin if the player who payed the coin is this client's player
-                    //interactor.GetComponent<NetworkUser>().AwardLunarCoins(1); // (only the server actually executes the contents of this method) // XXX
+                    // refund the lunar coin if the player who payed the coin is this client's player
+                    //interactor.GetComponent<NetworkUser>().AwardLunarCoins(1); // (only the server actually executes the contents of this method) // TODO give coin only to one person
                     foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
                     {
                         Log.LogDebug("Refunding coins...");
                         local.AwardLunarCoins(1);
-                        // This does in fact give more coins back in multiplayer since every player would get a coin.
+                        // TODO This does in fact give more coins back in multiplayer since every player would get a coin.
                         // I don't have a solution for this right now : ^)
                     }
 
