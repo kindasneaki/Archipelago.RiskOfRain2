@@ -64,7 +64,6 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
-            session.Locations.CheckedLocationsUpdated += Check_Locations;
             Log.LogDebug("Okay finished hooking.");
             smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("Assets/RoR2/Junk/Characters/Bandit/Skills/SmokescreenEffect.prefab").WaitForCompletion();
             Log.LogDebug("Okay, finished getting prefab.");
@@ -154,8 +153,16 @@ namespace Archipelago.RiskOfRain2
                         Log.LogDebug($"Detected classic_mode from ArchipelagoItemLogicController? {classic}");
 
                         // TODO maybe this should be moved into a hook method with the other hooks from the constructor
-                        if (classic) On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
-                        else On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+                        if (classic)
+                        {
+                            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+                            session.Locations.CheckedLocationsUpdated += Check_Locations;
+                        }
+                        else
+                        {
+                            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+                            session.Locations.CheckedLocationsUpdated -= Check_Locations;
+                        }
 
 
                         // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
@@ -188,12 +195,15 @@ namespace Archipelago.RiskOfRain2
                             CurrentChecks = TotalChecks;
                             finishedAllChecks = true;
                         }
-                        else
+                        // resume pickups with the first missing item
+                        else if (classic)
                         {
-                            // resume pickups with the first missing item
                             var missingIndex = Array.IndexOf(ChecksTogether, connectedPacket.MissingChecks[0]);
                             Log.LogInfo($"Missing index is {missingIndex} first missing id is {connectedPacket.MissingChecks[0]}");
                             CurrentChecks = missingIndex;
+                        } else
+                        {
+                            CurrentChecks = ChecksTogether.Length - connectedPacket.MissingChecks.Count();
                         }
 
                         ArchipelagoTotalChecksObjectiveController.CurrentChecks = CurrentChecks;
