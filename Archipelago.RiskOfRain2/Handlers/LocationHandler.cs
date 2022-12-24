@@ -43,49 +43,99 @@ namespace Archipelago.RiskOfRain2.Handlers
             scavenger,
             radio_scanner,
             newt_altar,
-            MAX
-
+            // NOTE add additional location types above this comment
+            MAX // used to sent the length of LocationInformationTemplates
         }
 
-        // XXX this should be in an array
-        public struct LocationInformationTemplate
+        public static readonly string[] LocationTypesSlotName = new string[(int)LocationTypes.MAX] // use max to enforce correct amount of names
         {
-            public int chest_count { get; set; }
-            public int shrine_count { get; set; }
-            public int scavenger_count { get; set; }
-            public int radio_scanner_count { get; set; }
-            public int newt_alter_count { get; set; }
+            // These names should match those in the slot data
+            "chests_per_stage",
+            "shrines_per_stage",
+            "scavengers_per_stage",
+            "scanner_per_stage",
+            "altars_per_stage"
+        };
+
+        public static readonly string[] LocationTypesShortName = new string[(int)LocationTypes.MAX] // use max to enforce correct amount of names
+        {
+            // These names are used for debug
+            "chests",
+            "shrines",
+            "scavengers",
+            "scanner",
+            "altars"
+        };
+
+        /// <summary>
+        /// These values are sourced from the RoR2 Archipelago world code.
+        /// These are used to determine the id values of locations.
+        /// </summary>
+        private class ArchipelagoLocationOffsets
+        {
+            // these values come from worlds/ror2/Locations.py in Archipelago
+            public const int ror2_locations_start_orderedstage = 38000 + 250;
+            public static readonly int[] offset = new int[(int)LocationTypes.MAX + 1] // use max+1 to enforce correct amount of offsets
+            {
+                0,
+                0 + 20,
+                0 + 20 + 20,
+                0 + 20 + 20 + 1,
+                0 + 20 + 20 + 1 + 1,
+                0 + 20 + 20 + 1 + 1 + 2
+            };
+            // NOTE offset[(int)LocationTypes.MAX] will give the size allocated to locations in each environment
+            public static readonly int allocation = offset[(int)LocationTypes.MAX];
         }
+
+        // Create a class to interface the template information.
+        // This is so readabilty and the ability to index the template with the LocationTypes enum.
+        public class LocationInformationTemplate
+        {
+            private int[] data = new int[(int)LocationTypes.MAX];
+
+            public int this[int i]
+            {
+                get => data[i];
+                set => data[i] = value;
+            }
+
+            public int this[LocationTypes type]
+            {
+                get => data[(int)type];
+                set => data[(int)type] = value;
+            }
+
+            /// <returns>The sum of all locations in the template.</returns>
+            public int total()
+            {
+                int sum = 0;
+                for (int type = 0; type < (int)LocationTypes.MAX; type++) sum += data[type];
+                return sum;
+            }
+
+            public LocationInformationTemplate copy()
+            {
+                LocationInformationTemplate copy = new LocationInformationTemplate();
+                for (int type = 0; type < (int)LocationTypes.MAX; type++) copy[type] = data[type];
+                return copy;
+            }
+        }
+
 
         public static LocationInformationTemplate buildTemplateFromSlotData(Dictionary<string, object> SlotData)
         {
             LocationInformationTemplate locationtemplate = new LocationInformationTemplate();
             if (SlotData is not null)
             {
-                if (SlotData.TryGetValue("chests_per_stage", out var chests_per_stage)) locationtemplate.chest_count = Convert.ToInt32(chests_per_stage);
-                if (SlotData.TryGetValue("shrines_per_stage", out var shrines_per_stage)) locationtemplate.shrine_count = Convert.ToInt32(shrines_per_stage);
-                if (SlotData.TryGetValue("scavengers_per_stage", out var scavengers_per_stage)) locationtemplate.scavenger_count = Convert.ToInt32(scavengers_per_stage);
-                if (SlotData.TryGetValue("scanner_per_stage", out var scanner_per_stage)) locationtemplate.radio_scanner_count = Convert.ToInt32(scanner_per_stage);
-                if (SlotData.TryGetValue("altars_per_stage", out var altars_per_stage)) locationtemplate.newt_alter_count = Convert.ToInt32(altars_per_stage);
+                // construct the find the amount of each type of location dictated by the slot data
+                for (int type = 0; type < (int)LocationTypes.MAX; type++)
+                {
+                    // only set the value if the slot has the amoutn of locations for that type
+                    if (SlotData.TryGetValue(LocationTypesSlotName[type], out var type_per_stage)) locationtemplate[type] = Convert.ToInt32(type_per_stage);
+                }
             }
             return locationtemplate;
-        }
-
-        /// <summary>
-        /// These values are sourced from the RoR2 Archipelago world code.
-        /// These are used to determine the id values of locations.
-        /// </summary>
-        private readonly struct ArchipelagoLocationOffsets
-        {
-            // these values come from worlds/ror2/Locations.py in Archipelago
-            public const int ror2_locations_start_orderedstage = 38000 + 250;
-            // XXX this should be in an array
-            public const int offset_ChestsPerEnvironment = 0;
-            public const int offset_ShrinesPerEnvironment = 0 + 20;
-            public const int offset_ScavengersPerEnvironment = 0 + 20 + 20;
-            public const int offset_ScannersPerEnvironment = 0 + 20 + 20 + 1;
-            public const int offset_AltarsPerEnvironment = 0 + 20 + 20 + 1 + 1;
-            public const int allocation = 0 + 20 + 20 + 1 + 1 + 2;
         }
 
         private ArchipelagoSession session;
@@ -136,7 +186,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         private void CatchUpLocationDict()
         {
-            Log.LogDebug("CatchUpLocationDict"); // XXX
+            Log.LogDebug("CatchUpLocationDict");
             ReadOnlyCollection<long> completedchecks = session.Locations.AllLocationsChecked;
 
             // TODO time complexity probably doesn't matter here, but there probably is a more efficient way to do this
@@ -149,78 +199,27 @@ namespace Archipelago.RiskOfRain2.Handlers
             foreach (KeyValuePair<int, LocationInformationTemplate> kvp in locationscopy)
             {
                 int index = kvp.Key;
-                LocationInformationTemplate location = kvp.Value;
+                LocationInformationTemplate location = kvp.Value.copy(); // because the value is an object in both Dictionaries, we want a copy instead of the reference
                 int environment_start_id = index*ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
-                Log.LogDebug($"index {index}"); // XXX
-                Log.LogDebug($"environment_start_id {environment_start_id}"); // XXX
+                Log.LogDebug($"Doing catch up on environment: index {index}");
+                Log.LogDebug($"environment_start_id {environment_start_id}");
 
-                // XXX this should go into a function probably since it is copy and pasted
-                // XXX this code is begging for the template to be an array indexed off of the type enum
-
-                // catch up chests
-                for (int n=0; n < originallocationstemplate.chest_count; n++)
+                // catch each individual check type up
+                for (int type = 0; type < (int)LocationTypes.MAX; type++)
                 {
-                    // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ChestsPerEnvironment + environment_start_id))
-                    {
-                        location.chest_count--; // a location completed has been found for this environment
-                    }
-                    // if we see a location missing, imply the ones that succeed it are also missing
-                    else break;
-                }
-                Log.LogDebug($"caught up to chest {location.chest_count}"); // XXX
 
-                // catch up shrines
-                for (int n=0; n < originallocationstemplate.shrine_count; n++)
-                {
-                    // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ShrinesPerEnvironment + environment_start_id))
+                    for (int n = 0; n < originallocationstemplate[type]; n++)
                     {
-                        location.shrine_count--; // a location completed has been found for this environment
+                        // check each location if it has been seen
+                        if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset[type] + environment_start_id))
+                        {
+                            location[type]--; // a location completed has been found for this environment
+                        }
+                        // if we see a location missing, imply the ones that succeed it are also missing
+                        else break;
                     }
-                    // if we see a location missing, imply the ones that succeed it are also missing
-                    else break;
+                    Log.LogDebug($"caught up to {LocationTypesShortName[type]} {location[type]}");
                 }
-                Log.LogDebug($"caught up to shrine {location.shrine_count}"); // XXX
-
-                // catch up scavengers
-                for (int n=0; n < originallocationstemplate.scavenger_count; n++)
-                {
-                    // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ScavengersPerEnvironment + environment_start_id))
-                    {
-                        location.scavenger_count--; // a location completed has been found for this environment
-                    }
-                    // if we see a location missing, imply the ones that succeed it are also missing
-                    else break;
-                }
-                Log.LogDebug($"caught up to scavenger {location.scavenger_count}"); // XXX
-
-                // catch up scanner
-                for (int n=0; n < originallocationstemplate.radio_scanner_count; n++)
-                {
-                    // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_ScannersPerEnvironment + environment_start_id))
-                    {
-                        location.radio_scanner_count--; // a location completed has been found for this environment
-                    }
-                    // if we see a location missing, imply the ones that succeed it are also missing
-                    else break;
-                }
-                Log.LogDebug($"caught up to scanner {location.radio_scanner_count}"); // XXX
-
-                // catch up altar
-                for (int n=0; n < originallocationstemplate.newt_alter_count; n++)
-                {
-                    // check each location if it has been seen
-                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset_AltarsPerEnvironment + environment_start_id))
-                    {
-                        location.newt_alter_count--; // a location completed has been found for this environment
-                    }
-                    // if we see a location missing, imply the ones that succeed it are also missing
-                    else break;
-                }
-                Log.LogDebug($"caught up to altar {location.newt_alter_count}"); // XXX
 
                 currentlocations[(int)index] = location;
             }
@@ -340,12 +339,12 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
 
         /// <summary>
-        /// Checks the remaing checks of a specific type in the current environment.
+        /// Checks the remaing checks of a specific type in the current environment. <br/>
+        /// If the type given is LocationTypes.MAX, the total of all locations remaining will be returned.
         /// </summary>
         /// <param name="loctype">The type of location to check.</param>
         /// <returns>Returns the amount of remaining locations.</returns>
         private int checkAvailable(LocationTypes loctype) // TODO make a method to check the nth location
-
         {
             int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
             if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
@@ -355,28 +354,19 @@ namespace Archipelago.RiskOfRain2.Handlers
                 return 0;
             }
 
-            switch (loctype)
+            if (LocationTypes.MAX == loctype)
             {
-                // XXX this code is begging for the template to be an array indexed off of the type enum
-                case LocationTypes.chest:
-                    return locationsinenvironment.chest_count;
-                case LocationTypes.shrine:
-                    return locationsinenvironment.shrine_count;
-                case LocationTypes.scavenger:
-                    return locationsinenvironment.scavenger_count;
-                case LocationTypes.radio_scanner:
-                    return locationsinenvironment.radio_scanner_count;
-                case LocationTypes.newt_altar:
-                    return locationsinenvironment.newt_alter_count;
-                default:
-                    return 0; // TODO maybe thrown an exception?
+                return locationsinenvironment.total();
             }
+            return locationsinenvironment[loctype];
         }
 
         /// <summary>
         /// Send the next available location for the current environment of that specified type.
-        /// NOTE this does not account for pickup steps.
         /// </summary>
+        /// <remarks>
+        /// NOTE this does not account for pickup steps.
+        /// </remarks>
         /// <param name="loctype">The type of location to send.</param>
         /// <returns>
         /// Returns true if a location send attempt was made.
@@ -384,6 +374,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </returns>
         private bool sendNextAvailable(LocationTypes loctype) // TODO make a method to send the nth location
         {
+            if (LocationTypes.MAX == loctype) throw new ArgumentException("MAX is not a sendable location type.");
+
             int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
             if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
@@ -396,76 +388,16 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // check if there is a check to be done
             // if there are none, then return false
-            switch (loctype)
-            {
-                // XXX this code is begging for the template to be an array indexed off of the type enum
-                case LocationTypes.chest:
-                    if (locationsinenvironment.chest_count == 0) return false;
-                    break;
-                case LocationTypes.shrine:
-                    if (locationsinenvironment.shrine_count == 0) return false;
-                    break;
-                case LocationTypes.scavenger:
-                    if (locationsinenvironment.scavenger_count == 0) return false;
-                    break;
-                case LocationTypes.radio_scanner:
-                    if (locationsinenvironment.radio_scanner_count == 0) return false;
-                    break;
-                case LocationTypes.newt_altar:
-                    if (locationsinenvironment.newt_alter_count == 0) return false;
-                    break;
-                default:
-                    return false; // TODO maybe thrown an exception?
-            }
+            if (locationsinenvironment[loctype] == 0) return false;
 
-            int next_index;
-            int offset_in_allocation;
-            switch (loctype)
-            {
-                // XXX this code is begging for the template to be an array indexed off of the type enum
-                case LocationTypes.chest:
-                    next_index = originallocationstemplate.chest_count - locationsinenvironment.chest_count;
-                    offset_in_allocation = ArchipelagoLocationOffsets.offset_ChestsPerEnvironment;
-                    locationsinenvironment.chest_count--;
-                    ArchipelagoLocationsInEnvironmentController.chest_count = locationsinenvironment.chest_count;
-                    break;
-                case LocationTypes.shrine:
-                    next_index = originallocationstemplate.shrine_count - locationsinenvironment.shrine_count;
-                    offset_in_allocation = ArchipelagoLocationOffsets.offset_ShrinesPerEnvironment;
-                    locationsinenvironment.shrine_count--;
-                    ArchipelagoLocationsInEnvironmentController.shrine_count = locationsinenvironment.shrine_count;
-                    break;
-                case LocationTypes.scavenger:
-                    next_index = originallocationstemplate.scavenger_count - locationsinenvironment.scavenger_count;
-                    offset_in_allocation = ArchipelagoLocationOffsets.offset_ScavengersPerEnvironment;
-                    locationsinenvironment.scavenger_count--;
-                    ArchipelagoLocationsInEnvironmentController.scavenger_count = locationsinenvironment.scavenger_count;
-                    break;
-                case LocationTypes.radio_scanner:
-                    next_index = originallocationstemplate.radio_scanner_count - locationsinenvironment.radio_scanner_count;
-                    offset_in_allocation = ArchipelagoLocationOffsets.offset_ScannersPerEnvironment;
-                    locationsinenvironment.radio_scanner_count--;
-                    ArchipelagoLocationsInEnvironmentController.radio_scanner_count = locationsinenvironment.radio_scanner_count;
-                    break;
-                case LocationTypes.newt_altar:
-                    next_index = originallocationstemplate.newt_alter_count - locationsinenvironment.newt_alter_count;
-                    offset_in_allocation = ArchipelagoLocationOffsets.offset_AltarsPerEnvironment;
-                    locationsinenvironment.newt_alter_count--;
-                    ArchipelagoLocationsInEnvironmentController.newt_alter_count = locationsinenvironment.newt_alter_count;
-                    break;
-                default:
-                    return false; // TODO maybe thrown an exception?
-            }
+            int next_index = originallocationstemplate[loctype] - locationsinenvironment[loctype];
+            int offset_in_allocation = ArchipelagoLocationOffsets.offset[(int)loctype];
+            locationsinenvironment[loctype]--;
+            ArchipelagoLocationsInEnvironmentController.count[loctype] = locationsinenvironment[loctype];
 
             // update UI to the results of sending the location
             ArchipelagoTotalChecksObjectiveController.CurrentChecks++;
-            if (
-                0 == ArchipelagoLocationsInEnvironmentController.chest_count +
-                ArchipelagoLocationsInEnvironmentController.shrine_count +
-                ArchipelagoLocationsInEnvironmentController.scavenger_count +
-                ArchipelagoLocationsInEnvironmentController.radio_scanner_count +
-                ArchipelagoLocationsInEnvironmentController.newt_alter_count
-                ) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            if (0 == ArchipelagoLocationsInEnvironmentController.count.total()) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
             else ArchipelagoLocationsInEnvironmentController.AddObjective();
 
             currentlocations[(int)currentenvironment] = locationsinenvironment; // save changes to the count
@@ -474,7 +406,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             return true; // a location must have been sent
             // (don't care if the item for said location has already be collected)
-            // (don't care about duplicates if it happens, though it shouldn't happen if everything is working)
+            // (don't care if the location has been sent before, though it shouldn't happen if everything is working)
 
         }
 
@@ -486,6 +418,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(oldScene, newScene);
             // We want to hook directly to SceneCatalog_OnActiveSceneChanged rather than delegate
             //  to SceneCatalog_OnActiveSceneChanged so that we can take advantage of the changed mostRecentSceneDef.
+            Log.LogDebug($"sceneDefIndex {(int)SceneCatalog.mostRecentSceneDef.sceneDefIndex}");
 
             // don't reset the counters on moving between stages
             // this could make it absurdly hard to complete checks on very high step sizes
@@ -506,19 +439,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             updateBar(LocationTypes.shrine);
 
             // update the UI to match the new environment
-            ArchipelagoLocationsInEnvironmentController.chest_count = checkAvailable(LocationTypes.chest);
-            ArchipelagoLocationsInEnvironmentController.shrine_count = checkAvailable(LocationTypes.shrine);
-            ArchipelagoLocationsInEnvironmentController.scavenger_count = checkAvailable(LocationTypes.scavenger);
-            ArchipelagoLocationsInEnvironmentController.radio_scanner_count = checkAvailable(LocationTypes.radio_scanner);
-            ArchipelagoLocationsInEnvironmentController.newt_alter_count = checkAvailable(LocationTypes.newt_altar);
-            if (
-                0 == ArchipelagoLocationsInEnvironmentController.chest_count +
-                ArchipelagoLocationsInEnvironmentController.shrine_count +
-                ArchipelagoLocationsInEnvironmentController.scavenger_count +
-                ArchipelagoLocationsInEnvironmentController.radio_scanner_count +
-                ArchipelagoLocationsInEnvironmentController.newt_alter_count
-                ) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            for (int type = 0; type < (int)LocationTypes.MAX; type++)
+            {
+                ArchipelagoLocationsInEnvironmentController.count[type] = checkAvailable((LocationTypes)type);
+            }
+            if (0 == ArchipelagoLocationsInEnvironmentController.count.total()) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
             else ArchipelagoLocationsInEnvironmentController.AddObjective();
+
             // TODO maybe the make sure the ArchipelagoTotalChecksObjectiveController.CurrentChecks gets synced here (since sending a location increments it and could possibly desync it?)
         }
 
@@ -535,7 +462,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 int environment_index = (int) dest.choices[i].value.sceneDefIndex;
                 if (currentlocations.TryGetValue(environment_index, out var locations))
                 {
-                    int addweight = locations.chest_count + locations.shrine_count + locations.scavenger_count + locations.radio_scanner_count + locations.newt_alter_count;
+                    int addweight = locations.total();
                     Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight} locations, adjusting weight.");
                     dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);
                     Log.LogDebug($"Adjusted weight to {dest.choices[i].weight}.");

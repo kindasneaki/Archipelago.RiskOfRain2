@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Archipelago.RiskOfRain2.Handlers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace Archipelago.RiskOfRain2.UI
         {
             public override string GenerateString()
             {
-                return $"Environment locations: {chest_count}/{shrine_count}/{scavenger_count}/{radio_scanner_count}/{newt_alter_count}";
+                return $"Environment locations: {count[LocationHandler.LocationTypes.chest]}/{count[LocationHandler.LocationTypes.shrine]}/{count[LocationHandler.LocationTypes.scavenger]}/{count[LocationHandler.LocationTypes.radio_scanner]}/{count[LocationHandler.LocationTypes.newt_altar]}";
             }
 
             public override bool IsDirty()
@@ -46,11 +47,7 @@ namespace Archipelago.RiskOfRain2.UI
             }
         }
 
-        public static int chest_count { get; set; }
-        public static int shrine_count { get; set; }
-        public static int scavenger_count { get; set; }
-        public static int radio_scanner_count { get; set; }
-        public static int newt_alter_count { get; set; }
+        internal static LocationHandler.LocationInformationTemplate count = new LocationHandler.LocationInformationTemplate();
 
         private static bool addObjective;
 
