@@ -1,6 +1,6 @@
 ﻿{
 	"name": "Archipelago",
-	"version_number": "1.1.5",
+	"version_number": "1.2.0-alpha",
 	"website_url": "https://archipelago.gg",
 	"description": "Archipelago client implementation enabling Risk of Rain 2 based Archipelago runners.",
 	"dependencies": [

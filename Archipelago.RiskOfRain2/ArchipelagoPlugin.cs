@@ -25,7 +25,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.1.4";
+        public const string PluginVersion = "1.2.0";
         internal static ArchipelagoPlugin Instance { get; private set; }
 
         private ArchipelagoClient AP;
