@@ -146,8 +146,12 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool Block(int index)
         {
-            if (blocked_stages.Contains(index)) return false;
-            Log.LogDebug($"Blocking {index}."); // XXX remove extra debug
+            if (blocked_stages.Contains(index))
+            {
+                Log.LogDebug($"Environment already blocked: index {index}.");
+                return false;
+            }
+            Log.LogDebug($"Blocking environment: index {index}.");
             blocked_stages.Add(index);
             return true;
         }
@@ -158,8 +162,8 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool UnBlock(int index)
         {
-            // TODO the initial unblock will occur after the game starts the first stage, this should be fixed
-            Log.LogDebug($"UnBlocking {index}."); // XXX remove extra debug
+            // TODO the initial unblock can occur after the game starts the first stage, this occurs when the player does not connect before hitting ready, this should be fixed
+            Log.LogDebug($"UnBlocking environment: index {index}.");
             return blocked_stages.Remove(index);
         }
 
