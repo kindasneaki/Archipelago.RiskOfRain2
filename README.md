@@ -23,7 +23,7 @@ The Risk of Rain 2 player sends checks from doing different actions such as open
 These locations divided evenly across the different stages and can only be completed in their respective stages.
 
 The rules for locations are as follows:
-- Chest-like interactables will send a check when a certain number of chests are opened. Multishops are not chest, but lunar pods and void cradles are.
+- Chest-like interactables will send a check when a certain number of chests are opened. Multishops are not chest, but lunar pods and void cradles are. Sacrafice will treat item drops like opening chests.
 - Shrines will send a check when a certain number of shrines are beat. Rules for beating shrines are:
     - Altar of Gold is beat on purchase.
     - Shrine of Blood is beat on interact. Sending shrine as a check denies gold.
@@ -35,6 +35,8 @@ The rules for locations are as follows:
 - Scavenger bags send checks when opened but do not grant items. Looping to the same environment will let you reopen the scavenger bag.
 - Radio Scanners can be found on every stage and send a check. Radio Scanners are garunteed to spawn.
 - Newt Altars send checks when found but do not grant a Blue Portal. Newts Altars grant portals when the checks are depleted.
+
+Explore mode also attempts to help against being stuck in RNG hell; the teleporter will favor environments that have more checks remaining.
 
 ### EnvironmentsAsItems
 
