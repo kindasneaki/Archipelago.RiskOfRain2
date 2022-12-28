@@ -113,6 +113,7 @@ namespace Archipelago.RiskOfRain2
                 {
                     Log.LogDebug("Starting DeathLink service");
                     deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
+                    deathLinkService.EnableDeathLink(); // deathlink should just be enabled, the DeathLinkHandler assumes it is already enabled
                     Deathlinkhandler = new DeathLinkHandler(deathLinkService);
                 }
             }
