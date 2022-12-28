@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using System.Text;
 using Archipelago.RiskOfRain2.Extensions;
 using Archipelago.RiskOfRain2.Net;
@@ -16,31 +15,46 @@ namespace Archipelago.RiskOfRain2.UI
     {
         public int ItemPickupStep { get; set; }
         public int CurrentItemCount { get; set; }
+        public Color CurrentColor { get; set; }
 
         private HUD hud;
         private ArchipelagoLocationCheckProgressBarController locationCheckBar;
         private GameObject container;
-        //private CharacterSelectController characterSelectController;
-        //private Canvas canvas;
-        //private HGTextMeshProUGUI connectText;
-        //private CharacterSelectController contr;
+        private Vector2 textoffset;
+        private Vector2 baroffset;
+        private string textcontent;
 
-        public ArchipelagoLocationCheckProgressBarUI()
+        public static readonly Color defaultColor = new Color(.8f, .5f, 1, 1);
+        public static readonly Color altColor = new Color(1f, .8f, .5f, 1);
+
+        public ArchipelagoLocationCheckProgressBarUI(Vector2 textoffset, Vector2 baroffset, string text = "Location Check Progress: ")
         {
-            SyncLocationCheckProgress.OnLocationSynced += SyncLocationCheckProgress_LocationSynced;
             On.RoR2.UI.HUD.Awake += HUD_Awake;
-            //On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
+            this.textoffset = textoffset;
+            this.baroffset = baroffset;
+            textcontent = text;
+            CurrentColor = defaultColor;
         }
 
-        private void SyncLocationCheckProgress_LocationSynced(int count, int step)
+        public void UpdateCheckProgress(int count, int step)
         {
             ItemPickupStep = step;
             CurrentItemCount = count;
 
             if (locationCheckBar != null)
             {
-                locationCheckBar.itemPickupStep = step;
-                locationCheckBar.currentItemCount = count;
+                locationCheckBar.steps = step;
+                locationCheckBar.fill = count;
+            }
+        }
+
+        public void ChangeBarColor(Color newcolor)
+        {
+            CurrentColor = newcolor;
+
+            if (locationCheckBar != null)
+            {
+                locationCheckBar.color = newcolor;
             }
         }
 
@@ -48,8 +62,6 @@ namespace Archipelago.RiskOfRain2.UI
         {
             hud = null;
             On.RoR2.UI.HUD.Awake -= HUD_Awake;
-            //On.RoR2.UI.CharacterSelectController.Awake -= CharacterSelectController_Awake;
-            SyncLocationCheckProgress.OnLocationSynced -= SyncLocationCheckProgress_LocationSynced;
 
             GameObject.Destroy(container);
         }
@@ -60,27 +72,6 @@ namespace Archipelago.RiskOfRain2.UI
             hud = self;
             PopulateHUD();
         }
-
-/*        private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, CharacterSelectController self) {
-            orig(self);
-            Log.LogDebug("CharacterSelectController hooked");
-            characterSelectController = self;
-            PopulateButton();
-        }
-        private void PopulateButton()
-        {
-            var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
-            var readyPanel = contr.transform.Find("SafeArea/ReadyPanel");
-            var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage");
-            var panel = new GameObject("ConnectPanel");
-            panel.transform.SetParent(readyPanel);
-            canvas = panel.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-
-            var canvasTransform = canvas.transform;
-            canvasTransform.position = new Vector3(0, 0, 0);
-            canvasTransform.localScale = Vector3.one;
-        }*/
 
         private void PopulateHUD()
         {
@@ -93,15 +84,16 @@ namespace Archipelago.RiskOfRain2.UI
             var progressBar = CreateProgressBar();
             progressBar.transform.SetParent(container.transform);
             progressBar.transform.ResetScaleAndRotation();
-            progressBar.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+            progressBar.GetComponent<RectTransform>().anchoredPosition = baroffset;
 
             var rectTransform = container.AddComponent<RectTransform>();
             container.transform.SetParent(hud.expBar.transform.parent.parent);
             rectTransform.ResetAnchorsAndOffsets();
-            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.anchoredPosition = textoffset;
             container.transform.ResetScaleAndRotation();
 
-            locationCheckBar.canvas.SetColor(new Color(.8f, .5f, 1, 1));
+            locationCheckBar.canvas.SetColor(CurrentColor);
+            locationCheckBar.color = CurrentColor;
 
             this.container = container;
         }
@@ -114,7 +106,7 @@ namespace Archipelago.RiskOfRain2.UI
             rect.ResetAnchorsAndOffsets();
 
             var text = GameObject.Instantiate(hud.levelText.targetText);
-            text.text = "Location Check Progress: ";
+            text.text = textcontent;
             text.transform.SetParent(container.transform);
             text.transform.ResetScaleAndRotation();
 
@@ -139,8 +131,8 @@ namespace Archipelago.RiskOfRain2.UI
             rectTransform.offsetMax = new Vector2(0f, 4f);
 
             locationCheckBar = progressBarGameObject.AddComponent<ArchipelagoLocationCheckProgressBarController>();
-            locationCheckBar.currentItemCount = CurrentItemCount;
-            locationCheckBar.itemPickupStep = ItemPickupStep;
+            locationCheckBar.fill = CurrentItemCount;
+            locationCheckBar.steps = ItemPickupStep;
 
             var fillPanel = progressBarGameObject.transform.Find("ShrunkenRoot/FillPanel");
             locationCheckBar.fillRectTransform = fillPanel.GetComponent<RectTransform>();

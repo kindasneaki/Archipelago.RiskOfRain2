@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Archipelago.MultiClient.Net;
+using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Packets;
+using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using R2API.Networking;
@@ -24,11 +27,16 @@ namespace Archipelago.RiskOfRain2
         public event ClientDisconnected OnClientDisconnect;
 
         public Uri LastServerUrl { get; set; }
+        internal DeathLinkHandler Deathlinkhandler { get; private set; }
+        internal StageBlockerHandler Stageblockerhandler { get; private set; }
+        internal LocationHandler Locationhandler { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
-        public ArchipelagoLocationCheckProgressBarUI LocationCheckBar;
+        public ArchipelagoLocationCheckProgressBarUI itemCheckBar;
+        public ArchipelagoLocationCheckProgressBarUI shrineCheckBar;
 
         private ArchipelagoSession session;
+        private DeathLinkService deathLinkService;
         private bool finalStageDeath = true;
         private bool isEndingAcceptable = false;
         public GameObject ReleasePanel;
@@ -57,7 +65,8 @@ namespace Archipelago.RiskOfRain2
 
             session = ArchipelagoSessionFactory.CreateSession(url);
             ItemLogic = new ArchipelagoItemLogicController(session);
-            LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
+            itemCheckBar = null;
+            shrineCheckBar = null;
 
             var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 3, 5));
 
@@ -80,7 +89,77 @@ namespace Archipelago.RiskOfRain2
                 ChatMessage.SendColored("Connected!", Color.green);
             }
 
-            LocationCheckBar.ItemPickupStep = ItemLogic.ItemPickupStep;
+            uint itemPickupStep = 3;
+            uint shrineUseStep = 3;
+            if (successResult.SlotData.TryGetValue("itemPickupStep", out var oitemPickupStep))
+            {
+                itemPickupStep = Convert.ToUInt32(oitemPickupStep);
+                Log.LogDebug($"itemPickupStep from slot data: {itemPickupStep}");
+                itemPickupStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
+            }
+            if (successResult.SlotData.TryGetValue("shrineUseStep", out var oshrineUseStep))
+            {
+                shrineUseStep = Convert.ToUInt32(oshrineUseStep);
+                Log.LogDebug($"shrineUseStep from slot data: {shrineUseStep}");
+                shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
+            }
+
+            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enableBlocker))
+            {
+                // block the stages if they are expected to be recieved as items
+                if (Convert.ToBoolean(enableBlocker))
+                {
+                    Stageblockerhandler = new StageBlockerHandler();
+                    ItemLogic.Stageblockerhandler = Stageblockerhandler;
+                    Stageblockerhandler.BlockAll();
+                }
+            }
+
+            if (successResult.SlotData.TryGetValue("DeathLink", out var enabledeathlink))
+            {
+                if (Convert.ToBoolean(enabledeathlink))
+                {
+                    Log.LogDebug("Starting DeathLink service");
+                    deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
+                    deathLinkService.EnableDeathLink(); // deathlink should just be enabled, the DeathLinkHandler assumes it is already enabled
+                    Deathlinkhandler = new DeathLinkHandler(deathLinkService);
+                }
+            }
+
+            if (successResult.SlotData.TryGetValue("classic_mode", out var classicmode))
+            {
+                if (Convert.ToBoolean(classicmode))
+                {
+                    Log.LogDebug("Client detected classic_mode");
+                    // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived
+                }
+                else
+                {
+                    Log.LogDebug("Client detected explore_mode");
+                    // only start the new location handler for explore mode
+                    Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+
+                    // TODO there is a more likely a more reasonable location to create the UI for explore mode
+                    itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
+
+                    shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
+                    shrineCheckBar.ItemPickupStep = (int)shrineUseStep;
+
+                    Locationhandler.itemBar = itemCheckBar;
+                    Locationhandler.shrineBar = shrineCheckBar;
+                    Locationhandler.itemPickupStep = itemPickupStep;
+                    Locationhandler.shrineUseStep = shrineUseStep;
+                }
+            }
+            // make the bar if for it has not been created because classic mode or the slot data was missing
+            if (null == itemCheckBar)
+            {
+                Log.LogDebug("Setting up bar for classic");
+                itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
+                SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
+            }
+
+            itemCheckBar.ItemPickupStep = (int)itemPickupStep;
 
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Socket.SocketClosed += Session_SocketClosed;
@@ -88,6 +167,13 @@ namespace Archipelago.RiskOfRain2
 
             HookGame();
             new ArchipelagoStartMessage().Send(NetworkDestination.Clients);
+
+            // TODO Precollecting needs to happen earlier to be actually effective...
+            // Connect() is called in is within Run.onRunStartGlobal().
+            // Run.Start() calls onRunStartGlobal().
+            // Precolect needs to happen before Start() since that is when the first stage's environment is picked.
+            // Actually doing this would take a networking rewrite; there is no effective workaround.
+            ItemLogic.Precollect();
         }
 
         public void Dispose()
@@ -107,13 +193,26 @@ namespace Archipelago.RiskOfRain2
                 ItemLogic.Dispose();
             }
             
-            if (LocationCheckBar != null)
+            if (itemCheckBar != null)
             {
-                LocationCheckBar.Dispose();
+                SyncLocationCheckProgress.OnLocationSynced -= itemCheckBar.UpdateCheckProgress;
+                itemCheckBar.Dispose();
             }
-         
+
+            if (shrineCheckBar != null)
+            {
+                shrineCheckBar.Dispose();
+            }
+
             UnhookGame();
             session = null;
+
+            // In the case the player joins a lobby that uses different settings, the previous objects may still exist and may be called again when hooks are started.
+            // To prevent this, the old objects will be thrown away when disposing.
+            Stageblockerhandler = null;
+            Locationhandler = null;
+            itemCheckBar = null;
+            shrineCheckBar = null;
         }
 
         private void HookGame()
@@ -125,6 +224,10 @@ namespace Archipelago.RiskOfRain2
             ReleasePanel = AssetBundleHelper.LoadPrefab("ReleasePrompt");
             /*On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
             OnReleaseClick += WillRelease;*/
+
+            Deathlinkhandler?.Hook();
+            Stageblockerhandler?.Hook();
+            Locationhandler?.Hook();
         }
 
         private void UnhookGame()
@@ -133,6 +236,10 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
+
+            Deathlinkhandler?.UnHook();
+            Stageblockerhandler?.UnHook();
+            Locationhandler?.UnHook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
@@ -147,19 +254,19 @@ namespace Archipelago.RiskOfRain2
 
         private void ItemLogicHandler_ItemDropProcessed(int pickedUpCount)
         {
-            if (LocationCheckBar != null)
+            if (itemCheckBar != null)
             {
-                LocationCheckBar.CurrentItemCount = pickedUpCount;
-                if ((LocationCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep) == 0)
+                itemCheckBar.CurrentItemCount = pickedUpCount;
+                if ((itemCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep) == 0)
                 {
-                    LocationCheckBar.CurrentItemCount = 0;
+                    itemCheckBar.CurrentItemCount = 0;
                 }
                 else
                 {
-                    LocationCheckBar.CurrentItemCount = LocationCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep;
+                    itemCheckBar.CurrentItemCount = itemCheckBar.CurrentItemCount % ItemLogic.ItemPickupStep;
                 }
             }
-            new SyncLocationCheckProgress(LocationCheckBar.CurrentItemCount, LocationCheckBar.ItemPickupStep).Send(NetworkDestination.Clients);
+            new SyncLocationCheckProgress(itemCheckBar.CurrentItemCount, itemCheckBar.ItemPickupStep).Send(NetworkDestination.Clients);
         }
 
         private void ChatBox_SubmitChat(On.RoR2.UI.ChatBox.orig_SubmitChat orig, ChatBox self)

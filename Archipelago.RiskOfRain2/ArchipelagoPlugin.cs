@@ -25,7 +25,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.1.6";
+        public const string PluginVersion = "1.2.0";
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }
@@ -86,9 +86,9 @@ namespace Archipelago.RiskOfRain2
         {
             if (!NetworkServer.active && isPlayingAP)
             {
-                if (AP.LocationCheckBar != null)
+                if (AP.itemCheckBar != null)
                 {
-                    AP.LocationCheckBar.Dispose();
+                    AP.itemCheckBar.Dispose();
                 }
             }
         }
@@ -113,9 +113,9 @@ namespace Archipelago.RiskOfRain2
             // They end up with multiple bars if they join multiple sessions otherwise.
             if (!NetworkServer.active && isPlayingAP)
             {
-                if (AP.LocationCheckBar != null)
+                if (AP.itemCheckBar != null)
                 {
-                    AP.LocationCheckBar.Dispose();
+                    AP.itemCheckBar.Dispose();
                 }
             }
         }
@@ -166,7 +166,7 @@ namespace Archipelago.RiskOfRain2
         {
             if (!NetworkServer.active)
             {
-                AP.LocationCheckBar = new ArchipelagoLocationCheckProgressBarUI();
+                AP.itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
                 isPlayingAP = true;
             }
         }
@@ -198,6 +198,7 @@ namespace Archipelago.RiskOfRain2
             if (isPlayingAP)
             {
                 ArchipelagoTotalChecksObjectiveController.RemoveObjective();
+                ArchipelagoLocationsInEnvironmentController.RemoveObjective();
             }
         }
         private void CreateLobbyFields()
