@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
@@ -12,6 +13,7 @@ using R2API.Utils;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -28,7 +30,12 @@ namespace Archipelago.RiskOfRain2
 
         private ArchipelagoSession session;
         private bool finalStageDeath = true;
-        private string attemptedSlotName = "";
+        private bool isEndingAcceptable = false;
+        public GameObject ReleasePanel;
+        public GameObject ReleasePromptPanel;
+        public delegate void ReleaseClick(bool prompt);
+        public static ReleaseClick OnReleaseClick;
+        //public static ReleaseClick OnButtonClick;
 
         public ArchipelagoClient()
         {
@@ -115,6 +122,9 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
+            ReleasePanel = AssetBundleHelper.LoadPrefab("ReleasePrompt");
+            /*On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
+            OnReleaseClick += WillRelease;*/
         }
 
         private void UnhookGame()
@@ -209,7 +219,7 @@ namespace Archipelago.RiskOfRain2
         //    RecentlyReconnected = true;
         //}
 
-        private void Session_PacketReceived(ArchipelagoPacketBase packet)
+        private async void Session_PacketReceived(ArchipelagoPacketBase packet)
         {
             switch (packet.PacketType)
             {
@@ -223,6 +233,10 @@ namespace Archipelago.RiskOfRain2
                     {
                         var printJsonPacket = packet as PrintJsonPacket;
                         string text = "";
+                        //text = await AsynChat(printJsonPacket);
+                        //Task<string> task = AsynChat(printJsonPacket);
+                        //string text = await task;
+
                         foreach (var part in printJsonPacket.Data)
                         {
                             switch (part.Type)
@@ -231,15 +245,15 @@ namespace Archipelago.RiskOfRain2
                                     {
                                         //TODO check Player to see if its self
                                         int playerId = int.Parse(part.Text);
-                                        if(playerId == session.ConnectionInfo.Slot)
+                                        if (playerId == session.ConnectionInfo.Slot)
                                         {
                                             text += "<color=#cb42f5>" + session.Players.GetPlayerName(playerId) + "</color>";
-                                        } 
+                                        }
                                         else
                                         {
                                             text += "<color=#3268a8>" + session.Players.GetPlayerName(playerId) + "</color>";
                                         }
-                                        
+
                                         break;
                                     }
                                 case JsonMessagePartType.ItemId:
@@ -267,13 +281,64 @@ namespace Archipelago.RiskOfRain2
                     }
             }
         }
+        //Async chat to fix lag on someone releasing items.. has a bug where it combines sections of other checks together for some reason
+        /*private async Task<string> AsynChat(PrintJsonPacket printJsonPacket)
+        {
+            string text = "";
+            await Task.Run(() =>
+            {
+                Log.LogDebug("PrintJSON");
+                foreach (var part in printJsonPacket.Data)
+                {
+                    switch (part.Type)
+                    {
+                        case JsonMessagePartType.PlayerId:
+                            {
+                                //TODO check Player to see if its self
+                                int playerId = int.Parse(part.Text);
+                                if (playerId == session.ConnectionInfo.Slot)
+                                {
+                                    text += "<color=#cb42f5>" + session.Players.GetPlayerName(playerId) + "</color>";
+                                }
+                                else
+                                {
+                                    text += "<color=#3268a8>" + session.Players.GetPlayerName(playerId) + "</color>";
+                                }
+
+                                break;
+                            }
+                        case JsonMessagePartType.ItemId:
+                            {
+                                int itemId = int.Parse(part.Text);
+                                text += session.Items.GetItemName(itemId);
+                                break;
+                            }
+                        case JsonMessagePartType.LocationId:
+                            {
+                                int locationId = int.Parse(part.Text);
+                                text += session.Locations.GetLocationNameFromId(locationId);
+                                break;
+                            }
+                        default:
+                            {
+                                text += part.Text;
+                                break;
+                            }
+                    }
+                    
+                }
+                Task.Delay(10).Wait();
+            });
+            return text;
+        }*/
         private void Run_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
         {
             // If ending is acceptable, finish the archipelago run.
             if (IsEndingAcceptable(gameEndingDef))
-            {                
+            {  
+                isEndingAcceptable = true;
                 // Auto-complete all remaining locations. Substitute for deprecated forced_auto_forfeit.
-                session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
+                //session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
              
                 var packet = new StatusUpdatePacket();
                 packet.Status = ArchipelagoClientState.ClientGoal;
@@ -313,5 +378,35 @@ namespace Archipelago.RiskOfRain2
         {
             Dispose();
         }
+        //Prompt to release items instead of auto release.. Causes a bug where you get stuck in game and cant click continue
+        /*private void GameEndReportPanelController_Awake(On.RoR2.UI.GameEndReportPanelController.orig_Awake orig, GameEndReportPanelController self)
+        {
+            if (isEndingAcceptable && ReleasePromptPanel == null)
+            {
+                var rp = GameObject.Instantiate(ReleasePanel);
+                var gameEndReportPanel = self.transform.Find("SafeArea (JUICED)/BodyArea");
+                Log.LogDebug(self.transform);
+                rp.transform.SetParent(gameEndReportPanel.transform, false);
+                rp.transform.localPosition = new Vector3(0, 0, 0);
+                rp.transform.localScale = Vector3.one;
+                var release = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Release/").gameObject;
+                release.AddComponent<HGButton>();
+                var cancel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Cancel/").gameObject;
+                cancel.AddComponent<HGButton>();
+                release.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(true); });
+                cancel.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(false); });
+                ReleasePromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)").gameObject;
+            }
+            orig(self);
+        }
+        private void WillRelease(bool prompt)
+        {
+            if (prompt && isEndingAcceptable)
+            {
+                Log.LogDebug($"Releasing the rest of the items {isEndingAcceptable}");
+                session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
+            }
+            ReleasePromptPanel.SetActive(false);
+        }*/
     }
 }

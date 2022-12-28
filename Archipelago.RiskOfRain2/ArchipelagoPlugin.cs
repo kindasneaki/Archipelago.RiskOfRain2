@@ -27,6 +27,8 @@ namespace Archipelago.RiskOfRain2
         public const string PluginName = "Archipelago";
         public const string PluginVersion = "1.1.6";
         internal static ArchipelagoPlugin Instance { get; private set; }
+        //public string bundleName = "connectbundle";
+        //public static AssetBundle localAssetBundle { get; private set; }
 
         private ArchipelagoClient AP;
         //private bool isInLobbyConfigLoaded = false;
@@ -45,7 +47,7 @@ namespace Archipelago.RiskOfRain2
         public void Awake()
         {
             Log.Init(Logger);
-
+            Instance = this;
             AP = new ArchipelagoClient();
             ArchipelagoConnectButtonController.OnConnectClick += OnClick_ConnectToArchipelagoWithButton;
             AP.OnClientDisconnect += AP_OnClientDisconnect;
@@ -57,9 +59,7 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
-            //isInLobbyConfigLoaded = Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig");
-            var connectButton = new GameObject("ArchipelagoConnectButtonController");
-            connectButton.AddComponent<ArchipelagoConnectButtonController>();
+            AssetBundleHelper.LoadBundle();         
 
             CreateLobbyFields();
 
@@ -72,9 +72,14 @@ namespace Archipelago.RiskOfRain2
 
             CommandHelper.AddToConsoleWhenReady();
         }
+
+
         public void Start()
         {
-            Instance = this;
+            var connectButton = new GameObject("ArchipelagoConnectButtonController");
+            connectButton.AddComponent<ArchipelagoConnectButtonController>();
+            
+            
         }
 
         private void GameNetworkManager_onStopClientGlobal()
@@ -195,21 +200,6 @@ namespace Archipelago.RiskOfRain2
                 ArchipelagoTotalChecksObjectiveController.RemoveObjective();
             }
         }
-
-        /*        private void CreateInLobbyMenu()
-                {
-                    var configEntry = new InLobbyConfig.ModConfigEntry();
-                    configEntry.DisplayName = "Archipelago";
-                    configEntry.SectionFields.Add("Archipelago Client Config", new List<IConfigField>
-                    {
-                        new StringConfigField("Archipelago Slot Name", () => apSlotName, (newValue) => apSlotName = newValue),
-                        new StringConfigField("Archipelago Server Password", () => apPassword, (newValue) => apPassword = newValue),
-                        new StringConfigField("Archipelago Server URL", () => apServerUri, (newValue) => apServerUri = newValue),
-                        new IntConfigField("Archipelago Server Port", () => apServerPort, (newValue) => apServerPort = newValue),
-                        new BooleanConfigField("Enable Archipelago?", () => willConnectToAP, (newValue) => willConnectToAP = newValue)
-                    });
-                    InLobbyConfig.ModConfigCatalog.Add(configEntry);
-                }*/
         private void CreateLobbyFields()
         {
             ArchipelagoConnectButtonController.OnSlotChanged = (newValue) => apSlotName = newValue;
