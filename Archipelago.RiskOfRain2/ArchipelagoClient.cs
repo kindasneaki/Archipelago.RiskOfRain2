@@ -68,7 +68,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 3, 5));
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 3, 7));
 
             if (!result.Successful)
             {
@@ -126,9 +126,9 @@ namespace Archipelago.RiskOfRain2
                 }
             }
 
-            if (successResult.SlotData.TryGetValue("classic_mode", out var classicmode))
+            if (successResult.SlotData.TryGetValue("goal", out var classicmode))
             {
-                if (Convert.ToBoolean(classicmode))
+                if (!Convert.ToBoolean(classicmode))
                 {
                     Log.LogDebug("Client detected classic_mode");
                     // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived

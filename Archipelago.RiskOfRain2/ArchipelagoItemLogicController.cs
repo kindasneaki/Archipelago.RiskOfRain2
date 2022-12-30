@@ -142,12 +142,11 @@ namespace Archipelago.RiskOfRain2
                     {
                         var connectedPacket = packet as ConnectedPacket;
 
-
                         // hook the classic location handler if not using EnvironmentsAsItems
                         bool classic;
-                        if (connectedPacket.SlotData.TryGetValue("classic_mode", out var classicmodeobject))
+                        if (connectedPacket.SlotData.TryGetValue("goal", out var classicmodeobject))
                         {
-                            classic = Convert.ToBoolean(classicmodeobject);
+                            classic = !Convert.ToBoolean(classicmodeobject);
                         }
                         else classic = true;
 
