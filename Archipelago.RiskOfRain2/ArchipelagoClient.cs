@@ -37,7 +37,7 @@ namespace Archipelago.RiskOfRain2
 
         private ArchipelagoSession session;
         private DeathLinkService deathLinkService;
-        private bool finalStageDeath = true;
+        private bool finalStageDeath = false;
         private bool isEndingAcceptable = false;
         public GameObject ReleasePanel;
         public GameObject ReleasePromptPanel;
