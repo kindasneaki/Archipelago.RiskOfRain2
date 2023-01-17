@@ -50,11 +50,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         public static readonly string[] LocationTypesSlotName = new string[(int)LocationTypes.MAX] // use max to enforce correct amount of names
         {
             // These names should match those in the slot data
-            "chests_per_stage",
-            "shrines_per_stage",
-            "scavengers_per_stage",
-            "scanner_per_stage",
-            "altars_per_stage"
+            "chestsPerStage",
+            "shrinesPerStage",
+            "scavengersPerStage",
+            "scannerPerStage",
+            "altarsPerStage"
         };
 
         public static readonly string[] LocationTypesShortName = new string[(int)LocationTypes.MAX] // use max to enforce correct amount of names
