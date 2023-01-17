@@ -122,6 +122,7 @@ namespace Archipelago.RiskOfRain2
             }
 
         }
+        // TODO This does not work on your own items being collected
         private void Update_MissingChecks()
         {
             if(MissingChecks.Count() > 0 && ChecksTogether != null)
@@ -169,9 +170,6 @@ namespace Archipelago.RiskOfRain2
                         ItemPickupStep = Convert.ToInt32(connectedPacket.SlotData["itemPickupStep"]) + 1;
                         // TODO ItemPickupStep should be set by ArchipelagoClient.cs instead of here (for consistency)
                         TotalChecks = connectedPacket.LocationsChecked.Count() + connectedPacket.MissingChecks.Count();
-
-                        // Old way
-                        // CurrentChecks = TotalChecks - connectedPacket.MissingChecks.Count();
                         ChecksTogether = connectedPacket.LocationsChecked.Concat(connectedPacket.MissingChecks).ToArray();
                         ChecksTogether = ChecksTogether.OrderBy(n => n).ToArray();
                         MissingChecks = connectedPacket.MissingChecks;

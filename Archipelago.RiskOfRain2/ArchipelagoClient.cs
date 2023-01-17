@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
@@ -83,7 +83,14 @@ namespace Archipelago.RiskOfRain2
             }
 
             LoginSuccessful successResult = (LoginSuccessful)result;
-            if (successResult.SlotData.TryGetValue("FinalStageDeath", out var stageDeathObject))
+            if (successResult.SlotData.TryGetValue("finalStageDeath", out var stageDeathObject))
+            {
+                finalStageDeath = Convert.ToBoolean(stageDeathObject);
+                ChatMessage.SendColored("Connected!", Color.green);
+            } 
+            // to keep this setting working in previous versions of AP
+            // TODO remove at ap version 3.9
+            else if (successResult.SlotData.TryGetValue("FinalStageDeath", out var oldStageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
                 ChatMessage.SendColored("Connected!", Color.green);
@@ -104,7 +111,7 @@ namespace Archipelago.RiskOfRain2
                 shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
             }
 
-            if (successResult.SlotData.TryGetValue("EnvironmentsAsItems", out var enableBlocker))
+            if (successResult.SlotData.TryGetValue("environmentsAsItems", out var enableBlocker))
             {
                 // block the stages if they are expected to be recieved as items
                 if (Convert.ToBoolean(enableBlocker))
@@ -115,7 +122,7 @@ namespace Archipelago.RiskOfRain2
                 }
             }
 
-            if (successResult.SlotData.TryGetValue("DeathLink", out var enabledeathlink))
+            if (successResult.SlotData.TryGetValue("deathLink", out var enabledeathlink))
             {
                 if (Convert.ToBoolean(enabledeathlink))
                 {
@@ -339,62 +346,19 @@ namespace Archipelago.RiskOfRain2
                 case ArchipelagoPacketType.PrintJSON:
                     {
                         var printJsonPacket = packet as PrintJsonPacket;
-                        string text = "";
+                        //string text = ""
                         //text = await AsynChat(printJsonPacket);
-                        //Task<string> task = AsynChat(printJsonPacket);
-                        //string text = await task;
-
-                        foreach (var part in printJsonPacket.Data)
-                        {
-                            switch (part.Type)
-                            {
-                                case JsonMessagePartType.PlayerId:
-                                    {
-                                        //TODO check Player to see if its self
-                                        int playerId = int.Parse(part.Text);
-                                        if (playerId == session.ConnectionInfo.Slot)
-                                        {
-                                            text += "<color=#cb42f5>" + session.Players.GetPlayerName(playerId) + "</color>";
-                                        }
-                                        else
-                                        {
-                                            text += "<color=#3268a8>" + session.Players.GetPlayerName(playerId) + "</color>";
-                                        }
-
-                                        break;
-                                    }
-                                case JsonMessagePartType.ItemId:
-                                    {
-                                        int itemId = int.Parse(part.Text);
-                                        text += session.Items.GetItemName(itemId);
-                                        break;
-                                    }
-                                case JsonMessagePartType.LocationId:
-                                    {
-                                        int locationId = int.Parse(part.Text);
-                                        text += session.Locations.GetLocationNameFromId(locationId);
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        text += part.Text;
-                                        break;
-                                    }
-                            }
-                        }
-                        ChatMessage.Send(text);
-                        //ChatMessage.SendColored(text, Color.cyan);
+                        Thread thread = new Thread(() => ThreadChat(printJsonPacket));
+                        thread.Start();
+                        Thread.Sleep(10);
                         break;
                     }
             }
         }
-        //Async chat to fix lag on someone releasing items.. has a bug where it combines sections of other checks together for some reason
-        /*private async Task<string> AsynChat(PrintJsonPacket printJsonPacket)
+        //Thread chat to reduce lag on collect
+        private void ThreadChat(PrintJsonPacket printJsonPacket)
         {
             string text = "";
-            await Task.Run(() =>
-            {
-                Log.LogDebug("PrintJSON");
                 foreach (var part in printJsonPacket.Data)
                 {
                     switch (part.Type)
@@ -432,12 +396,10 @@ namespace Archipelago.RiskOfRain2
                                 break;
                             }
                     }
-                    
+
                 }
-                Task.Delay(10).Wait();
-            });
-            return text;
-        }*/
+            ChatMessage.Send(text);
+        }
         private void Run_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
         {
             // If ending is acceptable, finish the archipelago run.
