@@ -54,7 +54,7 @@ namespace Archipelago.RiskOfRain2
         {
             if (session != null)
             {
-                if(session.Socket.Connected)
+                if (session.Socket.Connected)
                 {
                     return;
                 }
@@ -87,7 +87,7 @@ namespace Archipelago.RiskOfRain2
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
                 ChatMessage.SendColored("Connected!", Color.green);
-            } 
+            }
             // to keep this setting working in previous versions of AP
             // TODO remove at ap version 3.9
             else if (successResult.SlotData.TryGetValue("FinalStageDeath", out var oldStageDeathObject))
@@ -109,17 +109,6 @@ namespace Archipelago.RiskOfRain2
                 shrineUseStep = Convert.ToUInt32(oshrineUseStep);
                 Log.LogDebug($"shrineUseStep from slot data: {shrineUseStep}");
                 shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
-            }
-
-            if (successResult.SlotData.TryGetValue("environmentsAsItems", out var enableBlocker))
-            {
-                // block the stages if they are expected to be recieved as items
-                if (Convert.ToBoolean(enableBlocker))
-                {
-                    Stageblockerhandler = new StageBlockerHandler();
-                    ItemLogic.Stageblockerhandler = Stageblockerhandler;
-                    Stageblockerhandler.BlockAll();
-                }
             }
 
             if (successResult.SlotData.TryGetValue("deathLink", out var enabledeathlink))
@@ -144,6 +133,9 @@ namespace Archipelago.RiskOfRain2
                 {
                     Log.LogDebug("Client detected explore_mode");
                     // only start the new location handler for explore mode
+                    Stageblockerhandler = new StageBlockerHandler();
+                    ItemLogic.Stageblockerhandler = Stageblockerhandler;
+                    Stageblockerhandler.BlockAll();
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
 
                     // TODO there is a more likely a more reasonable location to create the UI for explore mode
@@ -168,7 +160,7 @@ namespace Archipelago.RiskOfRain2
 
             itemCheckBar.ItemPickupStep = (int)itemPickupStep;
 
-            session.Socket.PacketReceived += Session_PacketReceived;
+            session.MessageLog.OnMessageReceived += Session_OnMessageReceived;
             session.Socket.SocketClosed += Session_SocketClosed;
             ItemLogic.OnItemDropProcessed += ItemLogicHandler_ItemDropProcessed;
 
@@ -193,13 +185,13 @@ namespace Archipelago.RiskOfRain2
                 //works
                 session.Socket.DisconnectAsync();
             }
-            
+
             if (ItemLogic != null)
             {
                 ItemLogic.OnItemDropProcessed -= ItemLogicHandler_ItemDropProcessed;
                 ItemLogic.Dispose();
             }
-            
+
             if (itemCheckBar != null)
             {
                 SyncLocationCheckProgress.OnLocationSynced -= itemCheckBar.UpdateCheckProgress;
@@ -332,72 +324,21 @@ namespace Archipelago.RiskOfRain2
         //    reconnecting = false;
         //    RecentlyReconnected = true;
         //}
-
-        private async void Session_PacketReceived(ArchipelagoPacketBase packet)
+        private void Session_OnMessageReceived(LogMessage message)
         {
-            switch (packet.PacketType)
-            {
-                case ArchipelagoPacketType.Print:
-                    {
-                        var printPacket = packet as PrintPacket;
-                        ChatMessage.Send(printPacket.Text);
-                        break;
-                    }
-                case ArchipelagoPacketType.PrintJSON:
-                    {
-                        var printJsonPacket = packet as PrintJsonPacket;
-                        //string text = ""
-                        //text = await AsynChat(printJsonPacket);
-                        Thread thread = new Thread(() => ThreadChat(printJsonPacket));
-                        thread.Start();
-                        Thread.Sleep(10);
-                        break;
-                    }
-            }
+            Thread thread = new Thread(() => Session_OnMessageReceived_Thread(message));
+            thread.Start();
+            Thread.Sleep(20);
         }
-        //Thread chat to reduce lag on collect
-        private void ThreadChat(PrintJsonPacket printJsonPacket)
+        private void Session_OnMessageReceived_Thread(LogMessage message)
         {
             string text = "";
-                foreach (var part in printJsonPacket.Data)
-                {
-                    switch (part.Type)
-                    {
-                        case JsonMessagePartType.PlayerId:
-                            {
-                                //TODO check Player to see if its self
-                                int playerId = int.Parse(part.Text);
-                                if (playerId == session.ConnectionInfo.Slot)
-                                {
-                                    text += "<color=#cb42f5>" + session.Players.GetPlayerName(playerId) + "</color>";
-                                }
-                                else
-                                {
-                                    text += "<color=#3268a8>" + session.Players.GetPlayerName(playerId) + "</color>";
-                                }
+            foreach (var part in message.Parts)
+            {
+                var hex = part.Color.R.ToString("X2") + part.Color.G.ToString("X2") + part.Color.B.ToString("X2");
+                text += $"<color=#{hex}>" + part + "</color>";
+            }
 
-                                break;
-                            }
-                        case JsonMessagePartType.ItemId:
-                            {
-                                int itemId = int.Parse(part.Text);
-                                text += session.Items.GetItemName(itemId);
-                                break;
-                            }
-                        case JsonMessagePartType.LocationId:
-                            {
-                                int locationId = int.Parse(part.Text);
-                                text += session.Locations.GetLocationNameFromId(locationId);
-                                break;
-                            }
-                        default:
-                            {
-                                text += part.Text;
-                                break;
-                            }
-                    }
-
-                }
             ChatMessage.Send(text);
         }
         private void Run_BeginGameOver(On.RoR2.Run.orig_BeginGameOver orig, Run self, GameEndingDef gameEndingDef)
@@ -423,7 +364,7 @@ namespace Archipelago.RiskOfRain2
             // Acceptable ending types
             var acceptableEndings = new[] { 
                 RoR2Content.GameEndings.MainEnding, 
-                RoR2Content.GameEndings.ObliterationEnding, 
+                //RoR2Content.GameEndings.ObliterationEnding, 
                 RoR2Content.GameEndings.LimboEnding, 
                 DLC1Content.GameEndings.VoidEnding 
             };
@@ -435,12 +376,11 @@ namespace Archipelago.RiskOfRain2
                 "moon2",
                 "voidraid"
             };
-
+            
             return acceptableEndings.Contains(gameEndingDef) 
-                  ||(finalStageDeath 
-                     && gameEndingDef == RoR2Content.GameEndings.StandardLoss 
-                     && acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName)
-                    );
+                  ||(finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss 
+                  && acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName))
+                  || finalStageDeath && RoR2Content.GameEndings.ObliterationEnding;
         }
 
         private void Run_onRunDestroyGlobal(Run obj)

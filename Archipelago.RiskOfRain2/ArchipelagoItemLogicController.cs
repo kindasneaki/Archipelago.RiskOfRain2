@@ -13,6 +13,7 @@ using R2API.Networking;
 using R2API.Networking.Interfaces;
 using RoR2;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using System.Collections.ObjectModel;
 
@@ -45,6 +46,7 @@ namespace Archipelago.RiskOfRain2
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
+        private GameObject portalPrefab;
 
         private bool IsInGame
         {
@@ -66,8 +68,12 @@ namespace Archipelago.RiskOfRain2
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
             Log.LogDebug("Okay finished hooking.");
-            smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("Assets/RoR2/Junk/Characters/Bandit/Skills/SmokescreenEffect.prefab").WaitForCompletion();
+            smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Junk/Bandit/SmokescreenEffect.prefab").WaitForCompletion();
+            // TODO Spawns the seerStation portal to pick where to go.. changing the id in game doesn't work.. looks to be a NetworkBehavior thing
+            // portalPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/bazaar/SeerStation.prefab").WaitForCompletion();
+            
             Log.LogDebug("Okay, finished getting prefab.");
+            Log.LogDebug($"smokescreen {smokescreenPrefab}");
 
             skippedItems = new PickupIndex[]
             {
@@ -462,7 +468,7 @@ namespace Archipelago.RiskOfRain2
             if (!spawnItem)
             {
                 //Errors out.. smokescreenPrefab is null
-                //EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
+                EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
             }
 
             new SyncTotalCheckProgress(finishedAllChecks ? TotalChecks : CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Text;
 using R2API.Utils;
 using RoR2;
@@ -14,17 +15,12 @@ namespace Archipelago.RiskOfRain2.Console
         public static event OnArchipelagoDisconnectCommandHandler OnArchipelagoDisconnectCommandCalled;
 
         [ConCommand(
-    commandName = "archipelago",
+    commandName = "archipelago_connect",
     flags = ConVarFlags.SenderMustBeServer,
     helpText = "Connects to Archipelago. Syntax: archipelago <url> <port> <slot> [password]")]
         private static void ArchipelagoConCommand(ConCommandArgs args)
         {
-            if (args.Count == 1 && args.GetArgString(0).ToLower() == "disconnect")
-            {
-                OnArchipelagoDisconnectCommandCalled();
-                return;
-            }
-            else if (args.Count < 3 || args.Count > 4)
+            if (args.Count < 3 || args.Count > 4)
             {
                 ChatMessage.Send("Invalid command. Correct Syntax: archipelago <url> <port> <slot> [password]");
                 return;
@@ -42,6 +38,11 @@ namespace Archipelago.RiskOfRain2.Console
             }
 
             OnArchipelagoCommandCalled(url, port, slot, password);
+        }
+        [ConCommand(commandName = "archipelago_disconnect", flags = ConVarFlags.SenderMustBeServer, helpText = "Disconnects from Archipelago.")]
+        private static void ArchipelagoDisconnect(ConCommandArgs args)
+        {
+            OnArchipelagoDisconnectCommandCalled();
         }
     }
 }
