@@ -44,6 +44,7 @@ namespace Archipelago.RiskOfRain2
         public delegate void ReleaseClick(bool prompt);
         public static ReleaseClick OnReleaseClick;
         //public static ReleaseClick OnButtonClick;
+        public static string connectedPlayerName;
 
         public ArchipelagoClient()
         {
@@ -157,7 +158,7 @@ namespace Archipelago.RiskOfRain2
                 itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
                 SyncLocationCheckProgress.OnLocationSynced += itemCheckBar.UpdateCheckProgress; // the item bar updates from the netcode in classic mode
             }
-
+            connectedPlayerName = session.Players.GetPlayerName(session.ConnectionInfo.Slot);
             itemCheckBar.ItemPickupStep = (int)itemPickupStep;
 
             session.MessageLog.OnMessageReceived += Session_OnMessageReceived;
@@ -235,6 +236,8 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
+            session.MessageLog.OnMessageReceived -= Session_OnMessageReceived;
+            session.Socket.SocketClosed -= Session_SocketClosed;
 
             Deathlinkhandler?.UnHook();
             Stageblockerhandler?.UnHook();

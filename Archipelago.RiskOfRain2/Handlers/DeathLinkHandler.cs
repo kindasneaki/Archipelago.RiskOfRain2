@@ -1,4 +1,5 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
+using Archipelago.RiskOfRain2;
 using Archipelago.RiskOfRain2.Extensions;
 using R2API.Utils;
 using RoR2;
@@ -34,19 +35,30 @@ namespace Archipelago.RiskOfRain2.Handlers
         public void UnHook()
         {
             deathLink.OnDeathLinkReceived -= DeathLink_OnDeathLinkReceived;
-            //On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
+            On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
         }
 
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
+            // TODO Deathlink will only be received every other one with this.
             // TODO for multiplayer, this needs to make sure the dying player belongs to this client as to prevent redundant deathlink signals
             if (PlayerCharacterMasterController.instances.Select(x => x.master).Contains(self))
             {
-                Log.LogDebug($"Player OnBodyDeath of {self.playerCharacterMasterController.GetDisplayName()}.");
+                //Single player does not send a Display name so we will use the slot name here.
+                string playerName = "";
+                if (self.playerCharacterMasterController.GetDisplayName() == "")
+                {
+                    playerName = ArchipelagoClient.connectedPlayerName;
+                }
+                else
+                {
+                    playerName = self.playerCharacterMasterController.GetDisplayName();
+                }
+                Log.LogDebug($"Player OnBodyDeath of {playerName}.");
                 if (!recievedDeath) // if this client just recieved a death, don't send it cyclically
                 {
                     sendingDeath = true;
-                    DeathLink dl = new DeathLink(self.playerCharacterMasterController.GetDisplayName()); // TODO send the cause of death
+                    DeathLink dl = new DeathLink(playerName, $"The planet rejected {playerName}"); // TODO send the cause of death
                     Log.LogDebug($"Deathlink sending. Source: {dl.Source} Cause: {dl.Cause} Timestamp: {dl.Timestamp}");
                     try
                     {

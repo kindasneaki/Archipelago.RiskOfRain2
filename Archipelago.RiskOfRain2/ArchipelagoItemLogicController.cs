@@ -250,6 +250,7 @@ namespace Archipelago.RiskOfRain2
             if (session != null)
             {
                 session.Socket.PacketReceived -= Session_PacketReceived;
+                session.Items.ItemReceived -= Items_ItemReceived;
                 session = null;
             }
         }
