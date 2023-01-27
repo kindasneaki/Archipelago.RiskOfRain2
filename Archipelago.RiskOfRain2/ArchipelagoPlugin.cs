@@ -132,10 +132,23 @@ namespace Archipelago.RiskOfRain2
         }
         public void OnClick_ConnectToArchipelagoWithButton()
         {
+            
             isPlayingAP = true;
             var uri = new UriBuilder();
-            uri.Scheme = "ws://";
-            uri.Host = apServerUri;
+            string url = apServerUri;
+            if (apServerUri.Contains("wss://") || apServerUri.Contains("ws://"))
+            {
+                string[] split = apServerUri.Split('/');
+                string scheme = $"{split[0]}//";
+                uri.Scheme = scheme;
+                url = split[2];
+                Log.LogDebug($"a{split[0]} b{split[1]} c{split[2]}");
+            }
+            else 
+            {
+                uri.Scheme = "ws://";
+            }
+            uri.Host = url;
             uri.Port = apServerPort;
             Log.LogDebug($"Server {apServerUri} Port: {apServerPort} Slot: {apSlotName} Password: {apPassword}");
 
@@ -147,7 +160,18 @@ namespace Archipelago.RiskOfRain2
             willConnectToAP = true;
             isPlayingAP = true;
             var uri = new UriBuilder();
-            uri.Scheme = "ws://";
+            if (url.Contains("wss://") || url.Contains("ws://"))
+            {
+                string[] split = url.Split('/');
+                string scheme = $"{split[0]}//";
+                uri.Scheme = scheme;
+                url = split[2];
+                Log.LogDebug($"a{split[0]} b{split[1]} c{split[2]}");
+            }
+            else
+            {
+                uri.Scheme = "ws://";
+            }
             uri.Host = url;
             uri.Port = port;
 
@@ -180,12 +204,6 @@ namespace Archipelago.RiskOfRain2
 
                 if (isPlayingAP)
                 {
-                    var uri = new UriBuilder();
-                    uri.Scheme = "ws://";
-                    uri.Host = apServerUri;
-                    uri.Port = apServerPort;
-
-                    AP.Connect(uri.Uri, apSlotName, apPassword);
                     ArchipelagoTotalChecksObjectiveController.AddObjective();
                 }
             }

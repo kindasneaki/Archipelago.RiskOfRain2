@@ -419,7 +419,7 @@ namespace Archipelago.RiskOfRain2
                 }
 
                 inventory.SetEquipmentIndex(PickupCatalog.GetPickupDef(pickupIndex)?.equipmentIndex ?? EquipmentIndex.None);
-                DisplayPickupNotification(pickupIndex);
+                DisplayPickupNotification(pickupIndex, player);
             }
         }
 
@@ -429,20 +429,17 @@ namespace Archipelago.RiskOfRain2
             {
                 var inventory = player.master.inventory;
                 inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
-                DisplayPickupNotification(pickupIndex);
+                DisplayPickupNotification(pickupIndex, player);
             }
         }
 
-        private void DisplayPickupNotification(PickupIndex index)
+        private void DisplayPickupNotification(PickupIndex index, PlayerCharacterMasterController player)
         {
             PickupDef pickupDef = PickupCatalog.GetPickupDef(index);
             var color = pickupDef.baseColor;
             var index_text = pickupDef.nameToken;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
-                Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
-            }
+            CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
+            Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
         }
 
         private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, PickupIndex pickupIndex, Vector3 position, Vector3 velocity)
