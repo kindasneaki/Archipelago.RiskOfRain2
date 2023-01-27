@@ -7,6 +7,7 @@ using RoR2.Artifacts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
@@ -17,9 +18,9 @@ namespace Archipelago.RiskOfRain2.Handlers
     internal class DeathLinkHandler : IHandler
     {
         private readonly DeathLinkService deathLink;
+        private Thread thread;
         // TODO perhaps a more robust system to prevent cyclical deaths is probably necessary
         private bool recievedDeath = false; // used to prevent cyclical deaths
-        private bool sendingDeath = false; // used to prevent cyclical deaths
 
         public DeathLinkHandler(DeathLinkService deathLink)
         {
@@ -40,7 +41,6 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
-            // TODO Deathlink will only be received every other one with this.
             // TODO for multiplayer, this needs to make sure the dying player belongs to this client as to prevent redundant deathlink signals
             if (PlayerCharacterMasterController.instances.Select(x => x.master).Contains(self))
             {
@@ -57,7 +57,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"Player OnBodyDeath of {playerName}.");
                 if (!recievedDeath) // if this client just recieved a death, don't send it cyclically
                 {
-                    sendingDeath = true;
+                    recievedDeath = true;
                     DeathLink dl = new DeathLink(playerName, $"The planet rejected {playerName}"); // TODO send the cause of death
                     Log.LogDebug($"Deathlink sending. Source: {dl.Source} Cause: {dl.Cause} Timestamp: {dl.Timestamp}");
                     try
@@ -73,18 +73,37 @@ namespace Archipelago.RiskOfRain2.Handlers
                         Log.LogDebug("Deathlink failed to send because socket was closed.");
                     }
                 }
-                recievedDeath = false;
+                if(thread == null)
+                {
+                    thread = new Thread(() => Prevent_Deathlink_Thread());
+                    thread.Start();
+                }
+                else
+                {
+                    if (!thread.IsAlive)
+                    {
+                        thread = new Thread(() => Prevent_Deathlink_Thread());
+                        thread.Start();
+                    }
+                }
+                
+                
             }
 
             orig(self, body);
+        }
+        private void Prevent_Deathlink_Thread()
+        {
+            Thread.Sleep(10000);
+            Log.LogDebug("It has been 10 seconds you can now die again!");
+            recievedDeath = false;
         }
 
         private void DeathLink_OnDeathLinkReceived(DeathLink deathLink)
         {
             Log.LogDebug($"Deathlink received. Source: {deathLink.Source} Cause: {deathLink.Cause} Timestamp: {deathLink.Timestamp}");
-            if (sendingDeath) // if this client sent just sent a death, don't recieve it cyclically
+            if (recievedDeath) // if this client just sent a death, don't recieve it cyclically
             {
-                sendingDeath = false;
                 return;
             }
             recievedDeath = true;
