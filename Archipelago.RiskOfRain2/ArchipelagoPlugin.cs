@@ -134,53 +134,25 @@ namespace Archipelago.RiskOfRain2
         {
             
             isPlayingAP = true;
-            var uri = new UriBuilder();
-            string url = apServerUri;
-            if (apServerUri.Contains("wss://") || apServerUri.Contains("ws://"))
-            {
-                string[] split = apServerUri.Split('/');
-                string scheme = $"{split[0]}//";
-                uri.Scheme = scheme;
-                url = split[2];
-                Log.LogDebug($"a{split[0]} b{split[1]} c{split[2]}");
-            }
-            else 
-            {
-                uri.Scheme = "ws://";
-            }
-            uri.Host = url;
-            uri.Port = apServerPort;
+            string url = apServerUri + ":" + apServerPort;
+
             Log.LogDebug($"Server {apServerUri} Port: {apServerPort} Slot: {apSlotName} Password: {apPassword}");
 
-            AP.Connect(uri.Uri, apSlotName, apPassword);
+            AP.Connect(url, apSlotName, apPassword);
             //Log.LogDebug("On Click Connect");
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
             willConnectToAP = true;
             isPlayingAP = true;
-            var uri = new UriBuilder();
-            if (url.Contains("wss://") || url.Contains("ws://"))
-            {
-                string[] split = url.Split('/');
-                string scheme = $"{split[0]}//";
-                uri.Scheme = scheme;
-                url = split[2];
-                Log.LogDebug($"a{split[0]} b{split[1]} c{split[2]}");
-            }
-            else
-            {
-                uri.Scheme = "ws://";
-            }
-            uri.Host = url;
-            uri.Port = port;
+            url = url + ":" + port;
 
-            AP.Connect(uri.Uri, slot, password);
+            AP.Connect(url, slot, password);
             //StartCoroutine(AP.AttemptConnection());
         }
         private void ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled()
         {
-            AP.Dispose();
+            AP.Disconnect();
         }
 
         /// <summary>

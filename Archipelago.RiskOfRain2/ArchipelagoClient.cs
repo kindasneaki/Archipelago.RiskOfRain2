@@ -40,9 +40,13 @@ namespace Archipelago.RiskOfRain2
         private bool finalStageDeath = false;
         private bool isEndingAcceptable = false;
         public GameObject ReleasePanel;
+        public GameObject CollectPanel;
         public GameObject ReleasePromptPanel;
+        public GameObject CollectPromptPanel;
         public delegate void ReleaseClick(bool prompt);
         public static ReleaseClick OnReleaseClick;
+        public delegate void CollectClick(bool prompt);
+        public static CollectClick OnCollectClick;
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
 
@@ -51,7 +55,7 @@ namespace Archipelago.RiskOfRain2
 
         }
 
-        public void Connect(Uri url, string slotName, string password = null)
+        public void Connect(string url, string slotName, string password = null)
         {
             if (session != null)
             {
@@ -62,7 +66,7 @@ namespace Archipelago.RiskOfRain2
             }
             ChatMessage.SendColored($"Attempting to connect to Archipelago at ${url}.", Color.green);
 
-            LastServerUrl = url;
+            //LastServerUrl = url;
 
             session = ArchipelagoSessionFactory.CreateSession(url);
             ItemLogic = new ArchipelagoItemLogicController(session);
@@ -178,10 +182,6 @@ namespace Archipelago.RiskOfRain2
 
         public void Dispose()
         {
-            Log.LogDebug("dispose called");
-
-            
-
             if (ItemLogic != null)
             {
                 ItemLogic.OnItemDropProcessed -= ItemLogicHandler_ItemDropProcessed;
@@ -217,8 +217,10 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.Run.BeginGameOver += Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient += ArchipelagoChatMessage_OnChatReceivedFromClient;
             ReleasePanel = AssetBundleHelper.LoadPrefab("ReleasePrompt");
-            /*On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
-            OnReleaseClick += WillRelease;*/
+            CollectPanel = AssetBundleHelper.LoadPrefab("CollectPrompt");
+            On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
+            OnReleaseClick += WillRelease;
+            OnCollectClick += WillCollect;
 
             Deathlinkhandler?.Hook();
             Stageblockerhandler?.Hook();
@@ -233,6 +235,10 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
             session.MessageLog.OnMessageReceived -= Session_OnMessageReceived;
             session.Socket.SocketClosed -= Session_SocketClosed;
+            On.RoR2.UI.GameEndReportPanelController.Awake -= GameEndReportPanelController_Awake;
+            OnReleaseClick -= WillRelease;
+            OnCollectClick -= WillCollect;
+
 
             Deathlinkhandler?.UnHook();
             Stageblockerhandler?.UnHook();
@@ -383,7 +389,11 @@ namespace Archipelago.RiskOfRain2
 
         private void Run_onRunDestroyGlobal(Run obj)
         {
-            Log.LogDebug("Disposed");
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (session != null && session.Socket.Connected)
             {
                 //breaks
@@ -391,10 +401,8 @@ namespace Archipelago.RiskOfRain2
                 //works
                 session.Socket.DisconnectAsync();
             }
-            //Dispose();
         }
-        //Prompt to release items instead of auto release.. Causes a bug where you get stuck in game and cant click continue
-        /*private void GameEndReportPanelController_Awake(On.RoR2.UI.GameEndReportPanelController.orig_Awake orig, GameEndReportPanelController self)
+        private void GameEndReportPanelController_Awake(On.RoR2.UI.GameEndReportPanelController.orig_Awake orig, GameEndReportPanelController self)
         {
             if (isEndingAcceptable && ReleasePromptPanel == null)
             {
@@ -406,22 +414,54 @@ namespace Archipelago.RiskOfRain2
                 rp.transform.localScale = Vector3.one;
                 var release = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Release/").gameObject;
                 release.AddComponent<HGButton>();
-                var cancel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Cancel/").gameObject;
-                cancel.AddComponent<HGButton>();
+                var release_cancel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Cancel/").gameObject;
+                release_cancel.AddComponent<HGButton>();
                 release.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(true); });
-                cancel.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(false); });
+                release_cancel.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(false); });
                 ReleasePromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)").gameObject;
+
+                var cp = GameObject.Instantiate(CollectPanel);
+                cp.transform.SetParent(gameEndReportPanel.transform, false);
+                cp.transform.localPosition = new Vector3(0, 0, 0);
+                rp.transform.localScale = Vector3.one;
+                var collect = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Collect/").gameObject;
+                collect.AddComponent<HGButton>();
+                var collectCancel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Cancel/").gameObject;
+                collectCancel.AddComponent<HGButton>();
+                collect.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(true); });
+                collectCancel.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(false); });
+                CollectPromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)").gameObject;
+                CollectPromptPanel.SetActive(false);
+
+
             }
             orig(self);
         }
         private void WillRelease(bool prompt)
         {
+            var sayPacket = new SayPacket();
             if (prompt && isEndingAcceptable)
             {
                 Log.LogDebug($"Releasing the rest of the items {isEndingAcceptable}");
-                session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
+                //session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
+                sayPacket.Text = "!release";
+                session.Socket.SendPacket(sayPacket);
             }
             ReleasePromptPanel.SetActive(false);
-        }*/
+            CollectPromptPanel.SetActive(true);
+        }
+
+        private void WillCollect(bool prompt)
+        {
+            var sayPacket = new SayPacket();
+            if (prompt && isEndingAcceptable)
+            {
+                Log.LogDebug($"Collect the rest of the items {isEndingAcceptable}");
+                sayPacket.Text = "!collect";
+                session.Socket.SendPacket(sayPacket);
+            }
+            CollectPromptPanel?.SetActive(false);
+
+        }
     }
 }
