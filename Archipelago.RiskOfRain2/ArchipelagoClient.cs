@@ -178,14 +178,9 @@ namespace Archipelago.RiskOfRain2
 
         public void Dispose()
         {
-            if (session != null && session.Socket.Connected)
-            {
-                Log.LogDebug("dispose called");
-                //breaks
-                //session.Socket.Disconnect();
-                //works
-                session.Socket.DisconnectAsync();
-            }
+            Log.LogDebug("dispose called");
+
+            
 
             if (ItemLogic != null)
             {
@@ -388,7 +383,15 @@ namespace Archipelago.RiskOfRain2
 
         private void Run_onRunDestroyGlobal(Run obj)
         {
-            Dispose();
+            Log.LogDebug("Disposed");
+            if (session != null && session.Socket.Connected)
+            {
+                //breaks
+                //session.Socket.Disconnect();
+                //works
+                session.Socket.DisconnectAsync();
+            }
+            //Dispose();
         }
         //Prompt to release items instead of auto release.. Causes a bug where you get stuck in game and cant click continue
         /*private void GameEndReportPanelController_Awake(On.RoR2.UI.GameEndReportPanelController.orig_Awake orig, GameEndReportPanelController self)
