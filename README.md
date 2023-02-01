@@ -243,7 +243,6 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Splitscreen support is unlikely at the moment. It might work, it might not.
 * Connecting to multiple slots on the same multiplayer game will not work and will take just the hosts slot once in game.
 * If you start a new run but join an existing AP session, you will get spammed with notifications for all your pickups.
-* Game hitches upon someone forfeit/releaseing their items.
 
 ## To-do/Ideas
 
@@ -252,8 +251,3 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * More item/reward types: money, exp, warbanner drops, drones
 * Funny/joke item types: launching you into the air, switch left and right click
 * Trap item types: spawn a family of mobs on you, spawn bosses, drop bombs on the stage
-* Randomize order of check sending.
-* YAML options for types of item drops? Chests/Scrapper/Multishop/Boss/LunarCoin/GoldChests
-* Add objectives so that certain number of checks per level required per portal
-* Randomize pickup step every stage or every check?
-* Prevent game over if dios still present in item pool.
