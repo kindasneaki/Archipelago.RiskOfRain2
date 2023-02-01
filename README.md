@@ -2,9 +2,8 @@
 
 This mod adds support to Risk of Rain 2 for playing as an Archipelago client. For more information on Archipelago head over to https://archipelago.gg or join our Discord.
 
-Should be multiplayer compatible\*. Be sure to scale up your YAML settings if you play in multiplayer. All players require the mod in multiplayer.
+Should be multiplayer compatible. Be sure to scale up your YAML settings if you play in multiplayer. All players require the mod in multiplayer.
 
-\*This does not include all modes and features.
 
 ## Gameplay 
 
@@ -12,18 +11,22 @@ Should be multiplayer compatible\*. Be sure to scale up your YAML settings if yo
 
 Classic mode is the original way to play Archipelago in Risk of Rain 2.
 
-The Risk of Rain 2 players send checks by causing items to spawn in-game. Currently this includes opening chests, defeating bosses, using scrappers and 3D printers, opening lunar pods, and accessing terminals. 
+The Risk of Rain 2 players send checks by causing items to spawn in-game. Currently, this includes opening chests, defeating bosses, using scrappers and 3D printers, opening lunar pods, and accessing terminals. 
 An item check is only sent out after a certain number of items are picked up. This count is configurable in the player's YAML.
 
 ### Explore mode
 
-Explore mode is an alternative way to play Archipelago in Risk of Rain 2. (Note: this mode is not multiplayer compatible.)
+Explore mode is an alternative way to play Archipelago in Risk of Rain 2.
 
 The Risk of Rain 2 player sends checks from doing different actions such as opening chests, beating shrines, defeating scavengers, finding radio scanners, and finding newt altars.
 These locations divided evenly across the different stages and can only be completed in their respective stages.
 
+Environments will be in the item pool, and you will need to unlock them to progress towards your goal.
+
+
 The rules for locations are as follows:
-- Chest-like interactables will send a check when a certain number of chests are opened. Multishops are not chest, but lunar pods and void cradles are. Sacrafice will treat item drops like opening chests.
+- Chest-like interactables will send a check when a certain number of chests are opened. Multishops are not chest, 
+but lunar pods and void cradles are. Artifact of sacrifice will treat item drops like opening chests.
 - Shrines will send a check when a certain number of shrines are beat. Rules for beating shrines are:
     - Altar of Gold is beat on purchase.
     - Shrine of Blood is beat on interact. Sending shrine as a check denies gold.
@@ -33,20 +36,18 @@ The rules for locations are as follows:
     - Shrine of the Mountain is beat on defeating the challenge of the Mountain. Sending the shrine as a check denies the bonus item.
     - Shrine of the Woods is beat on the second and third purchases.
 - Scavenger bags send checks when opened but do not grant items. Looping to the same environment will let you reopen the scavenger bag.
-- Radio Scanners can be found on every stage and send a check. Radio Scanners are garunteed to spawn.
-- Newt Altars send checks when found but do not grant a Blue Portal. Newts Altars grant portals when the checks are depleted.
+- Radio Scanners can be found on every stage and send a check. Radio Scanners are guaranteed to spawn.
+- Newt Altars send checks when found but do not grant a Blue Portal (Refunds 1 lunar coin). Newts Altars grant portals when the checks are depleted.
 
 Explore mode also attempts to help against being stuck in RNG hell; the teleporter will favor environments that have more checks remaining.
 
-### EnvironmentsAsItems
-
-EnvironmentsAsItems is a setting that makes the environment be randomized into the Archipelago world. EnvironmentsAsItems is compatible with both Classic and Explore modes.
-When using a teleporter to a stage with no unlocked environments, the destination will be the first stage.
-Settings exist to begin with a full loop and/or add Simulacrum environments into the Archipelago world.
 
 ### Achieving Victory or Defeat
 
-Achieving victory is defined as beating Mithrix, losing in commencement, or obliterating. (This is both true for Classic and Explore modes.)
+Achieving victory is defined as beating Mithrix, or beating the voidling (DLC enabled). (This is both true for Classic and Explore modes.)
+
+Alternatively you can change the Final Stage Death is Win setting to enable Obliteration ending as well as if you
+die in the Commencement map (the moon). 
 
 Due to the nature of roguelike games, you can possibly die and lose your place completely. This is mitigated partly by the free grants of `Dio's Best Friend`
 but it is still possible to lose. If you do lose, you can reconnect to the Archipelago server and start a new run. The server will send you the items you have
@@ -55,30 +56,28 @@ earned thus far, giving you a small boost to the start of your run.
 ## YAML Settings
 An example YAML would look like this:
 ```yaml
-description: Ijwu-ror2
-name: Ijwu
-
-game:
-  Risk of Rain 2: 1
-
 Risk of Rain 2:
-  total_locations: 15
-  total_revivals: 4
-  start_with_revive: true
+  progression_balancing: 50
+  accessibility: items
+  goal: explore
+  total_locations: 145
+  chests_per_stage: 10
+  shrines_per_stage: 5
+  scavengers_per_stage: 1
+  scanner_per_stage: 1
+  altars_per_stage: 2
+  total_revivals: 10
+  start_with_revive: 'true'
+  final_stage_death: 'false'
+  environments_as_items: 'true'
+  begin_with_loop: 'false'
+  dlc_sotv: 'false'
+  death_link: 'true'
   item_pickup_step: 1
-  enable_lunar: true
-  item_weights:
-    default: 50
-    new: 0
-    uncommon: 0
-    legendary: 0
-    lunartic: 0
-    chaos: 0
-    no_scraps: 0
-    even: 0
-    scraps_only: 0
-  item_pool_presets: true
-  # custom item weights
+  shrine_use_step: 0
+  enable_lunar: 'true'
+  item_weights: default
+  item_pool_presets: 'false'
   green_scrap: 16
   red_scrap: 4
   yellow_scrap: 1
@@ -88,34 +87,27 @@ Risk of Rain 2:
   legendary_item: 8
   boss_item: 4
   lunar_item: 16
+  void_item: 16
   equipment: 32
+description: 'Risk of Rain 2 explore yaml'
+game: Risk of Rain 2
+name: Sneaki{player}
 ```
 
-| Name | Description | Allowed values |
-| ---- | ----------- | -------------- |
-| total_locations | The total number of location checks that will be attributed to the Risk of Rain player. This option is ALSO the total number of items in the item pool for the Risk of Rain player. | 10 - 250 |
-| total_revivals | The total number of items in the Risk of Rain player's item pool (items other players pick up for them) replaced with `Dio's Best Friend`. | 0 - 10 |
-| start_with_revive | Starts the player off with a `Dio's Best Friend`. Functionally equivalent to putting a `Dio's Best Friend` in your `starting_inventory`. | true/false |
-| item_pickup_step | The number of item pickups which you are allowed to claim before they become an Archipelago location check. | 0 - 5 |
-| enable_lunar | Allows for lunar items to be shuffled into the item pool on behalf of the Risk of Rain player. | true/false |
-| item_weights | Each option here is a preset item weight that can be used to customize your generate item pool with certain settings. | default, new, uncommon, legendary, lunartic, chaos, no_scraps, even, scraps_only |
-| item_pool_presets | A simple toggle to determine whether the item_weight presets are used or the custom item pool as defined below | true/false |
-| custom item weights | Each defined item here is a single item in the pool that will have a weight against the other items when the item pool gets generated. These values can be modified to adjust how frequently certain items appear | 0-100|
+| Name               | Description                                                                                                                                                                                                        | Allowed values                                                                   |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| total_locations    | The total number of location checks that will be attributed to the Risk of Rain player. This option is ALSO the total number of items in the item pool for the Risk of Rain player.                                | 10 - 250                                                                         |
+| total_revivals     | The total number of items in the Risk of Rain player's item pool as a percentage of total items (items other players pick up for them) replaced with `Dio's Best Friend`.                                          | 0 - 10                                                                           |
+| chests_per_stage   | The total amount of chests per stage.                                                                                                                                                                              | 2-20                                                                             |
+| shrines_per_stage  | The total amount of shrines per stage.                                                                                                                                                                             | 2-20                                                                             |
+| start_with_revive   | Starts the player off with a `Dio's Best Friend`. Functionally equivalent to putting a `Dio's Best Friend` in your `starting_inventory`.                                                                           | true/false                                                                       |
+| item_pickup_step    | The number of item pickups which you are allowed to claim before they become an Archipelago location check.                                                                                                        | 0 - 5                                                                            |
+| enable_lunar        | Allows for lunar items to be shuffled into the item pool on behalf of the Risk of Rain player.                                                                                                                     | true/false                                                                       |
+| item_weights        | Each option here is a preset item weight that can be used to customize your generate item pool with certain settings.                                                                                              | default, new, uncommon, legendary, lunartic, chaos, no_scraps, even, scraps_only |
+| item_pool_presets   | A simple toggle to determine whether the item_weight presets are used or the custom item pool as defined below                                                                                                     | true/false                                                                       |
+| custom item weights | Each defined item here is a single item in the pool that will have a weight against the other items when the item pool gets generated. These values can be modified to adjust how frequently certain items appear  | 0-100                                                                            |
 
 
-Using the example YAML above: the Risk of Rain 2 player will have 15 total items which they can pick up for other players. (total_locations = 15)
-
-They will have 15 items waiting for them in the item pool which will be distributed out to the multiworld. (total_locations = 15)
-
-They will complete a location check every second item. (item_pickup_step = 1)
-
-They will have 4 of the items which other players can grant them replaced with `Dio's Best Friend`. (total_revivals = 4)
-
-The player will also start with a `Dio's Best Friend`. (start_with_revive = true)
-
-The player will have lunar items shuffled into the item pool on their behalf. (enable_lunar = true)
-
-The player will have the default preset generated item pool with the custom item weights being ignored. (item_weights: default and item_pool_presets: true)
 
 ## Connecting to an Archipelago Server
 
@@ -127,24 +119,37 @@ Keep password blank if there is no password on the server.
 
 ![In Lobby UI Example](./docs/img/lobby.png)
 
-Once connected it will print in chat that you have successfully connect!
+Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
 **1.2.0**
+
+* Created Explore mode!
+* Added Void Items (with DLC enabled)
+* Added DeathLink support (Will send a death link for any player connected, and all players will die if receiving a death link while playing co-op)
+* Added Environments as items
+* Added Release/Collect prompt on goal completion
+* Added ability to hide connect fields
+* Update MultiClient.Net to 4.2.2
 * Change Default URI to archipelago.gg
-* Added DeathLink support (only works for singleplayer)
-* Added EnvironmentsAsItems (only works for singleplayer)
-* Created Explore mode (only works for singleplayer)
+* Added Disconnect console command (`archipelago_disconnect`)
+* Added Deathlink console command (`archipelago_deathlink true`)
+* Changed Connect console command to (`archipelago_connect <url> <port> <slot> [password]`)
+* The chat for items sent/received are more colorful
+
+
+* Bug fixes:
+  * Reduce chat lag on collects
+  * Fixed a disconnect bug where it was being called twice.
 
 **1.1.5**
 * Fixed Fields resetting to default after dying.
-* Reconnect by just hitting ready.
 
 **1.1.4**
 * Fixed Collect Bug.
-* Skip collected checks so you dont just send nothing.
+* Skip collected checks, so you don't just send nothing.
 * Now connect to AP through lobby instead of with ready button.
   * Chat enabled for single player
 * Added Color to Players in chat for better readability.
