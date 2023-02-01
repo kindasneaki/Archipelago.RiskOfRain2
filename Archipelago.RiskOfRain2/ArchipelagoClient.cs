@@ -7,6 +7,7 @@ using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.MultiClient.Net.Packets;
+using Archipelago.RiskOfRain2.Console;
 using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
@@ -16,6 +17,7 @@ using R2API.Utils;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 
 namespace Archipelago.RiskOfRain2
@@ -47,6 +49,7 @@ namespace Archipelago.RiskOfRain2
         public static ReleaseClick OnReleaseClick;
         public delegate void CollectClick(bool prompt);
         public static CollectClick OnCollectClick;
+        private GameObject genericMenuButton;
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
 
@@ -97,7 +100,7 @@ namespace Archipelago.RiskOfRain2
             // TODO remove at ap version 3.9
             else if (successResult.SlotData.TryGetValue("FinalStageDeath", out var oldStageDeathObject))
             {
-                finalStageDeath = Convert.ToBoolean(stageDeathObject);
+                finalStageDeath = !Convert.ToBoolean(stageDeathObject);
                 ChatMessage.SendColored("Connected!", Color.green);
             }
 
@@ -118,13 +121,15 @@ namespace Archipelago.RiskOfRain2
 
             if (successResult.SlotData.TryGetValue("deathLink", out var enabledeathlink))
             {
+                deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
+                Log.LogDebug("Starting DeathLink service");
+                Deathlinkhandler = new DeathLinkHandler(deathLinkService);
                 if (Convert.ToBoolean(enabledeathlink))
                 {
-                    Log.LogDebug("Starting DeathLink service");
-                    deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
                     deathLinkService.EnableDeathLink(); // deathlink should just be enabled, the DeathLinkHandler assumes it is already enabled
-                    Deathlinkhandler = new DeathLinkHandler(deathLinkService);
+                    Deathlinkhandler?.Hook();
                 }
+
             }
 
             if (successResult.SlotData.TryGetValue("goal", out var classicmode))
@@ -168,7 +173,7 @@ namespace Archipelago.RiskOfRain2
             session.MessageLog.OnMessageReceived += Session_OnMessageReceived;
             session.Socket.SocketClosed += Session_SocketClosed;
             ItemLogic.OnItemDropProcessed += ItemLogicHandler_ItemDropProcessed;
-
+            genericMenuButton = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/GenericMenuButton.prefab").WaitForCompletion();
             HookGame();
             new ArchipelagoStartMessage().Send(NetworkDestination.Clients);
 
@@ -222,9 +227,23 @@ namespace Archipelago.RiskOfRain2
             OnReleaseClick += WillRelease;
             OnCollectClick += WillCollect;
 
-            Deathlinkhandler?.Hook();
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
+            ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
+        }
+
+        private void ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled(bool link)
+        {
+            if (link)
+            {
+                Deathlinkhandler?.Hook();
+                deathLinkService.EnableDeathLink();
+            }
+            else
+            {
+                Deathlinkhandler?.UnHook();
+                deathLinkService.DisableDeathLink();
+            }
         }
 
         private void UnhookGame()
@@ -396,9 +415,6 @@ namespace Archipelago.RiskOfRain2
         {
             if (session != null && session.Socket.Connected)
             {
-                //breaks
-                //session.Socket.Disconnect();
-                //works
                 session.Socket.DisconnectAsync();
             }
         }
@@ -406,32 +422,83 @@ namespace Archipelago.RiskOfRain2
         {
             if (isEndingAcceptable && ReleasePromptPanel == null)
             {
-                var rp = GameObject.Instantiate(ReleasePanel);
-                var gameEndReportPanel = self.transform.Find("SafeArea (JUICED)/BodyArea");
-                Log.LogDebug(self.transform);
-                rp.transform.SetParent(gameEndReportPanel.transform, false);
-                rp.transform.localPosition = new Vector3(0, 0, 0);
-                rp.transform.localScale = Vector3.one;
-                var release = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Release/").gameObject;
-                release.AddComponent<HGButton>();
-                var release_cancel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Cancel/").gameObject;
-                release_cancel.AddComponent<HGButton>();
-                release.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(true); });
-                release_cancel.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(false); });
-                ReleasePromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)").gameObject;
+                GameObject menuOutline;
+                if (genericMenuButton != null)
+                {
+                    menuOutline = genericMenuButton.transform.Find("HoverOutline").gameObject;
+                }
+                else
+                {
+                    menuOutline = null;
+                }
 
-                var cp = GameObject.Instantiate(CollectPanel);
-                cp.transform.SetParent(gameEndReportPanel.transform, false);
-                cp.transform.localPosition = new Vector3(0, 0, 0);
-                rp.transform.localScale = Vector3.one;
-                var collect = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Collect/").gameObject;
-                collect.AddComponent<HGButton>();
-                var collectCancel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Cancel/").gameObject;
-                collectCancel.AddComponent<HGButton>();
-                collect.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(true); });
-                collectCancel.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(false); });
-                CollectPromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)").gameObject;
-                CollectPromptPanel.SetActive(false);
+                var releasePermission = Convert.ToString(session.RoomState.ReleasePermissions);
+                var collectPermission = Convert.ToString(session.RoomState.CollectPermissions);
+                bool canRelease = (releasePermission == "Goal" || releasePermission == "Enabled");
+                bool canCollect = (collectPermission == "Goal" || collectPermission == "Enabled");
+                Log.LogDebug($"can release {releasePermission} can collect {collectPermission}");
+                Log.LogDebug($"release? {canRelease} collect? {canCollect}");
+                var gameEndReportPanel = self.transform.Find("SafeArea (JUICED)/BodyArea");
+                if (canRelease)
+                {
+                    var rp = GameObject.Instantiate(ReleasePanel);
+                    rp.transform.SetParent(gameEndReportPanel.transform, false);
+                    rp.transform.localPosition = new Vector3(0, 0, 0);
+                    rp.transform.localScale = Vector3.one;
+                    var release = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Release/").gameObject;
+                    release.AddComponent<HGButton>();
+                    var releaseCancel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)/Panel/Cancel/").gameObject;
+                    releaseCancel.AddComponent<HGButton>();
+                    release.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(true); });
+                    releaseCancel.GetComponent<HGButton>().onClick.AddListener(() => { OnReleaseClick(false); });
+                    ReleasePromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/ReleasePrompt(Clone)").gameObject;
+                    // Outline for collect menu buttons
+
+/*                    if (menuOutline != null)
+                    {
+                        GameObject releaseOutline = GameObject.Instantiate(menuOutline);
+                        releaseOutline.transform.SetParent(release.transform, false);
+                        release.GetComponent<HGButton>().imageOnHover = releaseOutline.GetComponent<Image>();
+                        release.GetComponent<HGButton>().showImageOnHover = true;
+                        GameObject releaseCancelOutline = GameObject.Instantiate(menuOutline);
+                        releaseCancelOutline.transform.SetParent(releaseCancel.transform, false);
+                        releaseCancel.GetComponent<HGButton>().imageOnHover = releaseCancelOutline.GetComponent<Image>();
+                        releaseCancel.GetComponent<HGButton>().showImageOnHover = true;
+                    }
+*/                }
+                if (canCollect)
+                {
+                    var cp = GameObject.Instantiate(CollectPanel);
+                    cp.transform.SetParent(gameEndReportPanel.transform, false);
+                    cp.transform.localPosition = new Vector3(0, 0, 0);
+                    cp.transform.localScale = Vector3.one;
+                    var collect = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Collect/").gameObject;
+                    collect.AddComponent<HGButton>();
+                    var collectCancel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)/Panel/Cancel/").gameObject;
+                    collectCancel.AddComponent<HGButton>();
+                    collect.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(true); });
+                    collectCancel.GetComponent<HGButton>().onClick.AddListener(() => { OnCollectClick(false); });
+                    CollectPromptPanel = self.transform.Find("SafeArea (JUICED)/BodyArea/CollectPrompt(Clone)").gameObject;
+                    CollectPromptPanel.SetActive(false);
+                      //TODO Outline for collect menu buttons do not show up like in the release buttons.. no idea why
+
+/*                    if (menuOutline != null)
+                    {
+                        GameObject collectOutline = GameObject.Instantiate(menuOutline);
+                        collectOutline.transform.SetParent(collect.transform, false);
+                        collect.GetComponent<HGButton>().imageOnHover = collectOutline.GetComponent<Image>();
+                        collect.GetComponent<HGButton>().showImageOnHover = true;
+                        GameObject collectCancelOutline = GameObject.Instantiate(menuOutline);
+                        collectCancelOutline.transform.SetParent(collectCancel.transform, false);
+                        collectCancel.GetComponent<HGButton>().imageOnHover = collectCancelOutline.GetComponent<Image>();
+                        collectCancel.GetComponent<HGButton>().showImageOnHover = true;
+                    }
+*/              }
+                if (canCollect && !canRelease)
+                {
+                    CollectPromptPanel.SetActive(true);
+                }
+
 
 
             }
@@ -443,12 +510,14 @@ namespace Archipelago.RiskOfRain2
             if (prompt && isEndingAcceptable)
             {
                 Log.LogDebug($"Releasing the rest of the items {isEndingAcceptable}");
-                //session.Locations.CompleteLocationChecks(session.Locations.AllMissingLocations.ToArray());
                 sayPacket.Text = "!release";
                 session.Socket.SendPacket(sayPacket);
             }
             ReleasePromptPanel.SetActive(false);
-            CollectPromptPanel.SetActive(true);
+            if (CollectPromptPanel != null) 
+            {
+                CollectPromptPanel.SetActive(true);
+            }
         }
 
         private void WillCollect(bool prompt)

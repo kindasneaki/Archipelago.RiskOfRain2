@@ -108,7 +108,10 @@ namespace Archipelago.RiskOfRain2.UI
             RectTransform rectTransform = cb.GetComponent<RectTransform>();
             var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
             var outline = Instantiate(baseHoverOutlineSprite);
+            outline.transform.SetParent(button.transform, false);
             button.AddComponent<HGButton>();
+            button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
+            button.GetComponent<HGButton>().showImageOnHover = true;
             button.AddComponent<HGGamepadInputEvent>();
             button.GetComponent<Image>().sprite = readyButton.gameObject.GetComponent<Image>().sprite;
             button.GetComponent<HGButton>().onClick.AddListener(() => OnConnectClick());

@@ -21,6 +21,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private Thread thread;
         // TODO perhaps a more robust system to prevent cyclical deaths is probably necessary
         private bool recievedDeath = false; // used to prevent cyclical deaths
+        private bool deathLinkActive = false;
 
         public DeathLinkHandler(DeathLinkService deathLink)
         {
@@ -29,14 +30,19 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         public void Hook()
         {
-            deathLink.OnDeathLinkReceived += DeathLink_OnDeathLinkReceived;
-            On.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
+            if (!deathLinkActive)
+            {
+                deathLink.OnDeathLinkReceived += DeathLink_OnDeathLinkReceived;
+                On.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
+                deathLinkActive = true;
+            }
         }
 
         public void UnHook()
         {
             deathLink.OnDeathLinkReceived -= DeathLink_OnDeathLinkReceived;
             On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
+            deathLinkActive = false;
         }
 
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
