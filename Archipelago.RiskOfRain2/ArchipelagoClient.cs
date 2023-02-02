@@ -118,12 +118,12 @@ namespace Archipelago.RiskOfRain2
                 Log.LogDebug($"shrineUseStep from slot data: {shrineUseStep}");
                 shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
             }
-
+            deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
+            Log.LogDebug("Starting DeathLink service");
+            Deathlinkhandler = new DeathLinkHandler(deathLinkService);
             if (successResult.SlotData.TryGetValue("deathLink", out var enabledeathlink))
             {
-                deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
-                Log.LogDebug("Starting DeathLink service");
-                Deathlinkhandler = new DeathLinkHandler(deathLinkService);
+                
                 if (Convert.ToBoolean(enabledeathlink))
                 {
                     deathLinkService.EnableDeathLink(); // deathlink should just be enabled, the DeathLinkHandler assumes it is already enabled
