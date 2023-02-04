@@ -100,9 +100,10 @@ namespace Archipelago.RiskOfRain2
             // TODO remove at ap version 3.9
             else if (successResult.SlotData.TryGetValue("FinalStageDeath", out var oldStageDeathObject))
             {
-                finalStageDeath = !Convert.ToBoolean(stageDeathObject);
+                finalStageDeath = Convert.ToBoolean(oldStageDeathObject);
                 ChatMessage.SendColored("Connected!", Color.green);
             }
+            Log.LogDebug($"finalStageDeath {finalStageDeath} ");
 
             uint itemPickupStep = 3;
             uint shrineUseStep = 3;
@@ -399,11 +400,10 @@ namespace Archipelago.RiskOfRain2
                 "moon2",
                 "voidraid"
             };
-            
             return acceptableEndings.Contains(gameEndingDef) 
-                  ||(finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss 
-                  && acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName))
-                  || finalStageDeath && RoR2Content.GameEndings.ObliterationEnding;
+                  ||(finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss)
+                  && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName))
+                  || finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding;
         }
 
         private void Run_onRunDestroyGlobal(Run obj)

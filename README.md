@@ -124,6 +124,13 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.2.1**
+
+* Bug Fixes:
+    * Dying with finalStageDeath: True on would complete the game instead of check to see if you were in specific locations.
+    * finalStageDeath was always true on AP version 0.3.8 and older.
+    * Using deathlink Command to turn on/off wouldn't work on AP version 0.3.8 and older.
+
 **1.2.0**
 
 * Created Explore mode!
