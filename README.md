@@ -124,6 +124,11 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.2.2**
+
+* Bug Fix:
+    * Rolling classic yaml when data package hasn't been updated would result in the wrong starting id.
+
 **1.2.1**
 
 * Bug Fixes:

@@ -16,6 +16,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using System.Collections.ObjectModel;
+using UnityEngine.Networking;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -204,6 +205,8 @@ namespace Archipelago.RiskOfRain2
                         {
                             var missingIndex = Array.IndexOf(ChecksTogether, connectedPacket.MissingChecks[0]);
                             Log.LogInfo($"Missing index is {missingIndex} first missing id is {connectedPacket.MissingChecks[0]}");
+                            ItemStartId = ChecksTogether[0];
+                            Log.LogInfo($"ItemStartId {ItemStartId}");
                             CurrentChecks = missingIndex;
                         } else
                         {
@@ -465,8 +468,8 @@ namespace Archipelago.RiskOfRain2
 
             if (!spawnItem)
             {
-                //Errors out.. smokescreenPrefab is null
                 EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
+                // SpawnPortal(position);
             }
 
             new SyncTotalCheckProgress(finishedAllChecks ? TotalChecks : CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);
@@ -477,7 +480,18 @@ namespace Archipelago.RiskOfRain2
                 new AllChecksComplete().Send(NetworkDestination.Clients);
             }
         }
-
+/*        private void SpawnPortal(Vector3 position)
+        {
+            if (portalPrefab != null)
+            {
+                var portal = GameObject.Instantiate(portalPrefab);
+                portal.transform.localPosition = position;
+                portal.transform.localScale = Vector3.one;
+                portal.GetComponent<SeerStationController>().GetNetworkChannel();
+                //connect to scene exit
+                //add stage id
+            }
+        }*/
         private bool HandleItemDrop()
         {
             PickedUpItemCount += 1;

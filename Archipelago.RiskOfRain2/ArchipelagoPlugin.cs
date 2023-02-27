@@ -179,6 +179,10 @@ namespace Archipelago.RiskOfRain2
                     ArchipelagoTotalChecksObjectiveController.AddObjective();
                 }
             }
+            else
+            {
+                ArchipelagoTotalChecksObjectiveController.AddObjective();
+            }
             //isPlayingAP = true;
             
         }
