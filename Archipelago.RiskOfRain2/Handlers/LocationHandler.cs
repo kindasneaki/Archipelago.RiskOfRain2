@@ -804,9 +804,9 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void PortalStatueBehavior_GrantPortalEntry_Blue(On.RoR2.PortalStatueBehavior.orig_GrantPortalEntry orig, PortalStatueBehavior self)
         {
+            orig(self);
             if (self.portalType != PortalStatueBehavior.PortalType.Shop)
             {
-                orig(self);
                 return;
             } // the below code is only applied to blue portal, ie an altar was used
 
@@ -815,7 +815,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (false == sendNextAvailable(LocationTypes.newt_altar))
             {
                 Log.LogDebug("no check performed; granting blue portal");
-                orig(self);
+                // orig(self);
                 return;
             }
             else Log.LogDebug("check performed; denying blue portal");

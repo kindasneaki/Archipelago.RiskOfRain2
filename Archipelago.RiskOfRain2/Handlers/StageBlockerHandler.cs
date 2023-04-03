@@ -16,12 +16,12 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int arena = 4;             // Void Fields
         public const int blackbeach = 7;        // Distant Roost
-        public const int blackbeach2 = 8;       // Distant Roost 2
+        public const int blackbeach2 = 8;       // Distant Roost
         public const int dampcavesimple = 10;   // Abyssal Depths
         public const int foggyswamp = 12;       // Wetland Aspect
         public const int frozenwall = 13;       // Rallypoint Delta
         public const int golemplains = 15;      // Titanic Plains
-        public const int golemplains2 = 16;     // Titanic Plains 2
+        public const int golemplains2 = 16;     // Titanic Plains
         public const int goolake = 17;          // Abandoned Aqueduct
         public const int itancientloft = 20;    // The Simulacrum
         public const int itdampcave = 21;       // The Simulacrum
@@ -401,17 +401,29 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             if (CheckBlocked(bazaar))
             {
-                if (self.shouldAttemptToSpawnShopPortal) Log.LogDebug("Blue / bazaar portal blocked.");
+                if (self.shouldAttemptToSpawnShopPortal)
+                {
+                    Log.LogDebug("Blue / bazaar portal blocked.");
+                    ChatMessage.Send("The blue portal was too shy to come out!");
+                }
                 self.shouldAttemptToSpawnShopPortal = false;
             }
             if (CheckBlocked(goldshores))
             {
-                if (self.shouldAttemptToSpawnGoldshoresPortal) Log.LogDebug("Gold / goldshores portal blocked.");
+                if (self.shouldAttemptToSpawnGoldshoresPortal)
+                {
+                    Log.LogDebug("Gold / goldshores portal blocked.");
+                    ChatMessage.Send("The gold portal was missing the key to enter and disappeared!");
+                }
                 self.shouldAttemptToSpawnGoldshoresPortal = false;
             }
             if (CheckBlocked(mysteryspace))
             {
-                if (self.shouldAttemptToSpawnMSPortal) Log.LogDebug("Celestial / mysteryspace portal blocked.");
+                if (self.shouldAttemptToSpawnMSPortal)
+                {
+                    Log.LogDebug("Celestial / mysteryspace portal blocked.");
+                    ChatMessage.Send("The celestial portal decided you aren't ready!");
+                }
                 self.shouldAttemptToSpawnMSPortal = false;
             }
             orig(self);
