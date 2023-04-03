@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using UnityEngine.Networking;
+using R2API.Utils;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -704,7 +705,18 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self, activator);
             // the last two purchases of woods shine are checks
-            if (self.purchaseCount > self.maxPurchaseCount - 2) shrineBeat();
+            if (self.purchaseCount > self.maxPurchaseCount - 2)
+            {
+                shrineBeat();
+                return;
+            }
+            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
+            if (currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+            {
+                Log.LogDebug($"amount of shrine locations left {locationsinenvironment[1]}");
+                if (locationsinenvironment[1] == 0) return;
+            }
+            if (self.purchaseCount == 1) ChatMessage.Send("Hmm thats weird, maybe try again");
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
