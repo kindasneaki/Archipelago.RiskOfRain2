@@ -16,12 +16,12 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int arena = 4;             // Void Fields
         public const int blackbeach = 7;        // Distant Roost
-        public const int blackbeach2 = 8;       // Distant Roost
+        public const int blackbeach2 = 8;       // Distant Roost 2
         public const int dampcavesimple = 10;   // Abyssal Depths
         public const int foggyswamp = 12;       // Wetland Aspect
         public const int frozenwall = 13;       // Rallypoint Delta
         public const int golemplains = 15;      // Titanic Plains
-        public const int golemplains2 = 16;     // Titanic Plains
+        public const int golemplains2 = 16;     // Titanic Plains 2
         public const int goolake = 17;          // Abandoned Aqueduct
         public const int itancientloft = 20;    // The Simulacrum
         public const int itdampcave = 21;       // The Simulacrum

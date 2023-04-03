@@ -462,12 +462,12 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (null == dest) return; // prevent NRE
             for (int i=0; i < dest.Count; i++)
             {
-                // add 1 weight to per location left in an environment
+                // add 5 weight to per location left in an environment
                 int environment_index = (int) dest.choices[i].value.sceneDefIndex;
                 if (currentlocations.TryGetValue(environment_index, out var locations))
                 {
-                    int addweight = locations.total();
-                    Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight} locations, adjusting weight.");
+                    int addweight = locations.total() * 5;
+                    Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight / 5} locations, adjusting weight.");
                     dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);
                     Log.LogDebug($"Adjusted weight to {dest.choices[i].weight}.");
                 }
