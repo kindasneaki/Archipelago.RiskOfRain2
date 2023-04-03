@@ -227,10 +227,33 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
             OnReleaseClick += WillRelease;
             OnCollectClick += WillCollect;
+            On.RoR2.SceneObjectToggleGroup.Awake += SceneObjectToggleGroup_Awake;
 
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
+        }
+
+        private void SceneObjectToggleGroup_Awake(On.RoR2.SceneObjectToggleGroup.orig_Awake orig, SceneObjectToggleGroup self)
+        {
+            Log.LogDebug($"Scene group length {self.toggleGroups.Length}");
+            for(var i = 0; i < self.toggleGroups.Length; i++)
+            {
+                if (self.toggleGroups[i].objects[0].name == "NewtStatue" || self.toggleGroups[i].objects[0].name == "NewtStatue (1)")
+                {
+                    Log.LogDebug($"Scene Object Toggle Group min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                    Log.LogDebug("Changing newt alters min and max values");
+                    self.toggleGroups[i].minEnabled = 1;
+                    self.toggleGroups[i].maxEnabled = 2;
+                    Log.LogDebug($"Scene Object Toggle Group  min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                    break;
+                }
+                
+            }
+            orig(self);
+
+
+
         }
 
         private void ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled(bool link)
@@ -258,6 +281,7 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.UI.GameEndReportPanelController.Awake -= GameEndReportPanelController_Awake;
             OnReleaseClick -= WillRelease;
             OnCollectClick -= WillCollect;
+            On.RoR2.SceneObjectToggleGroup.Awake -= SceneObjectToggleGroup_Awake;
 
 
             Deathlinkhandler?.UnHook();
