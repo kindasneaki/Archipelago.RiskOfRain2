@@ -713,7 +713,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
             if (currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
             {
-                Log.LogDebug($"amount of shrine locations left {locationsinenvironment[1]}");
+                Log.LogDebug($"amount of shrine locations left {locationsinenvironment[LocationTypes.shrine]}");
                 if (locationsinenvironment[1] == 0) return;
             }
             if (self.purchaseCount == 1) ChatMessage.Send("Hmm thats weird, maybe try again");
