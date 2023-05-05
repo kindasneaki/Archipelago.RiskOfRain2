@@ -23,9 +23,9 @@ namespace Archipelago.RiskOfRain2
     public class ArchipelagoPlugin : BaseUnityPlugin
     {
         public const string PluginGUID = "com.Ijwu.Archipelago";
-        public const string PluginAuthor = "Ijwu";
+        public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.2.0";
+        public const string PluginVersion = "1.2.4";
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }

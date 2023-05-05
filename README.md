@@ -124,6 +124,13 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.2.4**
+
+* Guaranteed newt alter spawn on each stage.
+* Changed the weights of each location to be 5 per instead of 1 per to give a higher chance to get a map with more checks.
+* Added in more messages.
+* Updated Multiclient.Net to 5.0.3
+
 **1.2.3**
 
 * An incomplete feature made it in that wasn't supposed to.
