@@ -36,8 +36,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int skymeadow = 38;        // Sky Meadow
         public const int snowyforest = 39;      // Siphoned Forest
         public const int sulfurpools = 41;      // Sulfur Pools
-        public const int voidstage = 45;        // Void Locus
-        public const int voidraid = 46;         // The Planetarium
+        public const int voidstage = 46;        // Void Locus
+        public const int voidraid = 45;         // The Planetarium
         public const int wispgraveyard = 47;    // Scorched Acres
         // hidden realms
         public const int artifactworld = 5;     // Hidden Realm: Bulwark's Ambry
@@ -53,6 +53,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         List<int> blocked_stages;
 
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
+        private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
 
         public StageBlockerHandler()
@@ -76,6 +77,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.EntityStates.LunarTeleporter.Active.OnEnter += Active_OnEnter;
             On.RoR2.Run.CanPickStage += Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene += Run_PickNextStageScene;
+            On.RoR2.VoidStageMissionController.FixedUpdate += VoidStageMissionController_FixedUpdate;
+            On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
         }
 
         public void UnHook()
@@ -91,6 +94,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.EntityStates.LunarTeleporter.Active.OnEnter -= Active_OnEnter;
             On.RoR2.Run.CanPickStage -= Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene -= Run_PickNextStageScene;
+            On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
+            On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
         }
 
         public void BlockAll()
@@ -204,7 +209,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be garunteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
-
             if (SceneExitController.ExitState.Finished == newState && self.useRunNextStageScene)
             {
                 manuallyPickingStage = true;
@@ -381,6 +385,9 @@ namespace Archipelago.RiskOfRain2.Handlers
                 self.GetComponent<PurchaseInteraction>().SetAvailable(false);
                 Log.LogDebug($"Bazaar Seer attempted to pick scene {index}; blocked.");
                 return;
+            } else
+            {
+                Log.LogDebug($"Bazaar Seer picked scene {index}");
             }
             orig(self, sceneDef);
         }
@@ -457,6 +464,18 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
 
             Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+            if (SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46" && CheckBlocked(voidraid))
+            {
+                Log.LogDebug("loaded Void Locus without The Planetarium");
+                SceneCatalog.mostRecentSceneDef.stageOrder = 1;
+                Log.LogDebug("Switching to stage 1");
+                self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
+                
+            }
+            else if(SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46")
+            {
+                Log.LogDebug("loaded Void Locus but something went wrong");
+            }
 
             // there are 2 conditions when we should mess with this call:
             // - the call to PickNextStageScene should have originated from stage blocker
@@ -482,6 +501,27 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             orig(self, choices);
             Log.LogDebug($"next scene {self.nextStageScene.sceneDefIndex} in stage {self.nextStageScene.stageOrder}");
+        }
+        private void VoidStageMissionController_FixedUpdate(On.RoR2.VoidStageMissionController.orig_FixedUpdate orig, VoidStageMissionController self)
+        {
+            orig(self);
+            if (!CheckBlocked(voidraid))
+            {
+                return;
+            }
+            Log.LogDebug($"void portal spawn = {voidPortalSpawned}");
+            if (self.numBatteriesActivated >= self.numBatteriesSpawned && self.numBatteriesSpawned > 0 && !voidPortalSpawned)
+            {
+                Log.LogDebug("Portal Activated");
+                voidPortalSpawned = true;
+                var deepPortal = GameObject.Find("DeepVoidPortal(Clone)");
+                deepPortal.GetComponent<SceneExitController>().useRunNextStageScene = true;
+            }
+        }
+        private void VoidStageMissionController_OnDisable(On.RoR2.VoidStageMissionController.orig_OnDisable orig, VoidStageMissionController self)
+        {
+            orig(self);
+            voidPortalSpawned = false;
         }
 
     }
