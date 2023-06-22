@@ -464,6 +464,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
 
             Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+
+            // 46 = Void Locus and if you are on that stage and you dont have The Planetarium the player will be moved back to orderedstage 1.
             if (SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46" && CheckBlocked(voidraid))
             {
                 Log.LogDebug("loaded Void Locus without The Planetarium");
@@ -498,6 +500,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self, choices);
             Log.LogDebug($"next scene {self.nextStageScene.sceneDefIndex} in stage {self.nextStageScene.stageOrder}");
         }
+
+        // Checks to see when the Deep Portal spawns and to see if you have The Planetarium to proceed.
         private void VoidStageMissionController_FixedUpdate(On.RoR2.VoidStageMissionController.orig_FixedUpdate orig, VoidStageMissionController self)
         {
             orig(self);
@@ -514,6 +518,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 deepPortal.GetComponent<SceneExitController>().useRunNextStageScene = true;
             }
         }
+        // Needed to reset voidPortalSpawned to false for the next time the user is on Void Locus.
         private void VoidStageMissionController_OnDisable(On.RoR2.VoidStageMissionController.orig_OnDisable orig, VoidStageMissionController self)
         {
             orig(self);
