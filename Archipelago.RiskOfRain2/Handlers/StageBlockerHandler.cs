@@ -472,10 +472,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                 self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
                 
             }
-            else if(SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46")
-            {
-                Log.LogDebug("loaded Void Locus but something went wrong");
-            }
 
             // there are 2 conditions when we should mess with this call:
             // - the call to PickNextStageScene should have originated from stage blocker
