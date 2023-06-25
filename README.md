@@ -129,7 +129,11 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Guaranteed newt alter spawn on each stage.
 * Changed the weights of each location to be 5 per instead of 1 per to give a higher chance to get a map with more checks.
 * Added in more messages.
-* Updated Multiclient.Net to 5.0.3
+* Updated Multiclient.Net to 5.0.5
+* Bug Fixes:
+    * You can no longer enter The Planetarium without the stage unlocked.
+    * Id's for Void Locus and The Planetarium were backwards and are fixed.
+
 
 **1.2.3**
 

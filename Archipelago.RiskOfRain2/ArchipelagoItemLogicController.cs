@@ -293,7 +293,16 @@ namespace Archipelago.RiskOfRain2
 
             long itemIdRecieved = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
-
+            if (itemIdRecieved == environmentRangeLower + 46 && itemNameReceived == "The Planetarium")
+            {
+                itemIdRecieved = environmentRangeLower + 45;
+                Log.LogDebug($"Changing id to 45");
+            }
+            else if (itemIdRecieved == environmentRangeLower + 45 && itemNameReceived == "Void Locus")
+            {
+                itemIdRecieved = environmentRangeLower + 46;
+                Log.LogDebug($"Changing id to 46");
+            }
             Log.LogDebug($"Handling environment with itemid {itemIdRecieved} with name {itemNameReceived}");
             Stageblockerhandler?.UnBlock((int)(itemIdRecieved - environmentRangeLower));
         }
