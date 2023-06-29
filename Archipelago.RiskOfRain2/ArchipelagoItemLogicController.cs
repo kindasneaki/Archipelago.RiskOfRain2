@@ -309,6 +309,10 @@ namespace Archipelago.RiskOfRain2
 
         private void HandleReceivedItemQueueItem()
         {
+            GiveLunarToPlayers();
+            GiveMoneyToPlayers();
+            GiveExperienceToPlayers();
+            TimeWarpTrap();
             KeyValuePair<long, string> itemReceived = itemReceivedQueue.Dequeue();
 
             long itemIdRecieved = itemReceived.Key;
@@ -402,6 +406,9 @@ namespace Archipelago.RiskOfRain2
                 case 37001:
                     GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex));
                     break;
+                case 37013:
+                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex));
+                    break;
             }
         }
 
@@ -443,6 +450,40 @@ namespace Archipelago.RiskOfRain2
                 inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
                 DisplayPickupNotification(pickupIndex, player);
             }
+        }
+        private void GiveMoneyToPlayers()
+        {
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                player.master.money += 500;
+                Chat.AddPickupMessage(player.master.GetBody(), "Money's!!!", Color.white, 1);
+            }
+        }
+        private void GiveLunarToPlayers()
+        {
+            foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
+            {
+                if (local)
+                {
+                    Log.LogDebug("Refunding coins...");
+                    local.AwardLunarCoins(1);
+                    Chat.AddPickupMessage(local.master.GetBody(), "Lunar Coin", Color.blue, 1);
+                }
+            }
+        }
+        private void GiveExperienceToPlayers()
+        {
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                player.master.GiveExperience(1000);
+                Chat.AddPickupMessage(player.master.GetBody(), "1000 XP", Color.white, 1);
+            }
+        }
+        private void TimeWarpTrap()
+        {
+            var time = Run.instance.GetRunStopwatch();
+            time += 150;
+            Run.instance.SetRunStopwatch(time);
         }
 
         private void DisplayPickupNotification(PickupIndex index, PlayerCharacterMasterController player)
