@@ -32,6 +32,9 @@ namespace Archipelago.RiskOfRain2
         internal DeathLinkHandler Deathlinkhandler { get; private set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
+        
+        internal ScavengerSpawnBoosterHandler ScavengerSpawnBoosterHandler { get; private set; }
+
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI itemCheckBar;
@@ -148,7 +151,7 @@ namespace Archipelago.RiskOfRain2
                     ItemLogic.Stageblockerhandler = Stageblockerhandler;
                     Stageblockerhandler.BlockAll();
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
-
+                    ScavengerSpawnBoosterHandler = new ScavengerSpawnBoosterHandler(Locationhandler);
                     // TODO there is a more likely a more reasonable location to create the UI for explore mode
                     itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
 
@@ -231,6 +234,7 @@ namespace Archipelago.RiskOfRain2
 
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
+            ScavengerSpawnBoosterHandler?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
         }
 

@@ -17,7 +17,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         // NOTE every mention of a "environment" refers to the risk of rain 2 scenes that are loaded and played
 
 
-        // setup all scene indexes as megic numbers
+        // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
         public const int ancientloft = 3;       // Aphelian Sanctuary
@@ -142,6 +142,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         private ArchipelagoSession session;
         private LocationInformationTemplate originallocationstemplate;
         private Dictionary<int, LocationInformationTemplate> currentlocations;
+
+        public LocationInformationTemplate GetLocationsForEnvironment(int environment)
+        {
+            return currentlocations.TryGetValue(environment, out var locInf) ? locInf : null;
+        }
 
         public LocationHandler(ArchipelagoSession session, LocationInformationTemplate locationstemplate)
         {
