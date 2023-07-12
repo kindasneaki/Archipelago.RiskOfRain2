@@ -254,6 +254,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.RadiotowerTerminal.GrantUnlock += RadiotowerTerminal_GrantUnlock;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Blue;
+            On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
         }
 
         public void UnHook()
@@ -284,6 +285,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.RadiotowerTerminal.GrantUnlock -= RadiotowerTerminal_GrantUnlock;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Blue;
+            On.RoR2.SceneInfo.Awake -= SceneInfo_Awake;
         }
 
         public ArchipelagoLocationCheckProgressBarUI itemBar = null;
@@ -304,6 +306,18 @@ namespace Archipelago.RiskOfRain2.Handlers
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
+        internal SceneDef sceneDef { get; private set; } //used for the currect scene loaded
+
+        private void SceneInfo_Awake(On.RoR2.SceneInfo.orig_Awake orig, SceneInfo self)
+        {
+            orig(self);
+            sceneDef = self.sceneDef;
+        }
+
+        public SceneDef GetLocationScene()
+        {
+            return sceneDef;
+        }
 
         private void updateBar(LocationTypes loctype)
         {
