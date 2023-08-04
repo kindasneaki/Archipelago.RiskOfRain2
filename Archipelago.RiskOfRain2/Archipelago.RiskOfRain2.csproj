@@ -12,7 +12,7 @@
     <MakeDir Directories="bin/zip/" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb; $(TargetDir)/$(TargetName).deps.json" DestinationFolder="bin/Build/" />
     <Copy SourceFiles="$(OutputPath)/Archipelago.MultiClient.Net.dll;$(OutputPath)/Newtonsoft.Json.dll;" DestinationFolder="bin/Build/" />
-    <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="$(RiskOfRain2Refs)/" />
+    <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="bin/Build/" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb; $(TargetDir)/$(TargetName).deps.json" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="$(OutputPath)/Archipelago.MultiClient.Net.dll;$(OutputPath)/Newtonsoft.Json.dll;" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="$(RiskOfRain2Refs)" />
