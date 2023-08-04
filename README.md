@@ -124,6 +124,12 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.2.5**
+
+* Add Beads of Fealty for real this time
+* Updated Multiclient.Net to 5.0.6
+
+
 **1.2.4**
 
 * Guaranteed newt alter spawn on each stage. Note: that 2 can spawn now but you can only use 1 per map

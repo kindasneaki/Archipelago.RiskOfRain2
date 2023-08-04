@@ -398,6 +398,9 @@ namespace Archipelago.RiskOfRain2
                     GiveItemToPlayers(voidItem);
 
                     break;
+                case 37013:
+                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex));
+                    break;
                 // "Dio's Best Friend"
                 case 37001:
                     GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex));
