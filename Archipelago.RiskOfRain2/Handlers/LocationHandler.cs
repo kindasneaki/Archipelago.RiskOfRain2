@@ -3,6 +3,7 @@ using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.UI;
 using RoR2;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
@@ -147,13 +148,13 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             Log.LogDebug($"Location handler constructor.");
             this.session = session;
-            originallocationstemplate = locationstemplate;
+            originallocationstemplate = locationstemplate.copy();
             currentlocations = new Dictionary<int, LocationInformationTemplate>();
 
 
             InitialSetupLocationDict(locationstemplate);
 
-            CatchUpLocationDict();
+            // CatchUpLocationDict();
         }
 
         /// <summary>
@@ -196,7 +197,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // a copy is needed because the one being enumerated over cannot be changed
             Dictionary<int, LocationInformationTemplate> locationscopy = new Dictionary<int, LocationInformationTemplate>(currentlocations);
-
+            Dictionary<int, LocationInformationTemplate> locationCopy = locationscopy.ToDictionary(k => k.Key, k => k.Value);
             foreach (KeyValuePair<int, LocationInformationTemplate> kvp in locationscopy)
             {
                 int index = kvp.Key;
@@ -208,7 +209,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                 // catch each individual check type up
                 for (int type = 0; type < (int)LocationTypes.MAX; type++)
                 {
-
                     for (int n = 0; n < originallocationstemplate[type]; n++)
                     {
                         // check each location if it has been seen
@@ -224,6 +224,37 @@ namespace Archipelago.RiskOfRain2.Handlers
 
                 currentlocations[(int)index] = location;
             }
+        }
+        private void CatchUpSceneLocations(int sceneIndex)
+        {
+            Dictionary<int, LocationInformationTemplate> locationscopy = new Dictionary<int, LocationInformationTemplate>(currentlocations);
+            Dictionary<int, LocationInformationTemplate> locationCopy = locationscopy.ToDictionary(k => k.Key, k => k.Value.copy());
+
+            if (!locationCopy.TryGetValue(sceneIndex, out LocationInformationTemplate location)) {
+                return;
+            }
+
+            ReadOnlyCollection<long> completedchecks = session.Locations.AllLocationsChecked;
+            int environment_start_id = sceneIndex * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
+
+            Log.LogDebug($"Doing catch up on environment: index {sceneIndex}");
+            Log.LogDebug($"environment_start_id {environment_start_id}");
+            for (int type = 0; type < (int)LocationTypes.MAX; type++)
+            {
+                for (int n = originallocationstemplate[type] - location[type]; n < originallocationstemplate[type]; n++)
+                {
+                    // check each location if it has been seen
+                    if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset[type] + environment_start_id))
+                    {
+                        location[type]--; // a location completed has been found for this environment
+                    }
+                    // if we see a location missing, imply the ones that succeed it are also missing
+                    else break;
+                }
+                Log.LogDebug($"caught up to {LocationTypesShortName[type]} {location[type]}");
+            }
+
+            currentlocations[(int)sceneIndex] = location;
         }
 
         public void Hook()
@@ -312,6 +343,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self);
             sceneDef = self.sceneDef;
+            CatchUpSceneLocations(((int)self.sceneDef.sceneDefIndex));
+            //CatchUpLocationDict();
         }
 
         public SceneDef GetLocationScene()
