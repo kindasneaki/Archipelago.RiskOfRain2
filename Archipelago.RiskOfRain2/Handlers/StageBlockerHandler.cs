@@ -509,7 +509,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 return;
             }
-            Log.LogDebug($"void portal spawn = {voidPortalSpawned}");
             if (self.numBatteriesActivated >= self.numBatteriesSpawned && self.numBatteriesSpawned > 0 && !voidPortalSpawned)
             {
                 Log.LogDebug("Portal Activated");

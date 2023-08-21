@@ -18,7 +18,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         // NOTE every mention of a "environment" refers to the risk of rain 2 scenes that are loaded and played
 
 
-        // setup all scene indexes as megic numbers
+        // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
         public const int ancientloft = 3;       // Aphelian Sanctuary
@@ -37,7 +37,24 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int sulfurpools = 41;      // Sulfur Pools
         public const int wispgraveyard = 47;    // Scorched Acres
 
-
+        public static readonly Dictionary<int, string> locationsNames = new()
+        {
+            { 3, "Aphelian Sanctuary" },
+            { 7, "Distant Roost" },
+            { 8, "Distant Roost (2)" },
+            { 10, "Abyssal Depths" },
+            { 12, "Wetland Aspect" },
+            { 13, "Rallypoint Delta" },
+            { 15, "Titanic Plains" },
+            { 16, "Titanic Plains (2)" },
+            { 17, "Abandoned Aqueduct" },
+            { 35, "Sundered Grove" },
+            { 37, "Siren's Call" },
+            { 38, "Sky Meadow" },
+            { 39, "Siphoned Forest" },
+            { 41, "Sulfur Pools" },
+            { 47, "Scorched Acres" },
+        };
         public enum LocationTypes
         {
             chest,
@@ -94,12 +111,13 @@ namespace Archipelago.RiskOfRain2.Handlers
         // This is so readabilty and the ability to index the template with the LocationTypes enum.
         public class LocationInformationTemplate
         {
+
             private int[] data = new int[(int)LocationTypes.MAX];
 
             public int this[int i]
             {
                 get => data[i];
-                set => data[i] = value;
+                set => data[i] = value; 
             }
 
             public int this[LocationTypes type]
@@ -114,6 +132,18 @@ namespace Archipelago.RiskOfRain2.Handlers
                 int sum = 0;
                 for (int type = 0; type < (int)LocationTypes.MAX; type++) sum += data[type];
                 return sum;
+            }
+            public string scene()
+            {
+                SceneDef scene = LocationHandler.GetLocationScene();
+                /*                Log.LogDebug($"{scene.sceneDefIndex} scene this");*/
+                if (locationsNames.ContainsKey((int)scene.sceneDefIndex))
+                {
+                    return $"{locationsNames[(int)scene.sceneDefIndex]}";
+                }
+                return $"Environment Location";
+
+                
             }
 
             public LocationInformationTemplate copy()
@@ -153,8 +183,6 @@ namespace Archipelago.RiskOfRain2.Handlers
 
 
             InitialSetupLocationDict(locationstemplate);
-
-            // CatchUpLocationDict();
         }
 
         /// <summary>
@@ -186,51 +214,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// This is used to have the location handler catch up to the archipelago session.
         /// This is because the player may have completed checks, died, and restarted the session and we do not need to have the player repeat checks.
         /// </summary>
-        private void CatchUpLocationDict()
-        {
-            Log.LogDebug("CatchUpLocationDict");
-            ReadOnlyCollection<long> completedchecks = session.Locations.AllLocationsChecked;
-
-            // TODO time complexity probably doesn't matter here, but there probably is a more efficient way to do this
-            // a probably better way to do it would be iterate over all completed chests, skip numbers which don't relate to ror2, and change the values per number
-            // instead of the converse of checking the numbers for every possible check
-
-            // a copy is needed because the one being enumerated over cannot be changed
-            Dictionary<int, LocationInformationTemplate> locationscopy = new Dictionary<int, LocationInformationTemplate>(currentlocations);
-            Dictionary<int, LocationInformationTemplate> locationCopy = locationscopy.ToDictionary(k => k.Key, k => k.Value);
-            foreach (KeyValuePair<int, LocationInformationTemplate> kvp in locationscopy)
-            {
-                int index = kvp.Key;
-                LocationInformationTemplate location = kvp.Value.copy(); // because the value is an object in both Dictionaries, we want a copy instead of the reference
-                int environment_start_id = index*ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
-                Log.LogDebug($"Doing catch up on environment: index {index}");
-                Log.LogDebug($"environment_start_id {environment_start_id}");
-
-                // catch each individual check type up
-                for (int type = 0; type < (int)LocationTypes.MAX; type++)
-                {
-                    for (int n = 0; n < originallocationstemplate[type]; n++)
-                    {
-                        // check each location if it has been seen
-                        if (completedchecks.Contains(n + ArchipelagoLocationOffsets.offset[type] + environment_start_id))
-                        {
-                            location[type]--; // a location completed has been found for this environment
-                        }
-                        // if we see a location missing, imply the ones that succeed it are also missing
-                        else break;
-                    }
-                    Log.LogDebug($"caught up to {LocationTypesShortName[type]} {location[type]}");
-                }
-
-                currentlocations[(int)index] = location;
-            }
-        }
         private void CatchUpSceneLocations(int sceneIndex)
         {
-            Dictionary<int, LocationInformationTemplate> locationscopy = new Dictionary<int, LocationInformationTemplate>(currentlocations);
-            Dictionary<int, LocationInformationTemplate> locationCopy = locationscopy.ToDictionary(k => k.Key, k => k.Value.copy());
+            Dictionary<int, LocationInformationTemplate> locationscopy = currentlocations.ToDictionary(k => k.Key, k => k.Value.copy());
 
-            if (!locationCopy.TryGetValue(sceneIndex, out LocationInformationTemplate location)) {
+            if (!locationscopy.TryGetValue(sceneIndex, out LocationInformationTemplate location)) {
                 return;
             }
 
@@ -337,17 +325,17 @@ namespace Archipelago.RiskOfRain2.Handlers
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
-        internal SceneDef sceneDef { get; private set; } //used for the currect scene loaded
+        public const int testing = 3;
+        public static SceneDef sceneDef { get; private set; } //used for the currect scene loaded
 
         private void SceneInfo_Awake(On.RoR2.SceneInfo.orig_Awake orig, SceneInfo self)
         {
             orig(self);
             sceneDef = self.sceneDef;
             CatchUpSceneLocations(((int)self.sceneDef.sceneDefIndex));
-            //CatchUpLocationDict();
         }
 
-        public SceneDef GetLocationScene()
+        public static SceneDef GetLocationScene()
         {
             return sceneDef;
         }

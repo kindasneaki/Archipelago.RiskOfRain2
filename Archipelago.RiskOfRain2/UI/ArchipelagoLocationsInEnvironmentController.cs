@@ -15,7 +15,7 @@ namespace Archipelago.RiskOfRain2.UI
         {
             public override string GenerateString()
             {
-                return $"Environment locations: {count[LocationHandler.LocationTypes.chest]}/{count[LocationHandler.LocationTypes.shrine]}/{count[LocationHandler.LocationTypes.scavenger]}/{count[LocationHandler.LocationTypes.radio_scanner]}/{count[LocationHandler.LocationTypes.newt_altar]}";
+                return $"{count.scene()}: {count[LocationHandler.LocationTypes.chest]}/{count[LocationHandler.LocationTypes.shrine]}/{count[LocationHandler.LocationTypes.scavenger]}/{count[LocationHandler.LocationTypes.radio_scanner]}/{count[LocationHandler.LocationTypes.newt_altar]}";
             }
 
             public override bool IsDirty()

@@ -124,6 +124,13 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
+**1.2.6**
+
+* Look up checks when entering a map instead of when starting a run.
+* Add stage name to UI.
+* Bug Fixes:
+    * Passwords were not used.
+
 **1.2.5**
 
 * Add Beads of Fealty for real this time

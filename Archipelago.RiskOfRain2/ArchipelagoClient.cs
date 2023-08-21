@@ -76,7 +76,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 2));
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 2), password: password);
 
             if (!result.Successful)
             {
