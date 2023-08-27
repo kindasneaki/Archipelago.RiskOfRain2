@@ -214,7 +214,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// This is used to have the location handler catch up to the archipelago session.
         /// This is because the player may have completed checks, died, and restarted the session and we do not need to have the player repeat checks.
         /// </summary>
-        private void CatchUpSceneLocations(int sceneIndex)
+        public void CatchUpSceneLocations(int sceneIndex)
         {
             Dictionary<int, LocationInformationTemplate> locationscopy = currentlocations.ToDictionary(k => k.Key, k => k.Value.copy());
 
@@ -244,16 +244,16 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             currentlocations[(int)sceneIndex] = location;
         }
-
         public void Hook()
         {
             // Etc
             On.RoR2.SceneCatalog.OnActiveSceneChanged += SceneCatalog_OnActiveSceneChanged;
+            On.RoR2.SceneExitController.OnDestroy += SceneExitController_OnDestroy;
             On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
-            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
+/*            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath += SacrificeArtifactManager_OnServerCharacterDeath;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;*/
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
@@ -275,6 +275,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Blue;
             On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
         }
+
 
         public void UnHook()
         {
@@ -477,7 +478,12 @@ namespace Archipelago.RiskOfRain2.Handlers
             // update the bars for the new scene
             updateBar(LocationTypes.chest);
             updateBar(LocationTypes.shrine);
-
+            if (0 < checkAvailable(LocationTypes.chest))
+            {
+                On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
+                On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath += SacrificeArtifactManager_OnServerCharacterDeath;
+                On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
+            }
             // update the UI to match the new environment
             for (int type = 0; type < (int)LocationTypes.MAX; type++)
             {
@@ -488,7 +494,13 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // TODO maybe the make sure the ArchipelagoTotalChecksObjectiveController.CurrentChecks gets synced here (since sending a location increments it and could possibly desync it?)
         }
-
+        private void SceneExitController_OnDestroy(On.RoR2.SceneExitController.orig_OnDestroy orig, SceneExitController self)
+        {
+            On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
+            On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath -= SacrificeArtifactManager_OnServerCharacterDeath;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
+            orig(self);
+        }
         private void SceneCollection_AddToWeightedSelection(On.RoR2.SceneCollection.orig_AddToWeightedSelection orig, SceneCollection self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
         {
             // In explore mode we will give help the player a little by adjusting the RNG to favor locations where checks need to still be performed.
@@ -525,7 +537,13 @@ namespace Archipelago.RiskOfRain2.Handlers
         private bool chestOpened()
         {
             bool locationavailable = 0 < checkAvailable(LocationTypes.chest);
-
+            // If no chests we dont need the hooks running.
+            if (!locationavailable)
+            {
+                On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
+                On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath -= SacrificeArtifactManager_OnServerCharacterDeath;
+                On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
+            }
             // only count when checks are avaiable OR when counting does not roll over
             if (locationavailable || 0 != (chestitemsPickedUp + 1) % itemPickupStep)
             {

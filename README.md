@@ -130,6 +130,7 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Add stage name to UI.
 * Bug Fixes:
     * Passwords were not used.
+    * Fix some lag issues with Artifact of Sacrifice.
 
 **1.2.5**
 
