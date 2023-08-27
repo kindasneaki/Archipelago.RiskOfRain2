@@ -281,6 +281,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // Etc
             On.RoR2.SceneCatalog.OnActiveSceneChanged -= SceneCatalog_OnActiveSceneChanged;
+            On.RoR2.SceneExitController.OnDestroy -= SceneExitController_OnDestroy;
             On.RoR2.SceneCollection.AddToWeightedSelection -= SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
