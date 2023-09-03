@@ -41,9 +41,15 @@ namespace Archipelago.RiskOfRain2
         private ArchipelagoSession session;
         private Queue<KeyValuePair<long, string>> itemReceivedQueue = new Queue<KeyValuePair<long, string>>();
         private Queue<KeyValuePair<long, string>> environmentReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<KeyValuePair<long, string>> fillerReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<KeyValuePair<long, string>> trapReceivedQueue = new Queue<KeyValuePair<long, string>>();
         // TODO get magic numbers from somewhere else (eg move to LocationHandler.cs)
         private const long environmentRangeLower = 37700;
         private const long environmentRangeUpper = 37999;
+        private const long fillerRangeLower = 37300;
+        private const long fillerRangeUpper = 37399;
+        private const long trapRangeLower = 37400;
+        private const long trapRangeUpper = 37499;
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
@@ -238,6 +244,13 @@ namespace Archipelago.RiskOfRain2
             {
                 environmentReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
             }
+            else if (fillerRangeLower <= itemId && itemId <= fillerRangeUpper)
+            {
+                fillerReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
+            }
+            else if (trapRangeLower <= itemId && itemId <= trapRangeUpper) {
+                trapReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
+            }
             else
             {
                 itemReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
@@ -282,6 +295,14 @@ namespace Archipelago.RiskOfRain2
                 {
                     HandleReceivedEnvironmentQueueItem();
                 }
+                if (fillerReceivedQueue.Any())
+                {
+                    HandleReceivedFillerQueueItem();
+                }
+                if (trapReceivedQueue.Any())
+                {
+                    HandleReceivedTrapQueueItem();
+                }
             }
 
             orig(self);
@@ -291,30 +312,64 @@ namespace Archipelago.RiskOfRain2
         {
             KeyValuePair<long, string> itemReceived = environmentReceivedQueue.Dequeue();
 
-            long itemIdRecieved = itemReceived.Key;
+            long itemIdReceived = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
-            if (itemIdRecieved == environmentRangeLower + 46 && itemNameReceived == "The Planetarium")
+            if (itemIdReceived == environmentRangeLower + 46 && itemNameReceived == "The Planetarium")
             {
-                itemIdRecieved = environmentRangeLower + 45;
+                itemIdReceived = environmentRangeLower + 45;
                 Log.LogDebug($"Changing id to 45");
             }
-            else if (itemIdRecieved == environmentRangeLower + 45 && itemNameReceived == "Void Locus")
+            else if (itemIdReceived == environmentRangeLower + 45 && itemNameReceived == "Void Locus")
             {
-                itemIdRecieved = environmentRangeLower + 46;
+                itemIdReceived = environmentRangeLower + 46;
                 Log.LogDebug($"Changing id to 46");
             }
-            Log.LogDebug($"Handling environment with itemid {itemIdRecieved} with name {itemNameReceived}");
-            Stageblockerhandler?.UnBlock((int)(itemIdRecieved - environmentRangeLower));
+            Log.LogDebug($"Handling environment with itemid {itemIdReceived} with name {itemNameReceived}");
+            Stageblockerhandler?.UnBlock((int)(itemIdReceived - environmentRangeLower));
+        }
+        private void HandleReceivedFillerQueueItem()
+        {
+            KeyValuePair<long, string> itemReceived = fillerReceivedQueue.Dequeue();
+
+            long itemIdReceived = itemReceived.Key;
+            string itemNameReceived = itemReceived.Value;
+            switch (itemIdReceived)
+            {
+                // Money
+                case 37300:
+                    GiveMoneyToPlayers();
+                    break;
+                // Lunar Coin
+                case 37301:
+                    GiveLunarToPlayers();
+                    break;
+                // EXP
+                case 37302:
+                    GiveExperienceToPlayers();
+                    break;
+            }
+        }
+        private void HandleReceivedTrapQueueItem()
+        {
+            KeyValuePair<long, string> itemReceived = fillerReceivedQueue.Dequeue();
+
+            long itemIdReceived = itemReceived.Key;
+            string itemNameReceived = itemReceived.Value;
+            switch (itemIdReceived)
+            {
+                // Adds boss to teleporter
+                case 37400:
+                    MountainShrineTrap();
+                    break;
+                // Increases monsters level by adding time to the clock.
+                case 37401:
+                    TimeWarpTrap();
+                    break;
+            }
         }
 
         private void HandleReceivedItemQueueItem()
         {
-            //GiveLunarToPlayers();
-            //GiveMoneyToPlayers();
-            //GiveExperienceToPlayers();
-            //TimeWarpTrap();
-            //GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex));
-            //MountainShrineTrap();
             KeyValuePair<long, string> itemReceived = itemReceivedQueue.Dequeue();
 
             long itemIdRecieved = itemReceived.Key;
