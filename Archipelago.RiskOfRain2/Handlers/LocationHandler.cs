@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using UnityEngine.Networking;
 using R2API.Utils;
+using R2API;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -249,6 +250,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Etc
             On.RoR2.SceneCatalog.OnActiveSceneChanged += SceneCatalog_OnActiveSceneChanged;
             On.RoR2.SceneExitController.OnDestroy += SceneExitController_OnDestroy;
+            On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
             On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
 /*            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
@@ -268,20 +270,46 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.EntityStates.ScavBackpack.Opening.OnEnter += Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Scavenger;
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Scavenger;
+            // Void Triple Chest
+           /* On.RoR2.PurchaseInteraction.OnInteractionBegin += PurchaseInteraction_OnInteractionBegin;
+            On.RoR2.OptionChestBehavior.ItemDrop += OptionChestBehavior_ItemDrop;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3;*/
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock += RadiotowerTerminal_GrantUnlock;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Blue;
-            On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
+            
         }
 
+/*        private void PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OptionChestBehavior_ItemDrop(On.RoR2.OptionChestBehavior.orig_ItemDrop orig, OptionChestBehavior self)
+        {
+            if (blockVoidTriple)
+            {
+                Log.LogDebug("Blocked triple spawn");
+                return;
+            }
+            orig(self);
+        }*/
+
+/*        private void PurchaseInteraction_OnInteractionBegin(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
+        {
+            Log.LogDebug($"Purchase Interaction {self.name} activator {activator.name}");
+            if (self.name == "VoidTriple(Clone)") blockVoidTriple = true;
+            orig(self, activator);
+        }*/
 
         public void UnHook()
         {
             // Etc
             On.RoR2.SceneCatalog.OnActiveSceneChanged -= SceneCatalog_OnActiveSceneChanged;
             On.RoR2.SceneExitController.OnDestroy -= SceneExitController_OnDestroy;
+            On.RoR2.SceneInfo.Awake -= SceneInfo_Awake;
             On.RoR2.SceneCollection.AddToWeightedSelection -= SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
@@ -306,7 +334,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.RadiotowerTerminal.GrantUnlock -= RadiotowerTerminal_GrantUnlock;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Blue;
-            On.RoR2.SceneInfo.Awake -= SceneInfo_Awake;
+            
         }
 
         public ArchipelagoLocationCheckProgressBarUI itemBar = null;
@@ -327,6 +355,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
+        private bool blockVoidTriple = false;
         public const int testing = 3;
         public static SceneDef sceneDef { get; private set; } //used for the currect scene loaded
 
