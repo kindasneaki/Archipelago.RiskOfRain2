@@ -1,8 +1,8 @@
 ﻿{
 	"name": "Archipelago",
-	"version_number": "1.2.4",
+	"version_number": "1.2.6.beta3",
 	"website_url": "https://archipelago.gg",
-	"description": "Archipelago client implementation enabling Risk of Rain 2 based Archipelago runners.",
+	"description": "Archipelago multiworld randomizer client implementation enabling Risk of Rain 2 based Archipelago runners.",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.2101",
 		"RiskofThunder-HookGenPatcher-1.2.3",
