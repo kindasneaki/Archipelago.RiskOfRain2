@@ -314,6 +314,7 @@ namespace Archipelago.RiskOfRain2
             //GiveExperienceToPlayers();
             //TimeWarpTrap();
             //GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex));
+            //MountainShrineTrap();
             KeyValuePair<long, string> itemReceived = itemReceivedQueue.Dequeue();
 
             long itemIdRecieved = itemReceived.Key;
@@ -490,6 +491,11 @@ namespace Archipelago.RiskOfRain2
             var time = Run.instance.GetRunStopwatch();
             time += 150;
             Run.instance.SetRunStopwatch(time);
+            TeamManager.instance.SetTeamLevel(TeamIndex.Monster, 1);
+        }
+        private void MountainShrineTrap()
+        {
+            TeleporterInteraction.instance.AddShrineStack();
         }
 
         private void DisplayPickupNotification(PickupIndex index, PlayerCharacterMasterController player)
