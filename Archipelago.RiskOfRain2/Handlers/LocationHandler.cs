@@ -253,9 +253,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
             On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
-/*            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
+            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
             On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath += SacrificeArtifactManager_OnServerCharacterDeath;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;*/
+            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;

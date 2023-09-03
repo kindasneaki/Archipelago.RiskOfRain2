@@ -351,7 +351,7 @@ namespace Archipelago.RiskOfRain2
         }
         private void HandleReceivedTrapQueueItem()
         {
-            KeyValuePair<long, string> itemReceived = fillerReceivedQueue.Dequeue();
+            KeyValuePair<long, string> itemReceived = trapReceivedQueue.Dequeue();
 
             long itemIdReceived = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
@@ -517,7 +517,9 @@ namespace Archipelago.RiskOfRain2
         {
             foreach (var player in PlayerCharacterMasterController.instances)
             {
-                player.master.money += 500;
+                var coefficient = Run.instance.difficultyCoefficient;
+                Log.LogDebug($"Received {(uint)(500 * coefficient)}");
+                player.master.money += (uint)(500 * coefficient);
                 Chat.AddPickupMessage(player.master.GetBody(), "Money's!!!", Color.white, 1);
             }
         }
