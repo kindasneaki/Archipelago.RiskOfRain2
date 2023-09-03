@@ -309,10 +309,11 @@ namespace Archipelago.RiskOfRain2
 
         private void HandleReceivedItemQueueItem()
         {
-            GiveLunarToPlayers();
-            GiveMoneyToPlayers();
-            GiveExperienceToPlayers();
-            TimeWarpTrap();
+            //GiveLunarToPlayers();
+            //GiveMoneyToPlayers();
+            //GiveExperienceToPlayers();
+            //TimeWarpTrap();
+            //GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex));
             KeyValuePair<long, string> itemReceived = itemReceivedQueue.Dequeue();
 
             long itemIdRecieved = itemReceived.Key;
@@ -402,16 +403,18 @@ namespace Archipelago.RiskOfRain2
                     GiveItemToPlayers(voidItem);
 
                     break;
+                // Beads of Fealty
                 case 37013:
                     GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex));
+                    break;
+                case 37014:
+                    GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex));
                     break;
                 // "Dio's Best Friend"
                 case 37001:
                     GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex));
                     break;
-                case 37013:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex));
-                    break;
+                
             }
         }
 
