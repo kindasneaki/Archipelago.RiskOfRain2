@@ -32,6 +32,7 @@ namespace Archipelago.RiskOfRain2
         internal DeathLinkHandler Deathlinkhandler { get; private set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
+        internal ShrineChanceHelper shrineChanceHelper { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI itemCheckBar;
@@ -148,6 +149,7 @@ namespace Archipelago.RiskOfRain2
                     ItemLogic.Stageblockerhandler = Stageblockerhandler;
                     Stageblockerhandler.BlockAll();
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+                    shrineChanceHelper = new ShrineChanceHelper();
 
                     // TODO there is a more likely a more reasonable location to create the UI for explore mode
                     itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
@@ -231,6 +233,7 @@ namespace Archipelago.RiskOfRain2
 
             Stageblockerhandler?.Hook();
             Locationhandler?.Hook();
+            shrineChanceHelper?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
         }
 
@@ -287,6 +290,7 @@ namespace Archipelago.RiskOfRain2
             Deathlinkhandler?.UnHook();
             Stageblockerhandler?.UnHook();
             Locationhandler?.UnHook();
+            shrineChanceHelper?.UnHook();
         }
 
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
