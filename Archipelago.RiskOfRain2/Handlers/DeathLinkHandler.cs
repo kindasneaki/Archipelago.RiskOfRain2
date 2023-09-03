@@ -1,17 +1,9 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
-using Archipelago.RiskOfRain2;
-using Archipelago.RiskOfRain2.Extensions;
 using R2API.Utils;
 using RoR2;
-using RoR2.Artifacts;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Reflection;
-using System.Text;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -32,8 +24,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             if (!deathLinkActive)
             {
-                deathLink.OnDeathLinkReceived += DeathLink_OnDeathLinkReceived;
-                On.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
+                On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
+                On.RoR2.SceneExitController.Begin += SceneExitController_Begin;
                 deathLinkActive = true;
             }
         }
@@ -42,9 +34,26 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             deathLink.OnDeathLinkReceived -= DeathLink_OnDeathLinkReceived;
             On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
+            On.RoR2.SceneInfo.Awake -= SceneInfo_Awake;
+            On.RoR2.SceneExitController.Begin -= SceneExitController_Begin;
             deathLinkActive = false;
         }
-
+        private void SceneInfo_Awake(On.RoR2.SceneInfo.orig_Awake orig, SceneInfo self)
+        {
+            orig(self);
+            if (deathLinkActive)
+            {
+                deathLink.OnDeathLinkReceived += DeathLink_OnDeathLinkReceived;
+                On.RoR2.CharacterMaster.OnBodyDeath += CharacterMaster_OnBodyDeath;
+                recievedDeath = false;
+            }
+        }
+        private void SceneExitController_Begin(On.RoR2.SceneExitController.orig_Begin orig, SceneExitController self)
+        {
+            orig(self);
+            deathLink.OnDeathLinkReceived -= DeathLink_OnDeathLinkReceived;
+            On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
+        }
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
             // TODO for multiplayer, this needs to make sure the dying player belongs to this client as to prevent redundant deathlink signals
