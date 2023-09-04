@@ -10,13 +10,12 @@ using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using R2API.Networking;
+using R2API.Utils;
 using R2API.Networking.Interfaces;
 using RoR2;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using System.Collections.ObjectModel;
-using UnityEngine.Networking;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -325,6 +324,10 @@ namespace Archipelago.RiskOfRain2
             }
             Log.LogDebug($"Handling environment with itemid {itemIdReceived} with name {itemNameReceived}");
             Stageblockerhandler?.UnBlock((int)(itemIdReceived - environmentRangeLower));
+            if (IsInGame)
+            {
+                ChatMessage.SendColored($"Received {itemNameReceived}!", Color.magenta);
+            }
         }
         private void HandleReceivedFillerQueueItem()
         {
@@ -561,12 +564,12 @@ namespace Archipelago.RiskOfRain2
             ItemIndex itemIndex = pickupDef.itemIndex;
             if (itemIndex != ItemIndex.None)
             {
-                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(ItemCatalog.GetItemDef(itemIndex), null), 2f);
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(ItemCatalog.GetItemDef(itemIndex), null), 1f);
             }
             EquipmentIndex equipmentIndex = pickupDef.equipmentIndex;
             if (equipmentIndex != EquipmentIndex.None)
             {
-                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(EquipmentCatalog.GetEquipmentDef(equipmentIndex), null), 2f);
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(EquipmentCatalog.GetEquipmentDef(equipmentIndex), null), 1f);
             }
             var color = pickupDef.baseColor;
             var index_text = pickupDef.nameToken;
