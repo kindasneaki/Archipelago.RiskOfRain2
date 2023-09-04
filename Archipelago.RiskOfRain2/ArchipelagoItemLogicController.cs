@@ -66,7 +66,6 @@ namespace Archipelago.RiskOfRain2
         public ArchipelagoItemLogicController(ArchipelagoSession session)
         {
             this.session = session;
-
             // get the initial id from the seed for backwards compatibility
             ItemStartId = session.Locations.GetLocationIdFromName("Risk of Rain 2", "ItemPickup1");
 
@@ -557,10 +556,21 @@ namespace Archipelago.RiskOfRain2
 
         private void DisplayPickupNotification(PickupIndex index, PlayerCharacterMasterController player)
         {
+            CharacterMasterNotificationQueue notificationQueueForMaster = CharacterMasterNotificationQueue.GetNotificationQueueForMaster(player.master);
             PickupDef pickupDef = PickupCatalog.GetPickupDef(index);
+            ItemIndex itemIndex = pickupDef.itemIndex;
+            if (itemIndex != ItemIndex.None)
+            {
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(ItemCatalog.GetItemDef(itemIndex), null), 2f);
+            }
+            EquipmentIndex equipmentIndex = pickupDef.equipmentIndex;
+            if (equipmentIndex != EquipmentIndex.None)
+            {
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(EquipmentCatalog.GetEquipmentDef(equipmentIndex), null), 2f);
+            }
             var color = pickupDef.baseColor;
             var index_text = pickupDef.nameToken;
-            CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
+            //CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
             Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
         }
 

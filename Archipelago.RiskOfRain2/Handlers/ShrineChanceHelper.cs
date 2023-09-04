@@ -22,7 +22,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private void SceneDirector_onGenerateInteractableCardSelection(SceneDirector arg1, DirectorCardCategorySelection arg2)
         {
             Log.LogDebug($"interactible credit {arg1.interactableCredit}");
-            arg1.interactableCredit *= 5;
+            arg1.interactableCredit *= 2;
             Log.LogDebug($"interactible credit {arg1.interactableCredit}");
             foreach (var cata in arg2.categories)
             {
