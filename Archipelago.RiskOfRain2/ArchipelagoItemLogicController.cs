@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using Archipelago.MultiClient.Net;
@@ -16,6 +17,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.ObjectModel;
+using KinematicCharacterController;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -49,10 +51,13 @@ namespace Archipelago.RiskOfRain2
         private const long fillerRangeUpper = 37399;
         private const long trapRangeLower = 37400;
         private const long trapRangeUpper = 37499;
+        private bool spawnedMonster = false;
+        private bool monsterShrineRecently = false;
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
         private GameObject portalPrefab;
+        private CombatDirector combatDirector;
 
         private bool IsInGame
         {
@@ -72,6 +77,7 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
+            On.RoR2.CombatDirector.Awake += CombatDirector_Awake;
             Log.LogDebug("Okay finished hooking.");
             smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Junk/Bandit/SmokescreenEffect.prefab").WaitForCompletion();
             // TODO Spawns the seerStation portal to pick where to go.. changing the id in game doesn't work.. looks to be a NetworkBehavior thing
@@ -109,6 +115,12 @@ namespace Archipelago.RiskOfRain2
                 PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WispOnDeath.artifactIndex),
             };
             Log.LogDebug("Ok, finished browsing catalog.");
+        }
+
+        private void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
+        {
+            orig(self);
+            combatDirector = self;
         }
 
         private void Items_ItemReceived(ReceivedItemsHelper helper)
@@ -359,13 +371,17 @@ namespace Archipelago.RiskOfRain2
             string itemNameReceived = itemReceived.Value;
             switch (itemIdReceived)
             {
-                // Adds boss to teleporter
+                // Adds an extra boss to teleporter
                 case 37400:
                     MountainShrineTrap();
                     break;
                 // Increases monsters level by adding time to the clock.
                 case 37401:
                     TimeWarpTrap();
+                    break;
+                // Immitate Combat Shrine.
+                case 37402:
+                    SpawnMonstersTrap();
                     break;
             }
         }
@@ -545,16 +561,88 @@ namespace Archipelago.RiskOfRain2
                 Chat.AddPickupMessage(player.master.GetBody(), "1000 XP", Color.white, 1);
             }
         }
+        private void MountainShrineTrap()
+        {
+            if (!monsterShrineRecently)
+            {
+                ChatMessage.SendColored("<style=cShrine>The Mountain has invited you for a challenge..", Color.yellow);
+                TeleporterInteraction.instance.AddShrineStack();
+                monsterShrineRecently = true;
+                Thread thread = new Thread(() => MountainShrineRecently());
+                thread.Start();
+                PlayShrineSound();
+            }
+        }
+        private void MountainShrineRecently()
+        {
+            Thread.Sleep(2000);
+            Log.LogDebug("You can get another mountain trap now.");
+            monsterShrineRecently = false;
+        }
+        private void PlayShrineSound()
+        {
+            EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
+            {
+                origin = PlayerCharacterMasterController.instances[0].body.transform.position,
+            }, true);
+        }
+        private void SpawnMonstersTrap()
+        {
+            var player = new PlayerCharacterMasterController();
+            System.Random rng = new System.Random();
+            int selectedPlayer = rng.Next(PlayerCharacterMasterController.instances.Count());
+            player = PlayerCharacterMasterController.instances[selectedPlayer];
+
+            if (combatDirector != null && !spawnedMonster)
+            {
+                Thread thread = new Thread(() => SpawnedMonstersRecently());
+                thread.Start();
+                Log.LogDebug("Spawning Monsters");
+                spawnedMonster = true;
+                var coefficient = Run.instance.difficultyCoefficient;
+                combatDirector.monsterCredit = 100f * coefficient;
+                Log.LogDebug($"player position {player.body.transform.localPosition} monster credit  100 * {coefficient} =  {100 * coefficient}");
+                combatDirector.SpendAllCreditsOnMapSpawns(player.body.transform);
+                ChatMessage.SendColored("Incoming Monsters!!", Color.red);
+                PlayShrineSound();
+            }
+        }
+        private void SpawnedMonstersRecently()
+        {
+            Thread.Sleep(2000);
+            Log.LogDebug("You can get another monster trap now.");
+            spawnedMonster = false;
+        }
+
+        // TODO The currently spawns players to the center of the map aka (0, 0, 0) where we would want it to be a random location.
+        private void TeleportPlayer()
+        {
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
+                spawnCard.prefab = LegacyResourcesAPI.Load<GameObject>("SpawnCards/HelperPrefab");
+                Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
+                var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                {
+                    placementMode = DirectorPlacementRule.PlacementMode.Random
+                }, xoroshiro128PlusRadioScanner));
+                var position = card.transform.position;
+                var directorPlacement = new DirectorPlacementRule
+                {
+                    placementMode = DirectorPlacementRule.PlacementMode.Random,
+                    minDistance = 5f,
+                    maxDistance = 20f,
+                };
+                Log.LogDebug($"directorPlacemnet {directorPlacement.targetPosition} card position {position}");
+                player.body.GetComponentInChildren<KinematicCharacterMotor>().SetPosition(directorPlacement.targetPosition);
+            }
+        }
         private void TimeWarpTrap()
         {
             var time = Run.instance.GetRunStopwatch();
             time += 150;
             Run.instance.SetRunStopwatch(time);
             TeamManager.instance.SetTeamLevel(TeamIndex.Monster, 1);
-        }
-        private void MountainShrineTrap()
-        {
-            TeleporterInteraction.instance.AddShrineStack();
         }
 
         private void DisplayPickupNotification(PickupIndex index, PlayerCharacterMasterController player)
