@@ -564,12 +564,12 @@ namespace Archipelago.RiskOfRain2
             ItemIndex itemIndex = pickupDef.itemIndex;
             if (itemIndex != ItemIndex.None)
             {
-                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(ItemCatalog.GetItemDef(itemIndex), null), 1f);
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(ItemCatalog.GetItemDef(itemIndex), null), 2f);
             }
             EquipmentIndex equipmentIndex = pickupDef.equipmentIndex;
             if (equipmentIndex != EquipmentIndex.None)
             {
-                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(EquipmentCatalog.GetEquipmentDef(equipmentIndex), null), 1f);
+                notificationQueueForMaster.PushNotification(new CharacterMasterNotificationQueue.NotificationInfo(EquipmentCatalog.GetEquipmentDef(equipmentIndex), null), 2f);
             }
             var color = pickupDef.baseColor;
             var index_text = pickupDef.nameToken;

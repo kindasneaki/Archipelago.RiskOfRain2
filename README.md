@@ -128,9 +128,13 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 
 * Look up checks when entering a map instead of when starting a run.
 * Add stage name to UI.
+* Increased item notification speed to 2 sec for AP Items.
+* Doubled interactables spawn rate.
+* Added handling for future items.
 * Bug Fixes:
     * Passwords were not used.
     * Fix some lag issues with Artifact of Sacrifice.
+    * When receiving a deathlink on transitioning to a new stage it would cause it to stop working.
 
 **1.2.5**
 

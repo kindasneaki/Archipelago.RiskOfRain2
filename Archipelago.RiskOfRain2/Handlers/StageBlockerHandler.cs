@@ -167,7 +167,6 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool UnBlock(int index)
         {
-            // TODO the initial unblock can occur after the game starts the first stage, this occurs when the player does not connect before hitting ready, this should be fixed
             Log.LogDebug($"UnBlocking environment: index {index}.");
             return blocked_stages.Remove(index);
         }
@@ -317,6 +316,7 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private void PortalDialerIdleState_OnActivationServer(On.RoR2.PortalDialerController.PortalDialerIdleState.orig_OnActivationServer orig, BaseState self, Interactor interactor)
         {
+            // TODO add goal message
             if (CheckBlocked(artifactworld))
             {
                 // give a message so the user is aware the portal dialer interaction is blocked
