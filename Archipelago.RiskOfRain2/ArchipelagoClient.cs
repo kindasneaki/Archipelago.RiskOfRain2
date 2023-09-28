@@ -265,42 +265,7 @@ namespace Archipelago.RiskOfRain2
             Locationhandler?.Hook();
             shrineChanceHelper?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
-        }
-
-        private void SceneObjectToggleGroup_Awake(On.RoR2.SceneObjectToggleGroup.orig_Awake orig, SceneObjectToggleGroup self)
-        {
-            Log.LogDebug($"Scene group length {self.toggleGroups.Length}");
-            for(var i = 0; i < self.toggleGroups.Length; i++)
-            {
-                if (self.toggleGroups[i].objects[0].name == "NewtStatue" || self.toggleGroups[i].objects[0].name == "NewtStatue (1)")
-                {
-                    Log.LogDebug($"Scene Object Toggle Group min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
-                    Log.LogDebug("Changing newt alters min and max values");
-                    self.toggleGroups[i].minEnabled = 1;
-                    self.toggleGroups[i].maxEnabled = 2;
-                    Log.LogDebug($"Scene Object Toggle Group  min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
-                    break;
-                }
-                
-            }
-            orig(self);
-
-
-
-        }
-
-        private void ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled(bool link)
-        {
-            if (link)
-            {
-                Deathlinkhandler?.Hook();
-                deathLinkService.EnableDeathLink();
-            }
-            else
-            {
-                Deathlinkhandler?.UnHook();
-                deathLinkService.DisableDeathLink();
-            }
+            ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
         }
 
         private void UnhookGame()
@@ -321,8 +286,48 @@ namespace Archipelago.RiskOfRain2
             Stageblockerhandler?.UnHook();
             Locationhandler?.UnHook();
             shrineChanceHelper?.UnHook();
-        }
+            ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
 
+        }
+        private void SceneObjectToggleGroup_Awake(On.RoR2.SceneObjectToggleGroup.orig_Awake orig, SceneObjectToggleGroup self)
+        {
+            Log.LogDebug($"Scene group length {self.toggleGroups.Length}");
+            for (var i = 0; i < self.toggleGroups.Length; i++)
+            {
+                if (self.toggleGroups[i].objects[0].name == "NewtStatue" || self.toggleGroups[i].objects[0].name == "NewtStatue (1)")
+                {
+                    Log.LogDebug($"Scene Object Toggle Group min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                    Log.LogDebug("Changing newt alters min and max values");
+                    self.toggleGroups[i].minEnabled = 1;
+                    self.toggleGroups[i].maxEnabled = 2;
+                    Log.LogDebug($"Scene Object Toggle Group  min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                    break;
+                }
+
+            }
+            orig(self);
+
+
+
+        }
+        private void ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled(bool link)
+        {
+            if (link)
+            {
+                Deathlinkhandler?.Hook();
+                deathLinkService.EnableDeathLink();
+            }
+            else
+            {
+                Deathlinkhandler?.UnHook();
+                deathLinkService.DisableDeathLink();
+            }
+        }
+        private void ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled(bool finalstage)
+        {
+            finalStageDeath = finalstage;
+        }
         private void ArchipelagoChatMessage_OnChatReceivedFromClient(string message)
         {
             if (session.Socket.Connected && !string.IsNullOrEmpty(message))

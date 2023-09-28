@@ -13,10 +13,12 @@ namespace Archipelago.RiskOfRain2.Console
         public delegate void OnArchipelagoDisconnectCommandHandler();
         public delegate void OnArchipelagoDeathLinkCommandHandler(bool link);
         public delegate void OnArchipelagoHighlightSatelliteCommandHandler(bool highlight);
+        public delegate void OnArchipelagoFinalStageDeathCommandHandler(bool finalstage);
         public static event ArchipelagoConsoleCommandHandler OnArchipelagoCommandCalled;
         public static event OnArchipelagoDisconnectCommandHandler OnArchipelagoDisconnectCommandCalled;
         public static event OnArchipelagoDeathLinkCommandHandler OnArchipelagoDeathLinkCommandCalled;
         public static event OnArchipelagoHighlightSatelliteCommandHandler OnArchipelagoHighlightSatelliteCommandCalled;
+        public static event OnArchipelagoFinalStageDeathCommandHandler OnArchipelagoFinalStageDeathCommandCalled;
 
         [ConCommand(
     commandName = "archipelago_connect",
@@ -60,10 +62,31 @@ namespace Archipelago.RiskOfRain2.Console
             {
                 bool link = Convert.ToBoolean(args.GetArgString(0));
                 OnArchipelagoDeathLinkCommandCalled(link);
+                ChatMessage.Send($"Deathlink is now set to {link}");
             }
             else
             {
                 ChatMessage.Send("Invalid argument. Correct Syntax: archipelago_deathlink true/false");
+            }
+        }
+        [ConCommand(commandName = "archipelago_final_stage_death", flags = ConVarFlags.SenderMustBeServer, helpText = "Change final stage death. Syntax archipelago_deathlink <true/false>.")]
+
+        private static void ArchipelagoFinalStageDeath(ConCommandArgs args)
+        {
+            if (args.Count > 1)
+            {
+                ChatMessage.Send("Only accepts one arguement!");
+            }
+            else if (args.GetArgString(0) == "true" || args.GetArgString(0) == "false")
+            {
+                bool finalstage = Convert.ToBoolean(args.GetArgString(0));
+                OnArchipelagoFinalStageDeathCommandCalled(finalstage);
+                ChatMessage.Send($"FinalStageDeath is now set to {finalstage}");
+
+            }
+            else
+            {
+                ChatMessage.Send("Invalid argument. Correct Syntax: archipelago_final_stage_deat true/false");
             }
         }
         [ConCommand(commandName = "archipelago_highlight_satellite", flags =ConVarFlags.SenderMustBeServer, helpText = "Change to highlight the radar satellite <true/false>.")]
