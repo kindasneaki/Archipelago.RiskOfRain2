@@ -12,9 +12,11 @@ namespace Archipelago.RiskOfRain2.Console
         public delegate void ArchipelagoConsoleCommandHandler(string url, int port, string slot, string password);
         public delegate void OnArchipelagoDisconnectCommandHandler();
         public delegate void OnArchipelagoDeathLinkCommandHandler(bool link);
+        public delegate void OnArchipelagoHighlightSatelliteCommandHandler(bool highlight);
         public static event ArchipelagoConsoleCommandHandler OnArchipelagoCommandCalled;
         public static event OnArchipelagoDisconnectCommandHandler OnArchipelagoDisconnectCommandCalled;
         public static event OnArchipelagoDeathLinkCommandHandler OnArchipelagoDeathLinkCommandCalled;
+        public static event OnArchipelagoHighlightSatelliteCommandHandler OnArchipelagoHighlightSatelliteCommandCalled;
 
         [ConCommand(
     commandName = "archipelago_connect",
@@ -62,6 +64,29 @@ namespace Archipelago.RiskOfRain2.Console
             else
             {
                 ChatMessage.Send("Invalid argument. Correct Syntax: archipelago_deathlink true/false");
+            }
+        }
+        [ConCommand(commandName = "archipelago_highlight_satellite", flags =ConVarFlags.SenderMustBeServer, helpText = "Change to highlight the radar satellite <true/false>.")]
+        private static void ArchipelagoHighlightSatellite(ConCommandArgs args)
+        {
+            if (args.Count > 1)
+            {
+                ChatMessage.Send("Only accepts one arguement!");
+            }
+            else if (args.GetArgString(0) == "true" || args.GetArgString(0) == "false")
+            {
+                bool highlight = Convert.ToBoolean(args.GetArgString(0));
+                OnArchipelagoHighlightSatelliteCommandCalled(highlight);
+                var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
+                if (radar != null)
+                {
+                    radar.GetComponent<Highlight>().isOn = Convert.ToBoolean(args.GetArgString(0));
+                }
+                ChatMessage.Send($"Satellite Highlight is now set to {Convert.ToBoolean(args.GetArgString(0))}");
+            }
+            else
+            {
+                ChatMessage.Send("Invalid argument. Correct Syntax: archipelago_highlight_satellitek true/false");
             }
         }
     }

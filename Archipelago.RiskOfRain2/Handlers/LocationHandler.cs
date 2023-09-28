@@ -1,6 +1,7 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.UI;
+using Archipelago.RiskOfRain2.Console;
 using RoR2;
 using System;
 using System.Linq;
@@ -277,32 +278,35 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock += RadiotowerTerminal_GrantUnlock;
+            ArchipelagoConsoleCommand.OnArchipelagoHighlightSatelliteCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoHighlightSatelliteCommandCalled;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Blue;
+            // Highlight Satellite
             
         }
 
-/*        private void PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
-        {
-            throw new NotImplementedException();
-        }
 
-        private void OptionChestBehavior_ItemDrop(On.RoR2.OptionChestBehavior.orig_ItemDrop orig, OptionChestBehavior self)
-        {
-            if (blockVoidTriple)
-            {
-                Log.LogDebug("Blocked triple spawn");
-                return;
-            }
-            orig(self);
-        }*/
+        /*        private void PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+                {
+                    throw new NotImplementedException();
+                }
 
-/*        private void PurchaseInteraction_OnInteractionBegin(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
-        {
-            Log.LogDebug($"Purchase Interaction {self.name} activator {activator.name}");
-            if (self.name == "VoidTriple(Clone)") blockVoidTriple = true;
-            orig(self, activator);
-        }*/
+                private void OptionChestBehavior_ItemDrop(On.RoR2.OptionChestBehavior.orig_ItemDrop orig, OptionChestBehavior self)
+                {
+                    if (blockVoidTriple)
+                    {
+                        Log.LogDebug("Blocked triple spawn");
+                        return;
+                    }
+                    orig(self);
+                }*/
+
+        /*        private void PurchaseInteraction_OnInteractionBegin(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
+                {
+                    Log.LogDebug($"Purchase Interaction {self.name} activator {activator.name}");
+                    if (self.name == "VoidTriple(Clone)") blockVoidTriple = true;
+                    orig(self, activator);
+                }*/
 
         public void UnHook()
         {
@@ -332,6 +336,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock -= RadiotowerTerminal_GrantUnlock;
+            ArchipelagoConsoleCommand.OnArchipelagoHighlightSatelliteCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoHighlightSatelliteCommandCalled;
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Blue;
             
@@ -357,6 +362,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
         private bool blockVoidTriple = false;
         public const int testing = 3;
+        private bool highlightOn = false;
         public static SceneDef sceneDef { get; private set; } //used for the currect scene loaded
 
         private void SceneInfo_Awake(On.RoR2.SceneInfo.orig_Awake orig, SceneInfo self)
@@ -846,6 +852,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         // Radio scanner
 
+        private void ArchipelagoConsoleCommand_OnArchipelagoHighlightSatelliteCommandCalled(bool highlight)
+        {
+            highlightOn = highlight;
+        }
+
         // Radio scanners will need to be forcefully spawned even if the player has purchased them
         //  otherwise the check would be impossible to complete.
 
@@ -868,8 +879,12 @@ namespace Archipelago.RiskOfRain2.Handlers
                 {
                     placementMode = DirectorPlacementRule.PlacementMode.Random,
                 }, xoroshiro128PlusRadioScanner));
-/*                var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
-                radar.GetComponent<Highlight>().isOn = true;*/
+                if (highlightOn)
+                {
+                    var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
+                    radar.GetComponent<Highlight>().isOn = true;
+                }
+
             }
         }
 
