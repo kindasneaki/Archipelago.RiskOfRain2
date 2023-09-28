@@ -866,8 +866,10 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(self.rng.nextUlong);
                 DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscRadarTower"), new DirectorPlacementRule
                 {
-                    placementMode = DirectorPlacementRule.PlacementMode.Random
+                    placementMode = DirectorPlacementRule.PlacementMode.Random,
                 }, xoroshiro128PlusRadioScanner));
+/*                var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
+                radar.GetComponent<Highlight>().isOn = true;*/
             }
         }
 

@@ -54,6 +54,22 @@ namespace Archipelago.RiskOfRain2
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
 
+        // Acceptable ending types
+        private GameEndingDef[] acceptableEndings = new[] { 
+                RoR2Content.GameEndings.MainEnding, 
+                //RoR2Content.GameEndings.ObliterationEnding, 
+                RoR2Content.GameEndings.LimboEnding, 
+                DLC1Content.GameEndings.VoidEnding
+        };
+        // Acceptable stages to die on
+        private string[] acceptableLosses = new[]
+            {
+                "moon",
+                "moon2",
+                "voidraid",
+                "mysterspace"
+            };
+
         public ArchipelagoClient()
         {
 
@@ -125,7 +141,7 @@ namespace Archipelago.RiskOfRain2
             Deathlinkhandler = new DeathLinkHandler(deathLinkService);
             if (successResult.SlotData.TryGetValue("deathLink", out var enabledeathlink))
             {
-                
+
                 if (Convert.ToBoolean(enabledeathlink))
                 {
                     deathLinkService.EnableDeathLink(); // deathlink should just be enabled, the DeathLinkHandler assumes it is already enabled
@@ -161,6 +177,25 @@ namespace Archipelago.RiskOfRain2
                     Locationhandler.shrineBar = shrineCheckBar;
                     Locationhandler.itemPickupStep = itemPickupStep;
                     Locationhandler.shrineUseStep = shrineUseStep;
+                }
+            }
+
+            if (successResult.SlotData.TryGetValue("victory", out var victory))
+            {
+                    switch (victory)
+                {
+                    case "Commencement":
+                        acceptableEndings = new[] { RoR2Content.GameEndings.MainEnding };
+                        acceptableLosses = new[] { "moon", "moon2" };
+                        break;
+                    case "Voidling":
+                        acceptableEndings = new[] { DLC1Content.GameEndings.VoidEnding };
+                        acceptableLosses = new[] { "voidraid" };
+                        break;
+                    case "Limbo":
+                        acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
+                        acceptableLosses = new[] { " " };
+                        break;
                 }
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
@@ -408,25 +443,10 @@ namespace Archipelago.RiskOfRain2
 
         private bool IsEndingAcceptable(GameEndingDef gameEndingDef)
         {
-            // Acceptable ending types
-            var acceptableEndings = new[] { 
-                RoR2Content.GameEndings.MainEnding, 
-                //RoR2Content.GameEndings.ObliterationEnding, 
-                RoR2Content.GameEndings.LimboEnding, 
-                DLC1Content.GameEndings.VoidEnding 
-            };
-
-            // Acceptable stages to die on
-            var acceptableLosses = new[]
-            {
-                "moon",
-                "moon2",
-                "voidraid"
-            };
-            return acceptableEndings.Contains(gameEndingDef) 
-                  ||(finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss)
-                  && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName))
-                  || finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding;
+            Log.LogDebug($"ending stage is {Stage.instance.sceneDef.baseSceneName}");
+            return acceptableEndings.Contains(gameEndingDef) ||
+                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss) && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName)) ||
+                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding) && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName));
         }
 
         private void Run_onRunDestroyGlobal(Run obj)
