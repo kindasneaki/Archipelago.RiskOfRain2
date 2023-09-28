@@ -14,11 +14,14 @@ namespace Archipelago.RiskOfRain2.Console
         public delegate void OnArchipelagoDeathLinkCommandHandler(bool link);
         public delegate void OnArchipelagoHighlightSatelliteCommandHandler(bool highlight);
         public delegate void OnArchipelagoFinalStageDeathCommandHandler(bool finalstage);
+        public delegate void OnArchipelagoShowUnlockedStagesCommandHandler();
+
         public static event ArchipelagoConsoleCommandHandler OnArchipelagoCommandCalled;
         public static event OnArchipelagoDisconnectCommandHandler OnArchipelagoDisconnectCommandCalled;
         public static event OnArchipelagoDeathLinkCommandHandler OnArchipelagoDeathLinkCommandCalled;
         public static event OnArchipelagoHighlightSatelliteCommandHandler OnArchipelagoHighlightSatelliteCommandCalled;
         public static event OnArchipelagoFinalStageDeathCommandHandler OnArchipelagoFinalStageDeathCommandCalled;
+        public static event OnArchipelagoShowUnlockedStagesCommandHandler OnArchipelagoShowUnlockedStagesCommandCalled;
 
         [ConCommand(
     commandName = "archipelago_connect",
@@ -49,6 +52,11 @@ namespace Archipelago.RiskOfRain2.Console
         private static void ArchipelagoDisconnect(ConCommandArgs args)
         {
             OnArchipelagoDisconnectCommandCalled();
+        }
+        [ConCommand(commandName = "archipelago_show_unlocked_stages", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows the current stages unlocked")]
+        private static void ArchipelagoShowUnlockedStages(ConCommandArgs args)
+        {
+            OnArchipelagoShowUnlockedStagesCommandCalled();
         }
         [ConCommand(commandName = "archipelago_deathlink", flags = ConVarFlags.SenderMustBeServer, helpText = "Change deathlink. Syntax archipelago_deathlink <true/false>.")]
 

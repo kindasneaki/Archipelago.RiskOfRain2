@@ -56,6 +56,16 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 39, "Siphoned Forest" },
             { 41, "Sulfur Pools" },
             { 47, "Scorched Acres" },
+            { 32, "Commencement" },
+            { 4, "Void Fields" },
+            { 46, "Void Locus" },
+            { 45, "The Planetarium" },
+            { 5, "Hidden Realm: Bulwark's Ambry"},
+            { 6, "Hidden Realm: Bazaar Between Time"},
+            { 14, "Hidden Realm: Gilded Coast" },
+            { 27, "Hidden Realm: A Moment, Whole"},
+            { 33, "Hidden Realm: A Moment, Fractured" },
+
         };
         public enum LocationTypes
         {

@@ -1,4 +1,5 @@
 ﻿using EntityStates;
+using Archipelago.RiskOfRain2.Console;
 using R2API.Utils;
 using RoR2;
 using System;
@@ -51,7 +52,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         // A list of stages that should be blocked because they are locked by archipelago
         // uses scene names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         List<int> blocked_stages;
-
+        List<int> unblocked_stages;
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
@@ -60,6 +61,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             Log.LogDebug($"StageBlocker handler constructor.");
             blocked_stages = new List<int>();
+            unblocked_stages = new List<int>();
 
             // blocking stages should be down by the owner of this object
         }
@@ -79,6 +81,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Run.PickNextStageScene += Run_PickNextStageScene;
             On.RoR2.VoidStageMissionController.FixedUpdate += VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
+            ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
         }
 
         public void UnHook()
@@ -168,6 +171,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public bool UnBlock(int index)
         {
             Log.LogDebug($"UnBlocking environment: index {index}.");
+            unblocked_stages.Add(index);
             return blocked_stages.Remove(index);
         }
 
@@ -183,6 +187,16 @@ namespace Archipelago.RiskOfRain2.Handlers
                 if (index == block) return true;
             }
             return false;
+        }
+        private void ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled()
+        {
+            foreach (var scene in unblocked_stages)
+            {
+                if (LocationHandler.locationsNames.ContainsKey(scene))
+                {
+                    ChatMessage.Send($"{LocationHandler.locationsNames[scene]}");
+                }
+            }
         }
 
         /**

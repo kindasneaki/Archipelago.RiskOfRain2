@@ -130,6 +130,8 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Add stage name to UI.
 * Increased item notification speed to 2 sec for AP Items.
 * Doubled interactables spawn rate.
+* New console command to show the current stages recieved.
+* New console command to turn on/off final stage death.
 * New console command to highlight satellites to make them easier to see.
 * Added handling for future items.
 * Bug Fixes:
