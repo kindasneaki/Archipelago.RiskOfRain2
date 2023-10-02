@@ -53,22 +53,11 @@ namespace Archipelago.RiskOfRain2
         private GameObject genericMenuButton;
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
-
+        public static string victoryCondition;
         // Acceptable ending types
-        private GameEndingDef[] acceptableEndings = new[] { 
-                RoR2Content.GameEndings.MainEnding, 
-                //RoR2Content.GameEndings.ObliterationEnding, 
-                RoR2Content.GameEndings.LimboEnding, 
-                DLC1Content.GameEndings.VoidEnding
-        };
+        private GameEndingDef[] acceptableEndings;
         // Acceptable stages to die on
-        private string[] acceptableLosses = new[]
-            {
-                "moon",
-                "moon2",
-                "voidraid",
-                "mysterspace"
-            };
+        private string[] acceptableLosses;
 
         public ArchipelagoClient()
         {
@@ -84,6 +73,7 @@ namespace Archipelago.RiskOfRain2
                     return;
                 }
             }
+            isEndingAcceptable = false;
             ChatMessage.SendColored($"Attempting to connect to Archipelago at {url}.", Color.green);
 
             //LastServerUrl = url;
@@ -93,7 +83,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 2), password: password);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 3), password: password);
 
             if (!result.Successful)
             {
@@ -182,21 +172,53 @@ namespace Archipelago.RiskOfRain2
 
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
+                Log.LogDebug($"Victory condition {victory}");
+                victoryCondition = victory.ToString();
                     switch (victory)
                 {
-                    case "Commencement":
+                    case "mithrix":
                         acceptableEndings = new[] { RoR2Content.GameEndings.MainEnding };
                         acceptableLosses = new[] { "moon", "moon2" };
                         break;
-                    case "Voidling":
+                    case "voidling":
                         acceptableEndings = new[] { DLC1Content.GameEndings.VoidEnding };
                         acceptableLosses = new[] { "voidraid" };
                         break;
-                    case "Limbo":
+                    case "limbo":
                         acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
                         acceptableLosses = new[] { " " };
                         break;
+                    default:
+                        victoryCondition = "any";
+                        acceptableEndings = new[] {
+                            RoR2Content.GameEndings.MainEnding, 
+                            //RoR2Content.GameEndings.ObliterationEnding, 
+                            RoR2Content.GameEndings.LimboEnding,
+                            DLC1Content.GameEndings.VoidEnding
+                        };
+                        acceptableLosses = new[] {
+                            "moon",
+                            "moon2",
+                            "voidraid",
+                            "mysterspace"
+                        };
+                        break;
                 }
+            } else
+            {
+                victoryCondition = "any";
+                acceptableEndings = new[] {
+                    RoR2Content.GameEndings.MainEnding, 
+                    //RoR2Content.GameEndings.ObliterationEnding, 
+                    RoR2Content.GameEndings.LimboEnding,
+                    DLC1Content.GameEndings.VoidEnding
+                };
+                acceptableLosses = new[] {
+                    "moon",
+                    "moon2",
+                    "voidraid",
+                    "mysterspace"
+                };
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
             if (null == itemCheckBar)

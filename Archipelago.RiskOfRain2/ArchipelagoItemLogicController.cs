@@ -350,15 +350,15 @@ namespace Archipelago.RiskOfRain2
             switch (itemIdReceived)
             {
                 // Money
-                case 37300:
+                case 37301:
                     GiveMoneyToPlayers();
                     break;
                 // Lunar Coin
-                case 37301:
+                case 37302:
                     GiveLunarToPlayers();
                     break;
                 // EXP
-                case 37302:
+                case 37303:
                     GiveExperienceToPlayers();
                     break;
             }
@@ -372,16 +372,19 @@ namespace Archipelago.RiskOfRain2
             switch (itemIdReceived)
             {
                 // Adds an extra boss to teleporter
-                case 37400:
+                case 37401:
                     MountainShrineTrap();
                     break;
                 // Increases monsters level by adding time to the clock.
-                case 37401:
+                case 37402:
                     TimeWarpTrap();
                     break;
                 // Immitate Combat Shrine.
-                case 37402:
+                case 37403:
                     SpawnMonstersTrap();
+                    break;
+                case 37404:
+                    TeleportPlayer();
                     break;
             }
         }
@@ -538,7 +541,7 @@ namespace Archipelago.RiskOfRain2
                 var coefficient = Run.instance.difficultyCoefficient;
                 Log.LogDebug($"Received {(uint)(500 * coefficient)}");
                 player.master.money += (uint)(500 * coefficient);
-                Chat.AddPickupMessage(player.master.GetBody(), "Money's!!!", Color.white, 1);
+                Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(500 * coefficient)}!!!", Color.green, 1);
             }
         }
         private void GiveLunarToPlayers()
