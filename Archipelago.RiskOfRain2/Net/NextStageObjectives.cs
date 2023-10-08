@@ -1,33 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Archipelago.RiskOfRain2.UI;
 using R2API.Networking.Interfaces;
 using UnityEngine.Networking;
-using Archipelago.RiskOfRain2.UI;
 
 namespace Archipelago.RiskOfRain2.Net
 {
-    public class ArchipelagoStartMessage : INetMessage
+    public class NextStageObjectives : INetMessage
     {
-        public static event Action OnArchipelagoSessionStart;
+        public static event Action OnNextStageObjectives;
 
         public void Deserialize(NetworkReader reader)
         {
-            
+
         }
 
         public void OnReceived()
         {
-            ArchipelagoTotalChecksObjectiveController.AddObjective();
-            if (OnArchipelagoSessionStart != null)
+            ArchipelagoLocationsInEnvironmentController.AddObjective();
+            if (OnNextStageObjectives != null)
             {
-                OnArchipelagoSessionStart();
+                OnNextStageObjectives();
             }
         }
 
         public void Serialize(NetworkWriter writer)
         {
-            
+
         }
     }
 }

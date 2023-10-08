@@ -1,6 +1,7 @@
 ﻿using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.UI;
+using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.Console;
 using RoR2;
 using System;
@@ -10,7 +11,8 @@ using System.Collections.ObjectModel;
 using System.Text;
 using UnityEngine.Networking;
 using R2API.Utils;
-using R2API;
+using R2API.Networking;
+using R2API.Networking.Interfaces;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -151,8 +153,10 @@ namespace Archipelago.RiskOfRain2.Handlers
                 /*                Log.LogDebug($"{scene.sceneDefIndex} scene this");*/
                 if (locationsNames.ContainsKey((int)scene.sceneDefIndex))
                 {
+                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{locationsNames[(int)scene.sceneDefIndex]}";
                     return $"{locationsNames[(int)scene.sceneDefIndex]}";
                 }
+                ArchipelagoLocationsInEnvironmentController.CurrentScene = $"Environment Location";
                 return $"Environment Location";
 
                 
@@ -369,7 +373,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private int scavbackpackHash = 0; // used to keep track of which chest is the scavenger backpack
         private bool scavbackpackWasLocation = false; // used to track if the scavenger backpack that was opened was used as a location
         private bool scavbackpackblockitem = false; // used to keep track of when the scavenger backpack's items are blocked from a location check
-        private bool blockVoidTriple = false;
+        // private bool blockVoidTriple = false;
         public const int testing = 3;
         private bool highlightOn = false;
         public static SceneDef sceneDef { get; private set; } //used for the currect scene loaded
@@ -482,17 +486,48 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // update UI to the results of sending the location
             ArchipelagoTotalChecksObjectiveController.CurrentChecks++;
-            if (0 == ArchipelagoLocationsInEnvironmentController.count.total()) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
-            else ArchipelagoLocationsInEnvironmentController.AddObjective();
+            int CurrentChecks = ArchipelagoTotalChecksObjectiveController.CurrentChecks++;
+            int TotalChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;
+            new SyncTotalCheckProgress(CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);
+            if (0 == ArchipelagoLocationsInEnvironmentController.count.total())
+            {
+                new AllChecksCompleteInStage().Send(NetworkDestination.Clients);
+                ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            }
+            else
+            {
+                new NextStageObjectives().Send(NetworkDestination.Clients);
+                ArchipelagoLocationsInEnvironmentController.AddObjective();
+                UpdateClientsUI();
+            }
 
             currentlocations[(int)currentenvironment] = locationsinenvironment; // save changes to the count
-
+            
             sendLocation(next_index + offset_in_allocation + environment_start_id);
 
             return true; // a location must have been sent
             // (don't care if the item for said location has already be collected)
             // (don't care if the location has been sent before, though it shouldn't happen if everything is working)
 
+        }
+        private bool UpdateClientsUI()
+        {
+            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
+            if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+            // prevent KeyNotFoundException by using TryGetValue
+            {
+                // if the locations in the environment that are not being tracked, then there is no check to send
+                return false;
+            }
+            ArchipelagoLocationsInEnvironmentController.CurrentScene = locationsinenvironment.scene();
+            ArchipelagoLocationsInEnvironmentController.CurrentChests = locationsinenvironment[LocationTypes.chest];
+            ArchipelagoLocationsInEnvironmentController.CurrentShrines = locationsinenvironment[LocationTypes.shrine];
+            ArchipelagoLocationsInEnvironmentController.CurrentScavangers = locationsinenvironment[LocationTypes.scavenger];
+            ArchipelagoLocationsInEnvironmentController.CurrentScanners = locationsinenvironment[LocationTypes.radio_scanner];
+            ArchipelagoLocationsInEnvironmentController.CurrentNewts = locationsinenvironment[LocationTypes.newt_altar];
+            new SyncCurrentEnvironmentCheckProgress(locationsinenvironment.scene(), locationsinenvironment[LocationTypes.chest], locationsinenvironment[LocationTypes.shrine],
+                locationsinenvironment[LocationTypes.scavenger], locationsinenvironment[LocationTypes.radio_scanner], locationsinenvironment[LocationTypes.newt_altar]).Send(NetworkDestination.Clients);
+            return true;
         }
 
         /// <summary>
@@ -534,8 +569,17 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 ArchipelagoLocationsInEnvironmentController.count[type] = checkAvailable((LocationTypes)type);
             }
-            if (0 == ArchipelagoLocationsInEnvironmentController.count.total()) ArchipelagoLocationsInEnvironmentController.RemoveObjective();
-            else ArchipelagoLocationsInEnvironmentController.AddObjective();
+            UpdateClientsUI();
+            if (0 == ArchipelagoLocationsInEnvironmentController.count.total())
+            {
+                new AllChecksCompleteInStage().Send(NetworkDestination.Clients);
+                ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+            }
+            else
+            {
+                new NextStageObjectives().Send(NetworkDestination.Clients);
+                ArchipelagoLocationsInEnvironmentController.AddObjective();
+            }
 
             // TODO maybe the make sure the ArchipelagoTotalChecksObjectiveController.CurrentChecks gets synced here (since sending a location increments it and could possibly desync it?)
         }
@@ -907,7 +951,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                 orig(self, interactor);
                 return;
             }
-
             sendNextAvailable(LocationTypes.radio_scanner);
 
             // still play the effect for the scanner and lock it from being used again

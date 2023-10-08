@@ -51,7 +51,6 @@ namespace Archipelago.RiskOfRain2
             AP = new ArchipelagoClient();
             ArchipelagoConnectButtonController.OnConnectClick += OnClick_ConnectToArchipelagoWithButton;
             AP.OnClientDisconnect += AP_OnClientDisconnect;
-            Run.onRunStartGlobal += Run_onRunStartGlobal;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
             ArchipelagoStartMessage.OnArchipelagoSessionStart += ArchipelagoStartMessage_OnArchipelagoSessionStart;
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
@@ -68,7 +67,10 @@ namespace Archipelago.RiskOfRain2
             NetworkingAPI.RegisterMessageType<ArchipelagoEndMessage>();
             NetworkingAPI.RegisterMessageType<SyncTotalCheckProgress>();
             NetworkingAPI.RegisterMessageType<AllChecksComplete>();
+            NetworkingAPI.RegisterMessageType<AllChecksCompleteInStage>();
             NetworkingAPI.RegisterMessageType<ArchipelagoChatMessage>();
+            NetworkingAPI.RegisterMessageType<SyncCurrentEnvironmentCheckProgress>();
+            NetworkingAPI.RegisterMessageType<NextStageObjectives>();
 
             CommandHelper.AddToConsoleWhenReady();
         }
@@ -165,26 +167,6 @@ namespace Archipelago.RiskOfRain2
                 AP.itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(Vector2.zero, Vector2.zero);
                 isPlayingAP = true;
             }
-        }
-
-        private void Run_onRunStartGlobal(Run obj)
-        {
-            var isHost = NetworkServer.active && RoR2Application.isInMultiPlayer;
-            if (willConnectToAP && (isHost || RoR2Application.isInSinglePlayer))
-            {
-                //isPlayingAP = true;
-
-                if (isPlayingAP)
-                {
-                    ArchipelagoTotalChecksObjectiveController.AddObjective();
-                }
-            }
-            else
-            {
-                ArchipelagoTotalChecksObjectiveController.AddObjective();
-            }
-            //isPlayingAP = true;
-            
         }
 
         private void Run_onRunDestroyGlobal(Run obj)

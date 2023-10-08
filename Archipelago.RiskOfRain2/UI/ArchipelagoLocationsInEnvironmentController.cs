@@ -15,7 +15,8 @@ namespace Archipelago.RiskOfRain2.UI
         {
             public override string GenerateString()
             {
-                return $"{count.scene()}: {count[LocationHandler.LocationTypes.chest]}/{count[LocationHandler.LocationTypes.shrine]}/{count[LocationHandler.LocationTypes.scavenger]}/{count[LocationHandler.LocationTypes.radio_scanner]}/{count[LocationHandler.LocationTypes.newt_altar]}";
+                // return $"{count.scene()}: {count[LocationHandler.LocationTypes.chest]}/{count[LocationHandler.LocationTypes.shrine]}/{count[LocationHandler.LocationTypes.scavenger]}/{count[LocationHandler.LocationTypes.radio_scanner]}/{count[LocationHandler.LocationTypes.newt_altar]}";
+                return $"{CurrentScene}: {CurrentChests}/{CurrentShrines}/{CurrentScavangers}/{CurrentScanners}/{CurrentNewts}";
             }
 
             public override bool IsDirty()
@@ -48,6 +49,13 @@ namespace Archipelago.RiskOfRain2.UI
         }
 
         internal static LocationHandler.LocationInformationTemplate count = new LocationHandler.LocationInformationTemplate();
+
+        public static string CurrentScene { get; set; }
+        public static int CurrentChests { get; set; }
+        public static int CurrentShrines { get; set; }
+        public static int CurrentScavangers { get; set; }
+        public static int CurrentScanners { get; set; }
+        public static int CurrentNewts { get; set; }
 
         private static bool addObjective;
 

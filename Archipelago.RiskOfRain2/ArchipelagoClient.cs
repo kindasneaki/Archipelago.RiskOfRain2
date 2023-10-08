@@ -145,6 +145,8 @@ namespace Archipelago.RiskOfRain2
                 if (!Convert.ToBoolean(classicmode))
                 {
                     Log.LogDebug("Client detected classic_mode");
+                    ArchipelagoLocationsInEnvironmentController.RemoveObjective();
+                    new AllChecksCompleteInStage().Send(NetworkDestination.Clients);
                     // classic mode startup is handled within ArchipelagoItemLogicController.Session_PacketReceived
                 }
                 else
@@ -186,7 +188,7 @@ namespace Archipelago.RiskOfRain2
                         break;
                     case "limbo":
                         acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
-                        acceptableLosses = new[] { " " };
+                        acceptableLosses = new[] { "mysterspace" };
                         break;
                     default:
                         victoryCondition = "any";
