@@ -539,9 +539,9 @@ namespace Archipelago.RiskOfRain2
             foreach (var player in PlayerCharacterMasterController.instances)
             {
                 var coefficient = Run.instance.difficultyCoefficient;
-                Log.LogDebug($"Received {(uint)(500 * coefficient)}");
-                player.master.money += (uint)(500 * coefficient);
-                Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(500 * coefficient)}!!!", Color.green, 1);
+                Log.LogDebug($"Received {(uint)(300 * coefficient)}");
+                player.master.money += (uint)(300 * coefficient);
+                Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(300 * coefficient)}!!!", Color.green, 1);
             }
         }
         private void GiveLunarToPlayers()
@@ -553,6 +553,7 @@ namespace Archipelago.RiskOfRain2
                     Log.LogDebug("Refunding coins...");
                     local.AwardLunarCoins(1);
                     Chat.AddPickupMessage(local.master.GetBody(), "Lunar Coin", Color.blue, 1);
+                    new ArchipelagoClientLunarCoin().Send(NetworkDestination.Clients);
                 }
             }
         }
@@ -584,10 +585,14 @@ namespace Archipelago.RiskOfRain2
         }
         private void PlayShrineSound()
         {
-            EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
+            if (PlayerCharacterMasterController.instances != null)
             {
-                origin = PlayerCharacterMasterController.instances[0].body.transform.position,
-            }, true);
+
+                EffectManager.SpawnEffect(LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ShrineUseEffect"), new EffectData
+                {
+                    origin = PlayerCharacterMasterController.instances[0].body.transform.position,
+                }, true);
+            }
         }
         private void SpawnMonstersTrap()
         {
@@ -595,12 +600,14 @@ namespace Archipelago.RiskOfRain2
             System.Random rng = new System.Random();
             int selectedPlayer = rng.Next(PlayerCharacterMasterController.instances.Count());
             player = PlayerCharacterMasterController.instances[selectedPlayer];
-
+            if (player.body == null)
+            {
+                return;
+            }
             if (combatDirector != null && !spawnedMonster)
             {
                 Thread thread = new Thread(() => SpawnedMonstersRecently());
                 thread.Start();
-                Log.LogDebug("Spawning Monsters");
                 spawnedMonster = true;
                 var coefficient = Run.instance.difficultyCoefficient;
                 combatDirector.monsterCredit = 100f * coefficient;
@@ -620,31 +627,42 @@ namespace Archipelago.RiskOfRain2
         // TODO The currently spawns players to the center of the map aka (0, 0, 0) where we would want it to be a random location.
         private void TeleportPlayer()
         {
-            foreach (var player in PlayerCharacterMasterController.instances)
+            //foreach (var player in PlayerCharacterMasterController.instances)
+            foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
             {
-                SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
-                spawnCard.prefab = LegacyResourcesAPI.Load<GameObject>("SpawnCards/HelperPrefab");
-                Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
-                var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                if (local)
                 {
-                    placementMode = DirectorPlacementRule.PlacementMode.Random
-                }, xoroshiro128PlusRadioScanner));
-                var position = card.transform.position;
-                var directorPlacement = new DirectorPlacementRule
-                {
-                    placementMode = DirectorPlacementRule.PlacementMode.Random,
-                    minDistance = 5f,
-                    maxDistance = 20f,
-                };
-                Log.LogDebug($"directorPlacemnet {directorPlacement.targetPosition} card position {position}");
-                player.body.GetComponentInChildren<KinematicCharacterMotor>().SetPosition(directorPlacement.targetPosition);
+                    SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
+                    spawnCard = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscBarrel1");
+
+                    Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
+                    if (DirectorCore.instance != null)
+                    {
+                        var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                        {
+                            placementMode = DirectorPlacementRule.PlacementMode.Random
+                        }, xoroshiro128PlusRadioScanner));
+                        var position = card.transform.position;
+                        var directorPlacement = new DirectorPlacementRule
+                        {
+                            placementMode = DirectorPlacementRule.PlacementMode.Random,
+                            minDistance = 5f,
+                            maxDistance = 20f,
+                        };
+                        Log.LogDebug($"directorPlacemnet {directorPlacement.targetPosition} card position {position + new Vector3(0, 10, 0)}");
+                        var body = local.master.GetBody();
+                        body.GetComponentInChildren<KinematicCharacterMotor>().SetPosition(position + new Vector3(0, 10, 0));
+                        new ArchipelagoTeleportClient().Send(NetworkDestination.Clients);
+                    }
+                }
             }
         }
         private void TimeWarpTrap()
         {
             var time = Run.instance.GetRunStopwatch();
-            time += 150;
+            time += 180;
             Run.instance.SetRunStopwatch(time);
+            ChatMessage.SendColored($"Monsters grew stronger with time!", Color.red);
             TeamManager.instance.SetTeamLevel(TeamIndex.Monster, 1);
         }
 

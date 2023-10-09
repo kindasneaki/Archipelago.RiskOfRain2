@@ -401,11 +401,13 @@ namespace Archipelago.RiskOfRain2.Handlers
                     bar = itemBar;
                     amount = (int) chestitemsPickedUp;
                     step = (int) itemPickupStep;
+                    new SyncLocationCheckProgress(amount, step).Send(NetworkDestination.Clients);
                     break;
                 case LocationTypes.shrine:
                     bar = shrineBar;
                     amount = (int) shrinesUsed;
                     step = (int) shrineUseStep;
+                    new SyncShrineCheckProgress(amount, step).Send(NetworkDestination.Clients);
                     break;
             }
 
@@ -951,6 +953,8 @@ namespace Archipelago.RiskOfRain2.Handlers
                 orig(self, interactor);
                 return;
             }
+            var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
+            radar.GetComponent<Highlight>().isOn = false;
             sendNextAvailable(LocationTypes.radio_scanner);
 
             // still play the effect for the scanner and lock it from being used again

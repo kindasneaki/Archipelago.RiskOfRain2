@@ -174,7 +174,6 @@ namespace Archipelago.RiskOfRain2
 
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
-                Log.LogDebug($"Victory condition {victory}");
                 victoryCondition = victory.ToString();
                     switch (victory)
                 {
