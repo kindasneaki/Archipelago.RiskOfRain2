@@ -15,6 +15,7 @@ using R2API.Utils;
 using R2API.Networking.Interfaces;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
 using System.Collections.ObjectModel;
 using KinematicCharacterController;
@@ -53,6 +54,8 @@ namespace Archipelago.RiskOfRain2
         private const long trapRangeUpper = 37499;
         private bool spawnedMonster = false;
         private bool monsterShrineRecently = false;
+        private bool teleportedRecently = false;
+        private bool exitedPod = false;
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
@@ -63,7 +66,7 @@ namespace Archipelago.RiskOfRain2
         {
             get
             {
-                return (RoR2Application.isInSinglePlayer || RoR2Application.isInMultiPlayer) && RoR2.Run.instance != null;
+                return (RoR2Application.isInSinglePlayer || RoR2Application.isInMultiPlayer) && Run.instance != null && exitedPod;
             }
         }
 
@@ -75,9 +78,11 @@ namespace Archipelago.RiskOfRain2
 
             // TODO all the hooks for ArchipelagoItemLogicController should probably be moved into a hook method
             On.RoR2.RoR2Application.Update += RoR2Application_Update;
+            On.RoR2.SceneDirector.Start += SceneDirector_Start;
             session.Socket.PacketReceived += Session_PacketReceived;
             session.Items.ItemReceived += Items_ItemReceived;
             On.RoR2.CombatDirector.Awake += CombatDirector_Awake;
+            On.RoR2.SurvivorPodController.OnPassengerExit += SurvivorPodController_OnPassengerExit;
             Log.LogDebug("Okay finished hooking.");
             smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Junk/Bandit/SmokescreenEffect.prefab").WaitForCompletion();
             // TODO Spawns the seerStation portal to pick where to go.. changing the id in game doesn't work.. looks to be a NetworkBehavior thing
@@ -115,6 +120,22 @@ namespace Archipelago.RiskOfRain2
                 PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WispOnDeath.artifactIndex),
             };
             Log.LogDebug("Ok, finished browsing catalog.");
+        }
+
+        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            orig(self);
+            exitedPod = true;
+        }
+
+        private void SurvivorPodController_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, SurvivorPodController self, GameObject passenger)
+        {
+            orig(self, passenger);
+            // prevent teleport on exiting pod
+            Thread thread = new Thread(() => TeleportedRecently());
+            thread.Start();
+            teleportedRecently = true;
+            exitedPod = true;
         }
 
         private void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
@@ -355,7 +376,7 @@ namespace Archipelago.RiskOfRain2
                     break;
                 // Lunar Coin
                 case 37302:
-                    GiveLunarToPlayers();
+                    GiveLunarCoinToPlayers();
                     break;
                 // EXP
                 case 37303:
@@ -403,136 +424,184 @@ namespace Archipelago.RiskOfRain2
                 // TODO move the magic numbers to variables
                 // "Common Item"
                 case 37002:
-                    var common = Run.instance.availableTier1DropList.Choice();
-                    GiveItemToPlayers(common);
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        var common = Run.instance.availableTier1DropList.Choice();
+                        GiveItemToPlayers(common, player);
+                    }
                     break;
                 // "Uncommon Item"
                 case 37003:
-                    var uncommon = Run.instance.availableTier2DropList.Choice();
-                    GiveItemToPlayers(uncommon);
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        var uncommon = Run.instance.availableTier2DropList.Choice();
+                        GiveItemToPlayers(uncommon, player);
+                    }
+
                     break;
                 // "Legendary Item"
                 case 37004:
-                    var legendary = Run.instance.availableTier3DropList.Choice();
-                    GiveItemToPlayers(legendary);
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        var legendary = Run.instance.availableTier3DropList.Choice();
+                        GiveItemToPlayers(legendary, player);
+                    }
+
                     break;
                 // "Boss Item"
                 case 37005:
-                    var boss = Run.instance.availableBossDropList.Choice();
-                    GiveItemToPlayers(boss);
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        var boss = Run.instance.availableBossDropList.Choice();
+                        GiveItemToPlayers(boss, player);
+                    }
                     break;
                 // "Lunar Item"
                 case 37006:
-                    var lunar = Run.instance.availableLunarCombinedDropList.Choice();
-                    var pickupDef = PickupCatalog.GetPickupDef(lunar);
-                    if (pickupDef.itemIndex != ItemIndex.None)
+                    foreach (var player in PlayerCharacterMasterController.instances)
                     {
-                        GiveItemToPlayers(lunar);
-                    }
-                    else if (pickupDef.equipmentIndex != EquipmentIndex.None)
-                    {
-                        GiveEquipmentToPlayers(lunar);
+                        var lunar = Run.instance.availableLunarCombinedDropList.Choice();
+                        var pickupDef = PickupCatalog.GetPickupDef(lunar);
+                        if (pickupDef.itemIndex != ItemIndex.None)
+                        {
+                            GiveItemToPlayers(lunar, player);
+                        }
+                        else if (pickupDef.equipmentIndex != EquipmentIndex.None)
+                        {
+                            GiveEquipmentToPlayers(lunar, player);
+                        }
                     }
                     break;
                 
                 // "Equipment"
                 case 37007:
-                    var equipment = Run.instance.availableEquipmentDropList.Choice();
-                    GiveEquipmentToPlayers(equipment);
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        var equipment = Run.instance.availableEquipmentDropList.Choice();
+                        GiveEquipmentToPlayers(equipment, player);
+                    }
                     break;
                 // "Item Scrap, White"
                 case 37008:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapWhite.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapWhite.itemIndex), player);
+                    }
                     break;
                 // "Item Scrap, Green"
                 case 37009:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapGreen.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapGreen.itemIndex), player);
+                    }
                     break;
                 // "Item Scrap, Red"
                 case 37010:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapRed.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapRed.itemIndex), player);
+                    }
                     break;
                 // "Item Scrap, Yellow"
                 case 37011:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapYellow.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ScrapYellow.itemIndex), player);
+                    }
                     break;
                 // "Void Item"
                 case 37012:
-                    int voidWeight = 70 + 40 + 10 + 5;
-                    int voidChoice = rnd.Next(voidWeight);
-                    var voidItem = new PickupIndex();
-                    if (voidChoice <= 70)
+                    foreach (var player in PlayerCharacterMasterController.instances)
                     {
-                        voidItem = Run.instance.availableVoidTier1DropList.Choice();
+                        int voidWeight = 70 + 40 + 10 + 5;
+                        int voidChoice = rnd.Next(voidWeight);
+                        var voidItem = new PickupIndex();
+                        if (voidChoice <= 70)
+                        {
+                            voidItem = Run.instance.availableVoidTier1DropList.Choice();
+                        }
+                        else if (voidChoice <= 110)
+                        {
+                            voidItem = Run.instance.availableVoidTier2DropList.Choice();
+                        }
+                        else if (voidChoice <= 120)
+                        {
+                            voidItem = Run.instance.availableVoidTier3DropList.Choice();
+                        }
+                        else
+                        {
+                            voidItem = Run.instance.availableVoidBossDropList.Choice();
+                        }
+                        GiveItemToPlayers(voidItem, player);
                     }
-                    else if (voidChoice <= 110)
-                    {
-                        voidItem = Run.instance.availableVoidTier2DropList.Choice();
-                    }
-                    else if (voidChoice <= 120)
-                    {
-                        voidItem = Run.instance.availableVoidTier3DropList.Choice();
-                    }
-                    else
-                    {
-                        voidItem = Run.instance.availableVoidBossDropList.Choice();
-                    }
-                    GiveItemToPlayers(voidItem);
-
                     break;
                 // Beads of Fealty
                 case 37013:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.LunarTrinket.itemIndex), player);
+                    }
                     break;
+                // Radar Scanner Equipment
                 case 37014:
-                    GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveEquipmentToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.Scanner.equipmentIndex), player);
+                    }
                     break;
                 // "Dio's Best Friend"
                 case 37001:
-                    GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex));
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex), player);
+                    }
                     break;
                 
             }
         }
 
-        private void GiveEquipmentToPlayers(PickupIndex pickupIndex)
+        private void GiveEquipmentToPlayers(PickupIndex pickupIndex, PlayerCharacterMasterController player)
         {
-            foreach (var player in PlayerCharacterMasterController.instances)
+            var inventory = player.master.inventory;
+            var activeEquipment = inventory.GetEquipment(inventory.activeEquipmentSlot);
+            if (!activeEquipment.Equals(EquipmentState.empty))
             {
-                var inventory = player.master.inventory;
-                var activeEquipment = inventory.GetEquipment(inventory.activeEquipmentSlot);
-                if (!activeEquipment.Equals(EquipmentState.empty))
+                var playerBody = player.master.GetBodyObject();
+
+                if (playerBody == null)
                 {
-                    var playerBody = player.master.GetBodyObject();
-
-                    if (playerBody == null)
-                    {
-                        //TODO: maybe deal with this
-                        return;
-                    }
-
-                    var pickupInfo = new GenericPickupController.CreatePickupInfo()
-                    {
-                        pickupIndex = PickupCatalog.FindPickupIndex(activeEquipment.equipmentIndex),
-                        position = playerBody.transform.position,
-                        rotation = Quaternion.identity
-                    };
-                    GenericPickupController.CreatePickup(pickupInfo);
+                    //TODO: maybe deal with this
+                    return;
                 }
 
-                inventory.SetEquipmentIndex(PickupCatalog.GetPickupDef(pickupIndex)?.equipmentIndex ?? EquipmentIndex.None);
-                DisplayPickupNotification(pickupIndex, player);
+                var pickupInfo = new GenericPickupController.CreatePickupInfo()
+                {
+                    pickupIndex = PickupCatalog.FindPickupIndex(activeEquipment.equipmentIndex),
+                    position = playerBody.transform.position,
+                    rotation = Quaternion.identity
+                };
+                GenericPickupController.CreatePickup(pickupInfo);
             }
+
+            inventory.SetEquipmentIndex(PickupCatalog.GetPickupDef(pickupIndex)?.equipmentIndex ?? EquipmentIndex.None);
+            if (!NetworkServer.active)
+            {
+                CharacterMasterNotificationQueue.PushPickupNotification(player.master, pickupIndex);
+                return;
+            }
+            DisplayPickupNotification(pickupIndex, player);
         }
 
-        private void GiveItemToPlayers(PickupIndex pickupIndex)
+        private void GiveItemToPlayers(PickupIndex pickupIndex, PlayerCharacterMasterController player)
         {
-            foreach (var player in PlayerCharacterMasterController.instances)
+            var inventory = player.master.inventory;
+            inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
+            if (!NetworkServer.active)
             {
-                var inventory = player.master.inventory;
-                inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
-                DisplayPickupNotification(pickupIndex, player);
+                CharacterMasterNotificationQueue.PushPickupNotification(player.master, pickupIndex);
+                return;
             }
+            DisplayPickupNotification(pickupIndex, player);
         }
         private void GiveMoneyToPlayers()
         {
@@ -541,19 +610,41 @@ namespace Archipelago.RiskOfRain2
                 var coefficient = Run.instance.difficultyCoefficient;
                 Log.LogDebug($"Received {(uint)(300 * coefficient)}");
                 player.master.money += (uint)(300 * coefficient);
-                Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(300 * coefficient)}!!!", Color.green, 1);
+                // Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(300 * coefficient)}!!!", Color.green, 1);
+                Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+                {
+                    subjectAsCharacterBody = player.master.GetBody(),
+                    baseToken = "PLAYER_PICKUP",
+                    pickupToken = $"${Math.Floor(300 * coefficient)}!!!",
+                    pickupColor = Color.green,
+                    pickupQuantity = 1
+
+                });
             }
         }
-        private void GiveLunarToPlayers()
+        private void GiveLunarCoinToPlayers()
         {
-            foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
+            foreach (var player in PlayerCharacterMasterController.instances)
             {
-                if (local)
+                GameObject lunarCoin = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/GenericPickup.prefab").WaitForCompletion();
+                //var coin = GameObject.Instantiate(lunarCoin);
+                SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
+                spawnCard.prefab = lunarCoin;
+
+                Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
+                if (DirectorCore.instance != null)
                 {
-                    Log.LogDebug("Refunding coins...");
-                    local.AwardLunarCoins(1);
-                    Chat.AddPickupMessage(local.master.GetBody(), "Lunar Coin", Color.blue, 1);
-                    new ArchipelagoClientLunarCoin().Send(NetworkDestination.Clients);
+                    var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                    {
+                        placementMode = DirectorPlacementRule.PlacementMode.Direct,
+                        spawnOnTarget = player.master.GetBody().transform,
+                        minDistance = 1f,
+                        maxDistance = 10f,
+                    }, xoroshiro128PlusRadioScanner));
+                    var position = card.transform.position;
+                    card.GetComponent<GenericPickupController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex);
+                    Log.LogDebug($"coin position {position + new Vector3(0, 10, 0)}");
+                    NetworkServer.Spawn(card);
                 }
             }
         }
@@ -562,7 +653,16 @@ namespace Archipelago.RiskOfRain2
             foreach (var player in PlayerCharacterMasterController.instances)
             {
                 player.master.GiveExperience(1000);
-                Chat.AddPickupMessage(player.master.GetBody(), "1000 XP", Color.white, 1);
+                //Chat.AddPickupMessage(player.master.GetBody(), "1000 XP", Color.white, 1);
+                Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+                {
+                    subjectAsCharacterBody = player.master.GetBody(),
+                    baseToken = "PLAYER_PICKUP",
+                    pickupToken = "1000 XP",
+                    pickupColor = Color.white,
+                    pickupQuantity = 1
+
+                });
             }
         }
         private void MountainShrineTrap()
@@ -596,23 +696,20 @@ namespace Archipelago.RiskOfRain2
         }
         private void SpawnMonstersTrap()
         {
-            var player = new PlayerCharacterMasterController();
-            System.Random rng = new System.Random();
-            int selectedPlayer = rng.Next(PlayerCharacterMasterController.instances.Count());
-            player = PlayerCharacterMasterController.instances[selectedPlayer];
-            if (player.body == null)
-            {
-                return;
-            }
             if (combatDirector != null && !spawnedMonster)
             {
+                var player = PlayerCharacterMasterController.instances[0];
+                if (player.master.GetBody() == null)
+                {
+                    return;
+                }
+                spawnedMonster = true;
                 Thread thread = new Thread(() => SpawnedMonstersRecently());
                 thread.Start();
-                spawnedMonster = true;
                 var coefficient = Run.instance.difficultyCoefficient;
                 combatDirector.monsterCredit = 100f * coefficient;
-                Log.LogDebug($"player position {player.body.transform.localPosition} monster credit  100 * {coefficient} =  {100 * coefficient}");
-                combatDirector.SpendAllCreditsOnMapSpawns(player.body.transform);
+                Log.LogDebug($"player position {player.master.GetBody().transform.localPosition} monster credit  100 * {coefficient} =  {100 * coefficient}");
+                combatDirector.SpendAllCreditsOnMapSpawns(player.master.GetBody().transform);
                 ChatMessage.SendColored("Incoming Monsters!!", Color.red);
                 PlayShrineSound();
             }
@@ -627,42 +724,52 @@ namespace Archipelago.RiskOfRain2
         // TODO The currently spawns players to the center of the map aka (0, 0, 0) where we would want it to be a random location.
         private void TeleportPlayer()
         {
-            //foreach (var player in PlayerCharacterMasterController.instances)
-            foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
+            if (!teleportedRecently)
             {
-                if (local)
+                //foreach (var player in PlayerCharacterMasterController.instances)
+                foreach (NetworkUser local in NetworkUser.readOnlyLocalPlayersList)
                 {
-                    SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
-                    spawnCard = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscBarrel1");
-
-                    Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
-                    if (DirectorCore.instance != null)
+                    if (local)
                     {
-                        var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                        SpawnCard spawnCard = ScriptableObject.CreateInstance<SpawnCard>();
+                        spawnCard = LegacyResourcesAPI.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscBarrel1");
+
+                        Xoroshiro128Plus xoroshiro128PlusRadioScanner = new Xoroshiro128Plus(RoR2Application.rng);
+                        if (DirectorCore.instance != null)
                         {
-                            placementMode = DirectorPlacementRule.PlacementMode.Random
-                        }, xoroshiro128PlusRadioScanner));
-                        var position = card.transform.position;
-                        var directorPlacement = new DirectorPlacementRule
-                        {
-                            placementMode = DirectorPlacementRule.PlacementMode.Random,
-                            minDistance = 5f,
-                            maxDistance = 20f,
-                        };
-                        Log.LogDebug($"directorPlacemnet {directorPlacement.targetPosition} card position {position + new Vector3(0, 10, 0)}");
-                        var body = local.master.GetBody();
-                        body.GetComponentInChildren<KinematicCharacterMotor>().SetPosition(position + new Vector3(0, 10, 0));
-                        new ArchipelagoTeleportClient().Send(NetworkDestination.Clients);
+                            var card = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(spawnCard, new DirectorPlacementRule
+                            {
+                                placementMode = DirectorPlacementRule.PlacementMode.Random
+                            }, xoroshiro128PlusRadioScanner));
+                            var position = card.transform.position;
+                            var directorPlacement = new DirectorPlacementRule
+                            {
+                                placementMode = DirectorPlacementRule.PlacementMode.Random,
+                                minDistance = 5f,
+                                maxDistance = 20f,
+                            };
+                            Log.LogDebug($"directorPlacemnet {directorPlacement.targetPosition} card position {position + new Vector3(0, 10, 0)} player position {local.master.transform.position}");
+                            var body = local.master.GetBody();
+                            body.GetComponentInChildren<KinematicCharacterMotor>().SetPosition(position + new Vector3(0, 10, 0));
+                            new ArchipelagoTeleportClient().Send(NetworkDestination.Clients);
+                            card.SetActive(false);
+                        }
                     }
                 }
             }
+        }
+        private void TeleportedRecently()
+        {
+            Thread.Sleep(2000);
+            Log.LogDebug("You can teleport again");
+            teleportedRecently = false;
         }
         private void TimeWarpTrap()
         {
             var time = Run.instance.GetRunStopwatch();
             time += 180;
             Run.instance.SetRunStopwatch(time);
-            ChatMessage.SendColored($"Monsters grew stronger with time!", Color.red);
+            ChatMessage.SendColored($"Monsters grow stronger with time!", Color.red);
             TeamManager.instance.SetTeamLevel(TeamIndex.Monster, 1);
         }
 
@@ -683,7 +790,17 @@ namespace Archipelago.RiskOfRain2
             var color = pickupDef.baseColor;
             var index_text = pickupDef.nameToken;
             //CharacterMasterNotificationQueue.PushPickupNotification(player.master, index);
-            Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
+            //Chat.AddPickupMessage(player.master.GetBody(), index_text, color, 1);
+            Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
+            {
+                subjectAsCharacterBody = player.master.GetBody(),
+                baseToken = "PLAYER_PICKUP",
+                pickupToken = index_text,
+                pickupColor = color,
+                pickupQuantity = 1
+
+            });
+
         }
 
         private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, PickupIndex pickupIndex, Vector3 position, Vector3 velocity)

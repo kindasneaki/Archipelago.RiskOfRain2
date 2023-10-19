@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Archipelago.RiskOfRain2.Console;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
+using Archipelago.RiskOfRain2.Handlers;
 using BepInEx;
 using BepInEx.Bootstrap;
 using R2API;
@@ -31,12 +32,13 @@ namespace Archipelago.RiskOfRain2
         //public static AssetBundle localAssetBundle { get; private set; }
 
         private ArchipelagoClient AP;
+        private ClientItemsHandler ClientItems;
         //private bool isInLobbyConfigLoaded = false;
         internal static string apServerUri = "archipelago.gg";
-        internal static int apServerPort = 52963;
+        internal static int apServerPort = 38281;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        internal static string apSlotName = "SneakiRoR";
+        internal static string apSlotName = "";
         //private string apSlotName;
         internal static string apPassword;
 
@@ -52,7 +54,6 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoConnectButtonController.OnConnectClick += OnClick_ConnectToArchipelagoWithButton;
             AP.OnClientDisconnect += AP_OnClientDisconnect;
             Run.onRunDestroyGlobal += Run_onRunDestroyGlobal;
-            ArchipelagoStartExplore.OnArchipelagoStartExplore += ArchipelagoStartExplore_OnArchipelagoStartExplore;
             ArchipelagoStartMessage.OnArchipelagoSessionStart += ArchipelagoStartMessage_OnArchipelagoSessionStart;
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
             ArchipelagoConsoleCommand.OnArchipelagoCommandCalled += ArchipelagoConsoleCommand_ArchipelagoCommandCalled;
@@ -73,14 +74,11 @@ namespace Archipelago.RiskOfRain2
             NetworkingAPI.RegisterMessageType<SyncCurrentEnvironmentCheckProgress>();
             NetworkingAPI.RegisterMessageType<NextStageObjectives>();
             NetworkingAPI.RegisterMessageType<ArchipelagoTeleportClient>();
-            NetworkingAPI.RegisterMessageType<ArchipelagoClientLunarCoin>();
             NetworkingAPI.RegisterMessageType<SyncShrineCheckProgress>();
             NetworkingAPI.RegisterMessageType<ArchipelagoStartExplore>();
 
             CommandHelper.AddToConsoleWhenReady();
         }
-
-
 
         public void Start()
         {
@@ -162,10 +160,6 @@ namespace Archipelago.RiskOfRain2
         {
             AP.Disconnect();
         }
-        private void ArchipelagoStartExplore_OnArchipelagoStartExplore()
-        {
-            Handlers.ReceiveClientInfo.shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
-        }
         /// <summary>
         /// Server -> Client packet responder. Should not run on server.
         /// </summary>
@@ -173,7 +167,8 @@ namespace Archipelago.RiskOfRain2
         {
             if (!NetworkServer.active)
             {
-                Handlers.ReceiveClientInfo.itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
+                ClientItems = new ClientItemsHandler();
+                ClientItems?.Hook();
                 isPlayingAP = true;
             }
         }

@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using R2API.Networking.Interfaces;
 using UnityEngine.Networking;
+using Archipelago.RiskOfRain2.UI;
+using UnityEngine;
 
 namespace Archipelago.RiskOfRain2.Net
 {
-    public class ArchipelagoClientLunarCoin : INetMessage
+    public class ArchipelagoStartClassic : INetMessage
     {
-        public static event Action OnArchipelagoClientLunarCoin;
+        public static event Action OnArchipelagoStartClassic;
 
         public void Deserialize(NetworkReader reader)
         {
@@ -15,9 +19,9 @@ namespace Archipelago.RiskOfRain2.Net
 
         public void OnReceived()
         {
-            if (OnArchipelagoClientLunarCoin != null)
+            if (OnArchipelagoStartClassic != null)
             {
-                OnArchipelagoClientLunarCoin();
+                OnArchipelagoStartClassic();
             }
         }
 

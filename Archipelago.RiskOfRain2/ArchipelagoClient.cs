@@ -32,7 +32,7 @@ namespace Archipelago.RiskOfRain2
         internal DeathLinkHandler Deathlinkhandler { get; private set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
-        internal ShrineChanceHelper shrineChanceHelper { get; private set; }
+        internal ShrineChanceHandler shrineChanceHelper { get; private set; }
 
         public ArchipelagoItemLogicController ItemLogic;
         public ArchipelagoLocationCheckProgressBarUI itemCheckBar;
@@ -157,12 +157,13 @@ namespace Archipelago.RiskOfRain2
                     ItemLogic.Stageblockerhandler = Stageblockerhandler;
                     Stageblockerhandler.BlockAll();
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
-                    shrineChanceHelper = new ShrineChanceHelper();
+                    shrineChanceHelper = new ShrineChanceHandler();
 
                     // TODO there is a more likely a more reasonable location to create the UI for explore mode
                     itemCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(-40, 0), Vector2.zero, "Item Check Progress:");
 
                     shrineCheckBar = new ArchipelagoLocationCheckProgressBarUI(new Vector2(0, 170), new Vector2(50, -50), "Shrine Check Progress:");
+
                     shrineCheckBar.ItemPickupStep = (int)shrineUseStep;
 
                     Locationhandler.itemBar = itemCheckBar;
@@ -237,6 +238,14 @@ namespace Archipelago.RiskOfRain2
             genericMenuButton = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/GenericMenuButton.prefab").WaitForCompletion();
             HookGame();
             new ArchipelagoStartMessage().Send(NetworkDestination.Clients);
+            if (!Convert.ToBoolean(classicmode))
+            {
+                new ArchipelagoStartClassic().Send(NetworkDestination.Clients);
+            }
+            else
+            {
+                new ArchipelagoStartExplore().Send(NetworkDestination.Clients);
+            }
 
             ItemLogic.Precollect();
         }

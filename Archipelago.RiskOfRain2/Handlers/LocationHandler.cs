@@ -401,13 +401,13 @@ namespace Archipelago.RiskOfRain2.Handlers
                     bar = itemBar;
                     amount = (int) chestitemsPickedUp;
                     step = (int) itemPickupStep;
-                    new SyncLocationCheckProgress(amount, step).Send(NetworkDestination.Clients);
+                    new SyncLocationCheckProgress(amount % step, step).Send(NetworkDestination.Clients);
                     break;
                 case LocationTypes.shrine:
                     bar = shrineBar;
                     amount = (int) shrinesUsed;
                     step = (int) shrineUseStep;
-                    new SyncShrineCheckProgress(amount, step).Send(NetworkDestination.Clients);
+                    new SyncShrineCheckProgress(amount % step, step).Send(NetworkDestination.Clients);
                     break;
             }
 
