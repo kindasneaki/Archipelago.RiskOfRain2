@@ -130,7 +130,7 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Players will receive different items in multiplayer instead of all the same.
 * Added new fillers items.
 * Added new traps items.
-* Add environment name to UI.
+* The Objective for explore mode now shows the environment you are in.
 * Increased item notification speed to 2 sec for AP Items.
 * Doubled interactables spawn rate.
 * New console command to show the current environments recieved. (`archipelago_show_unlocked_stages`)
