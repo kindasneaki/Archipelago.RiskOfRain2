@@ -608,14 +608,15 @@ namespace Archipelago.RiskOfRain2
             foreach (var player in PlayerCharacterMasterController.instances)
             {
                 var coefficient = Run.instance.difficultyCoefficient;
-                Log.LogDebug($"Received {(uint)(300 * coefficient)}");
-                player.master.money += (uint)(300 * coefficient);
+                uint money = (uint)(100 * coefficient);
+                Log.LogDebug($"Received {money}");
+                player.master.money += money;
                 // Chat.AddPickupMessage(player.master.GetBody(), $"${Math.Floor(300 * coefficient)}!!!", Color.green, 1);
                 Chat.SendBroadcastChat(new Chat.PlayerPickupChatMessage
                 {
                     subjectAsCharacterBody = player.master.GetBody(),
                     baseToken = "PLAYER_PICKUP",
-                    pickupToken = $"${Math.Floor(300 * coefficient)}!!!",
+                    pickupToken = $"${money}!!!",
                     pickupColor = Color.green,
                     pickupQuantity = 1
 
