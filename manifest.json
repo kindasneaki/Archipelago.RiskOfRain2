@@ -1,6 +1,6 @@
 ﻿{
 	"name": "Archipelago",
-	"version_number": "1.2.6.beta4",
+	"version_number": "1.2.6.beta5",
 	"website_url": "https://archipelago.gg",
 	"description": "Archipelago multiworld randomizer client implementation enabling Risk of Rain 2 based Archipelago runners.",
 	"dependencies": [

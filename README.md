@@ -126,15 +126,19 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 
 **1.2.6**
 
-* Look up checks when entering a map instead of when starting a run.
-* Add stage name to UI.
+* **Added Support for multiplayer in explore mode!**
+* Players will receive different items in multiplayer instead of all the same.
+* Added new fillers items.
+* Added new traps items.
+* Add environment name to UI.
 * Increased item notification speed to 2 sec for AP Items.
 * Doubled interactables spawn rate.
-* New console command to show the current stages recieved.
-* New console command to turn on/off final stage death.
-* New console command to highlight satellites to make them easier to see.
-* Added handling for future items.
-* Bug Fixes:
+* New console command to show the current environments recieved. (`archipelago_show_unlocked_stages`)
+* New console command to turn on/off final stage death. (`archipelago_final_stage_death true/false`)
+* New console command to highlight satellites to make them easier to see. (`archipelago_highlight_satellite true/false`)
+* Look up checks when entering a map instead of when starting a run.
+
+* **Bug Fixes:**
     * Passwords were not used.
     * Fix some lag issues with Artifact of Sacrifice.
     * When receiving a deathlink on transitioning to a new stage it would cause it to stop working.
@@ -185,7 +189,7 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * Update MultiClient.Net to 4.2.2
 * Change Default URI to archipelago.gg
 * Added Disconnect console command (`archipelago_disconnect`)
-* Added Deathlink console command (`archipelago_deathlink true`)
+* Added Deathlink console command (`archipelago_deathlink true/false`)
 * Changed Connect console command to (`archipelago_connect <url> <port> <slot> [password]`)
 * The chat for items sent/received are more colorful
 
