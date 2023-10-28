@@ -2,9 +2,9 @@
 
 This mod adds support to Risk of Rain 2 for playing as an Archipelago client. For more information on Archipelago head over to https://archipelago.gg or join our Discord.
 
-Should be multiplayer compatible. Be sure to scale up your YAML settings if you play in multiplayer. All players require the mod in multiplayer.
+Multiplayer compatible. Be sure to scale up your YAML settings if you play in multiplayer. All players require the mod in multiplayer.
 
-
+![In Game Example](./docs/img/Example.png)
 ## Gameplay 
 
 ### Classic mode
@@ -44,10 +44,10 @@ Explore mode also attempts to help against being stuck in RNG hell; the teleport
 
 ### Achieving Victory or Defeat
 
-Achieving victory is defined as beating Mithrix, or beating the voidling (DLC enabled). (This is both true for Classic and Explore modes.)
+Achieving victory is defined as beating Mithrix, defeating the Twisted Scavenger, or beating the Voidling (DLC enabled). (This is both true for Classic and Explore modes.)
 
 Alternatively you can change the Final Stage Death is Win setting to enable Obliteration ending as well as if you
-die in the Commencement map (the moon). 
+die in the Commencement map (the moon)/ The Planetarium (DLC enabled). 
 
 Due to the nature of roguelike games, you can possibly die and lose your place completely. This is mitigated partly by the free grants of `Dio's Best Friend`
 but it is still possible to lose. If you do lose, you can reconnect to the Archipelago server and start a new run. The server will send you the items you have
@@ -63,7 +63,7 @@ Risk of Rain 2:
   total_locations: 145
   chests_per_stage: 10
   shrines_per_stage: 5
-  scavengers_per_stage: 1
+  scavengers_per_stage: 0
   scanner_per_stage: 1
   altars_per_stage: 2
   total_revivals: 10
@@ -73,7 +73,7 @@ Risk of Rain 2:
   begin_with_loop: 'false'
   dlc_sotv: 'false'
   death_link: 'true'
-  item_pickup_step: 1
+  item_pickup_step: 0
   shrine_use_step: 0
   enable_lunar: 'true'
   item_weights: default
@@ -296,13 +296,11 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 ## Known Issues
 
 * Splitscreen support is unlikely at the moment. It might work, it might not.
-* Connecting to multiple slots on the same multiplayer game will not work and will take just the hosts slot once in game.
-* If you start a new run but join an existing AP session, you will get spammed with notifications for all your pickups.
 
 ## To-do/Ideas
 
 * Cache and load data package from file system.
 * Further randomization in some way. Mob spawns, elite types, variance api, boss types, mob families, mobs with items, etc.
-* More item/reward types: money, exp, warbanner drops, drones
+* More item/reward types: warbanner drops, drones
 * Funny/joke item types: launching you into the air, switch left and right click
-* Trap item types: spawn a family of mobs on you, spawn bosses, drop bombs on the stage
+* Trap item types: spawn bosses, drop bombs on the stage
