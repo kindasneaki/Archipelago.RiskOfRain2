@@ -35,12 +35,12 @@ namespace Archipelago.RiskOfRain2
         private ClientItemsHandler ClientItems;
         //private bool isInLobbyConfigLoaded = false;
         internal static string apServerUri = "archipelago.gg";
-        internal static int apServerPort = 38281;
+        internal static int apServerPort = 55294;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        internal static string apSlotName = "";
+        internal static string apSlotName = "RoRFriends";
         //private string apSlotName;
-        internal static string apPassword;
+        internal static string apPassword = "abcd";
 
         public ArchipelagoPlugin()
         {
@@ -129,7 +129,7 @@ namespace Archipelago.RiskOfRain2
         private void AP_OnClientDisconnect(string reason)
         {
             Log.LogWarning($"Archipelago client was disconnected from the server because `{reason}`");
-            ChatMessage.SendColored($"Archipelago client was disconnected from the server.", Color.red);
+            ChatMessage.SendColored($"Archipelago client was disconnected from the server. {reason}", Color.red);
             var isHost = NetworkServer.active && RoR2Application.isInMultiPlayer;
             if (isPlayingAP && (isHost || RoR2Application.isInSinglePlayer))
             {

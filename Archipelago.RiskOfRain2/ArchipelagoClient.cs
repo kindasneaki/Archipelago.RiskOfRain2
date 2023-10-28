@@ -70,6 +70,7 @@ namespace Archipelago.RiskOfRain2
             {
                 if (session.Socket.Connected)
                 {
+                    Disconnect();
                     return;
                 }
             }
@@ -77,8 +78,14 @@ namespace Archipelago.RiskOfRain2
             ChatMessage.SendColored($"Attempting to connect to Archipelago at {url}.", Color.green);
 
             //LastServerUrl = url;
-
-            session = ArchipelagoSessionFactory.CreateSession(url);
+            try
+            {
+                session = ArchipelagoSessionFactory.CreateSession(url);
+            }
+            catch (Exception e)
+            {
+                OnClientDisconnect(e.Message);
+            }
             ItemLogic = new ArchipelagoItemLogicController(session);
             itemCheckBar = null;
             shrineCheckBar = null;
@@ -98,6 +105,7 @@ namespace Archipelago.RiskOfRain2
             }
 
             LoginSuccessful successResult = (LoginSuccessful)result;
+            ArchipelagoConnectButtonController.ChangeButtonWhenConnected();
             if (successResult.SlotData.TryGetValue("finalStageDeath", out var stageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
@@ -495,6 +503,7 @@ namespace Archipelago.RiskOfRain2
         {
             if (session != null && session.Socket.Connected)
             {
+                ArchipelagoConnectButtonController.ChangeButtonWhenDisconnected();
                 session.Socket.DisconnectAsync();
             }
         }

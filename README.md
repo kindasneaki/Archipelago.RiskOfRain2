@@ -124,7 +124,7 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
-**1.2.6**
+**1.3.0**
 
 * **Added Support for multiplayer in explore mode!**
 * Players will receive different items in multiplayer instead of all the same.
@@ -137,9 +137,10 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * New console command to turn on/off final stage death. (`archipelago_final_stage_death true/false`)
 * New console command to highlight satellites to make them easier to see. (`archipelago_highlight_satellite true/false`)
 * Look up checks when entering a map instead of when starting a run.
+* Toggle Connect To AP button to Disconnect.
 
 * **Bug Fixes:**
-    * Passwords were not used.
+    * Passwords are apparently a thing.
     * Fix some lag issues with Artifact of Sacrifice.
     * When receiving a deathlink on transitioning to a new stage it would cause it to stop working.
 

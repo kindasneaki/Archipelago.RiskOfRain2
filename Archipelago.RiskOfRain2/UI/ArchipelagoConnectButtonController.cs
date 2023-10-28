@@ -14,7 +14,7 @@ namespace Archipelago.RiskOfRain2.UI
 
     public class ArchipelagoConnectButtonController : MonoBehaviour
     {
-        private CharacterSelectController contr;
+        public static CharacterSelectController contr { get; private set; }
         public GameObject connectPanel;
         public string assetName = "ConnectPanel";
         public string bundleName = "connectbundle";
@@ -23,7 +23,6 @@ namespace Archipelago.RiskOfRain2.UI
         public GameObject MinimizePanel;
         private string minimizeText = "-";
         private TMP_FontAsset font;
-        private bool loaded = false;
 
         public delegate string SlotChanged(string newValue);
         public static SlotChanged OnSlotChanged;
@@ -150,6 +149,29 @@ namespace Archipelago.RiskOfRain2.UI
             ConnectPanel.SetActive(!ConnectPanel.activeSelf);
             minimizeText = (minimizeText == "-") ? "Archipelago" : "-";
             MinimizePanel.GetComponentInChildren<TextMeshProUGUI>().text = minimizeText;
+        }
+        public static void ChangeButtonWhenConnected()
+        {
+            Log.LogDebug("Changing Button after connecting.");
+            if (contr != null)
+            {
+                var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button").gameObject;
+                button.GetComponent<Image>().color = Color.red;
+                var text = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/Text (TMP)").gameObject;
+                text.GetComponent<TextMeshProUGUI>().text = "Disconnect";
+            }
+            
+        }
+        public static void ChangeButtonWhenDisconnected()
+        {
+            Log.LogDebug("Changing Button after connecting.");
+            if (contr != null)
+            {
+                var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button").gameObject;
+                button.GetComponent<Image>().color = new Color(0.0745f, 0.2824f, 0.4392f, 1f);
+                var text = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/Text (TMP)").gameObject;
+                text.GetComponent<TextMeshProUGUI>().text = "Connect To AP";
+            }
         }
         //Creates a 1x1 Outline box inside Connect to AP... pretty useless and I have no idea why it doesnt create it the around it like I can do in game
        /* private void CreateOutline()
