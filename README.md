@@ -143,6 +143,7 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
     * Passwords are apparently a thing.
     * Fix some lag issues with Artifact of Sacrifice.
     * When receiving a deathlink on transitioning to a new stage it would cause it to stop working.
+    * Map mods will no longer break but the environments will be blocked in explore mode.
 
 **1.2.5**
 
