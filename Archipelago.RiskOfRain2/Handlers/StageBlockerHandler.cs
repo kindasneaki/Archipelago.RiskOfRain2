@@ -11,7 +11,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 {
     class StageBlockerHandler : IHandler
     {
-        // setup all scene indexes as megic numbers
+        // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
         public const int ancientloft = 3;       // Aphelian Sanctuary
@@ -46,13 +46,41 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int goldshores = 14;       // Hidden Realm: Gilded Coast
         public const int limbo = 27;            // Hidden Realm: A Moment, Whole
         public const int mysteryspace = 33;     // Hidden Realm: A Moment, Fractured
-        // TODO these should probably go somewhere else to better keep track of them since they are used in several places
-
+                                                // TODO these should probably go somewhere else to better keep track of them since they are used in several places
+        public static readonly Dictionary<int, string> locationsNames = new()
+        {
+            { 3, "ancientloft" },
+            { 4, "arena" },
+            { 5, "artifactworld" },
+            { 6, "bazaar" },
+            { 7, "blackbeach" },
+            { 8, "blackbeach2" },
+            { 10, "dampcavesimple" },
+            { 12, "foggyswamp" },
+            { 13, "frozenwall" },
+            { 14, "goldshores" },
+            { 15, "golemplains" },
+            { 16, "golemplains2" },
+            { 17, "goolake" },
+            { 27, "limbo" },
+            { 32, "moon2" },
+            { 33, "mysteryspace" },
+            { 35, "rootjungle" },
+            { 37, "shipgraveyard" },
+            { 38, "skymeadow" },
+            { 39, "snowyforest" },
+            { 41, "sulfurpools" },
+            { 45, "voidraid" },
+            { 46, "voidstage" },
+            { 47, "wispgraveyard" },
+        };
 
         // A list of stages that should be blocked because they are locked by archipelago
         // uses scene names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         List<int> blocked_stages;
         List<int> unblocked_stages;
+        List<string> blocked_string_stages;
+        List<string> unblocked_string_stages;
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
@@ -62,6 +90,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             Log.LogDebug($"StageBlocker handler constructor.");
             blocked_stages = new List<int>();
             unblocked_stages = new List<int>();
+            blocked_string_stages = new List<string>();
+            unblocked_string_stages = new List<string>();
 
             // blocking stages should be down by the owner of this object
         }
@@ -103,13 +133,25 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void BlockAll()
         {
+            foreach (SceneDef scenedef in SceneCatalog.allSceneDefs)
+            {
+                Log.LogDebug($"scene index {SceneCatalog.FindSceneIndex(scenedef.cachedName)} scene name {scenedef.cachedName}");
+                if (scenedef.sceneType == SceneType.Stage || scenedef.sceneType == SceneType.Intermission)
+                {
+                    SceneIndex index = SceneCatalog.FindSceneIndex(scenedef.cachedName);
+                    if (index == SceneIndex.Invalid) return;
+                    
+                    Block(scenedef.cachedName);
+
+                }
+            }
             // TODO add support for only blocking environments known to be in the pool
             // (eg. simulacrum should not be blocked if not in the pool, otherwise it would be permanently locked)
             Log.LogDebug($"StageBlocker blocking all...");
 
             // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
             // block all main scenes
-            Block(ancientloft);        // Aphelian Sanctuary
+/*            Block(ancientloft);        // Aphelian Sanctuary
             Block(arena);              // Void Fields
             Block(blackbeach);         // Distant Roost
             Block(blackbeach2);        // Distant Roost
@@ -119,13 +161,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             Block(golemplains);        // Titanic Plains
             Block(golemplains2);       // Titanic Plains
             Block(goolake);            // Abandoned Aqueduct
-            Block(itancientloft);      // The Simulacrum
+*//*            Block(itancientloft);      // The Simulacrum
             Block(itdampcave);         // The Simulacrum
             Block(itfrozenwall);       // The Simulacrum
             Block(itgolemplains);      // The Simulacrum
             Block(itgoolake);          // The Simulacrum
             Block(itmoon);             // The Simulacrum
-            Block(itskymeadow);        // The Simulacrum
+            Block(itskymeadow);        // The Simulacrum*//*
             Block(moon2);              // Commencement
             Block(rootjungle);         // Sundered Grove
             Block(shipgraveyard);      // Siren's Call
@@ -140,27 +182,27 @@ namespace Archipelago.RiskOfRain2.Handlers
             Block(bazaar);             // Hidden Realm: Bazaar Between Time
             Block(goldshores);         // Hidden Realm: Gilded Coast
             Block(limbo);              // Hidden Realm: A Moment, Whole
-            Block(mysteryspace);       // Hidden Realm: A Moment, Fractured
+            Block(mysteryspace);       // Hidden Realm: A Moment, Fractured*/
         }
 
         public void UnBlockAll()
         {
-            blocked_stages.Clear();
+            blocked_string_stages.Clear();
         }
 
         /**
          * Blocks a given environment.
          * Returns true if the stage was blocked by this call.
          */
-        public bool Block(int index)
+        public bool Block(string stageName)
         {
-            if (blocked_stages.Contains(index))
+            if (blocked_string_stages.Contains(stageName))
             {
-                Log.LogDebug($"Environment already blocked: index {index}.");
+                Log.LogDebug($"Environment already blocked: index {stageName}.");
                 return false;
             }
-            Log.LogDebug($"Blocking environment: index {index}.");
-            blocked_stages.Add(index);
+            Log.LogDebug($"Blocking environment: index {stageName}.");
+            blocked_string_stages.Add(stageName);
             return true;
         }
 
@@ -170,31 +212,32 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool UnBlock(int index)
         {
-            Log.LogDebug($"UnBlocking environment: index {index}.");
-            unblocked_stages.Add(index);
-            return blocked_stages.Remove(index);
+            string stageName = locationsNames[index];
+            Log.LogDebug($"UnBlocking environment: index {stageName}.");
+            unblocked_string_stages.Add(stageName);
+            return blocked_string_stages.Remove(stageName);
         }
 
         /**
          * Returns true if a stage is blocked.
          */
-        public bool CheckBlocked(int index)
+        public bool CheckBlocked(string stageName)
         {
             // Checking the list linearly should be fine.
             // Hooking update methods were avoided as much as they could be and the list itself is short.
-            foreach (int block in blocked_stages)
+            foreach (string block in blocked_string_stages)
             {
-                if (index == block) return true;
+                if (stageName == block) return true;
             }
             return false;
         }
         private void ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled()
         {
-            foreach (var scene in unblocked_stages)
+            foreach (var scene in unblocked_string_stages)
             {
-                if (LocationHandler.locationsNames.ContainsKey(scene))
+                if (locationsNames.ContainsValue(scene))
                 {
-                    ChatMessage.Send($"{LocationHandler.locationsNames[scene]}");
+                    ChatMessage.Send($"{scene}");
                 }
             }
         }
@@ -204,7 +247,7 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private void Active_OnEnter(On.EntityStates.LunarTeleporter.Active.orig_OnEnter orig, EntityStates.LunarTeleporter.Active self)
         {
-            if (CheckBlocked(moon2))
+            if (CheckBlocked("moon2"))
             {
                 ChatMessage.SendColored("Just not feeling it right now.", new Color(0x5d, 0xd5, 0xe2));
                 self.outer.SetNextState(new EntityStates.LunarTeleporter.ActiveToIdle());
@@ -259,7 +302,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                         switch (gi.contextToken)
                         {
                             case "PORTAL_ARENA_CONTEXT":
-                                if (CheckBlocked(arena))
+                                if (CheckBlocked("arena"))
                                 {
                                     ChatMessage.SendColored("The void rejects you.", new Color(0x88, 0x02, 0xd6));
                                     gi.SetInteractabilityConditionsNotMet();
@@ -267,7 +310,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                                 else gi.SetInteractabilityAvailable();
                                 break;
                             case "PORTAL_VOID_CONTEXT":
-                                if (CheckBlocked(voidstage))
+                                if (CheckBlocked("voidstage"))
                                 {
                                     ChatMessage.SendColored("The void rejects you.", new Color(0x88, 0x02, 0xd6));
                                     gi.SetInteractabilityConditionsNotMet();
@@ -301,7 +344,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // By adding coins back to the users inventory, it shows that the transaction cannot go through.
             // Adding a message also makes this even more clear.
 
-            if (CheckBlocked(voidraid))
+            if (CheckBlocked("voidraid"))
             {
                 Log.LogDebug("Blocking petting the frog for planetarium.");
                 // Only host can refund the coin and having the host send the message prevents duplicate messages.
@@ -332,7 +375,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // TODO add goal message
             ChatMessage.SendColored($"Victory conditon is {ArchipelagoClient.victoryCondition}.", Color.magenta);
-            if (CheckBlocked(artifactworld))
+            if (CheckBlocked("artifactworld"))
             {
                 // give a message so the user is aware the portal dialer interaction is blocked
                 ChatMessage.SendColored($"The code will never work without Hidden Realm: Bulwark's Ambry.", Color.white);
@@ -349,7 +392,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // If the player decides to commit to Obliterating,
             //  they transition state should simply end the game normally
             //  (since the player should not be allowed into limbo).
-            if (CheckBlocked(limbo))
+            if (CheckBlocked("limbo"))
             {
                 // run normal obliterate ending
                 Run.instance.BeginGameOver(RoR2Content.GameEndings.ObliterationEnding);
@@ -369,7 +412,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // Check if this is the server running this OnEnter, since mutliplayer clients could run this.
             // This is used to prevent duplicate messages being sent in multiplayer.
-            if (NetworkServer.active && CheckBlocked(limbo))
+            if (NetworkServer.active && CheckBlocked("limbo"))
             {
                 for (int i = 0; i < CharacterMaster.readOnlyInstancesList.Count; i++)
                 {
@@ -394,15 +437,15 @@ namespace Archipelago.RiskOfRain2.Handlers
             // In that case, we can just block the seer be able to be interacted with.
             // We also should hide the destination of the Seer since the it will not be reenabled when the player obtains the environment.
 
-            int index = (int) sceneDef.sceneDefIndex;
-            if (CheckBlocked(index))
+            string sceneName = sceneDef.cachedName;
+            if (CheckBlocked(sceneName))
             {
                 self.GetComponent<PurchaseInteraction>().SetAvailable(false);
-                Log.LogDebug($"Bazaar Seer attempted to pick scene {index}; blocked.");
+                Log.LogDebug($"Bazaar Seer attempted to pick scene {sceneName}; blocked.");
                 return;
             } else
             {
-                Log.LogDebug($"Bazaar Seer picked scene {index}");
+                Log.LogDebug($"Bazaar Seer picked scene {sceneName}");
             }
             orig(self, sceneDef);
         }
@@ -421,7 +464,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Hidden Realm: Gilded Coast
             // Hidden Realm: A Moment, Fractured
 
-            if (CheckBlocked(bazaar))
+            if (CheckBlocked("bazaar"))
             {
                 if (self.shouldAttemptToSpawnShopPortal)
                 {
@@ -430,7 +473,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 self.shouldAttemptToSpawnShopPortal = false;
             }
-            if (CheckBlocked(goldshores))
+            if (CheckBlocked("goldshores"))
             {
                 if (self.shouldAttemptToSpawnGoldshoresPortal)
                 {
@@ -439,7 +482,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 self.shouldAttemptToSpawnGoldshoresPortal = false;
             }
-            if (CheckBlocked(mysteryspace))
+            if (CheckBlocked("mysteryspace"))
             {
                 if (self.shouldAttemptToSpawnMSPortal)
                 {
@@ -457,8 +500,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         private bool Run_CanPickStage(On.RoR2.Run.orig_CanPickStage orig, Run self, SceneDef scenedef)
         {
             Log.LogDebug($"Checking CanPickStage for {scenedef.nameToken}...");
-            int index = (int) scenedef.sceneDefIndex;
-            if (CheckBlocked(index))
+            string stageName = scenedef.cachedName;
+            if (CheckBlocked(stageName))
             {
                 // if the stage is blocked, it cannot be picked
                 Log.LogDebug("blocking.");
@@ -481,7 +524,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
 
             // 46 = Void Locus and if you are on that stage and you dont have The Planetarium the player will be moved back to orderedstage 1.
-            if (SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46" && CheckBlocked(voidraid))
+            if (SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46" && CheckBlocked("voidraid"))
             {
                 Log.LogDebug("loaded Void Locus without The Planetarium");
                 SceneCatalog.mostRecentSceneDef.stageOrder = 1;
@@ -520,7 +563,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private void VoidStageMissionController_FixedUpdate(On.RoR2.VoidStageMissionController.orig_FixedUpdate orig, VoidStageMissionController self)
         {
             orig(self);
-            if (!CheckBlocked(voidraid))
+            if (!CheckBlocked("voidraid"))
             {
                 return;
             }

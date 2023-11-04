@@ -69,6 +69,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 33, "Hidden Realm: A Moment, Fractured" },
 
         };
+        public static int sceneIndex = 0;
         public enum LocationTypes
         {
             chest,
@@ -151,10 +152,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 SceneDef scene = LocationHandler.GetLocationScene();
                 /*                Log.LogDebug($"{scene.sceneDefIndex} scene this");*/
-                if (locationsNames.ContainsKey((int)scene.sceneDefIndex))
+                if (locationsNames.ContainsKey(sceneIndex))
                 {
-                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{locationsNames[(int)scene.sceneDefIndex]}";
-                    return $"{locationsNames[(int)scene.sceneDefIndex]}";
+                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{locationsNames[sceneIndex]}";
+                    return $"{locationsNames[sceneIndex]}";
                 }
                 ArchipelagoLocationsInEnvironmentController.CurrentScene = $"Environment Location";
                 return $"Environment Location";
@@ -230,10 +231,9 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// This is used to have the location handler catch up to the archipelago session.
         /// This is because the player may have completed checks, died, and restarted the session and we do not need to have the player repeat checks.
         /// </summary>
-        public void CatchUpSceneLocations(int sceneIndex)
+        public void CatchUpSceneLocations(string sceneName)
         {
             Dictionary<int, LocationInformationTemplate> locationscopy = currentlocations.ToDictionary(k => k.Key, k => k.Value.copy());
-
             if (!locationscopy.TryGetValue(sceneIndex, out LocationInformationTemplate location)) {
                 return;
             }
@@ -382,12 +382,26 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self);
             sceneDef = self.sceneDef;
-            CatchUpSceneLocations(((int)self.sceneDef.sceneDefIndex));
+            GetSceneIndex();
+            Log.LogDebug($"Scene Index is {sceneIndex}");
+            CatchUpSceneLocations(sceneDef.cachedName);
         }
 
         public static SceneDef GetLocationScene()
         {
             return sceneDef;
+        }
+        public void GetSceneIndex()
+        {
+            foreach (var scene in StageBlockerHandler.locationsNames)
+            {
+                if (scene.Value == sceneDef.cachedName)
+                {
+                    sceneIndex = scene.Key;
+                    return;
+                }
+            }
+            sceneIndex = 100;
         }
 
         private void updateBar(LocationTypes loctype)
@@ -437,8 +451,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <returns>Returns the amount of remaining locations.</returns>
         private int checkAvailable(LocationTypes loctype) // TODO make a method to check the nth location
         {
-            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
-            if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+            if (!currentlocations.TryGetValue(sceneIndex, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
             {
                 // if the locations in the environment are not being tracked, there must be 0 locations
@@ -467,15 +480,14 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             if (LocationTypes.MAX == loctype) throw new ArgumentException("MAX is not a sendable location type.");
 
-            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
-            if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+            if (!currentlocations.TryGetValue(sceneIndex, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
             {
                 // if the locations in the environment that are not being tracked, then there is no check to send
                 return false;
             }
 
-            int environment_start_id = currentenvironment * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
+            int environment_start_id = sceneIndex * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
 
             // check if there is a check to be done
             // if there are none, then return false
@@ -503,7 +515,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 UpdateClientsUI();
             }
 
-            currentlocations[(int)currentenvironment] = locationsinenvironment; // save changes to the count
+            currentlocations[sceneIndex] = locationsinenvironment; // save changes to the count
             
             sendLocation(next_index + offset_in_allocation + environment_start_id);
 
@@ -514,8 +526,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         private bool UpdateClientsUI()
         {
-            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
-            if (!currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+            if (!currentlocations.TryGetValue(sceneIndex, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
             {
                 // if the locations in the environment that are not being tracked, then there is no check to send
@@ -755,10 +766,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
         {
             Log.LogDebug("ShrineBloodBehavior_AddShrineStack"); // XXX remove after gold blocking is verified to not perma-block gold
-            bloodshrineblockgold = shrineWillBeLocation(); // block gold only when it will be a check
-            Log.LogDebug($"Intend to block gold: {bloodshrineblockgold}"); // XXX
             orig(self, interactor); // XXX somehow block the message about giving money
-            bloodshrineblockgold = false;
             // we call beat shrine after setting bloodshrineblockgold to false to let money be collected in case shrineBeat() causes an exception
             shrineBeat(); // using the blood shrine beats it
         }
@@ -854,8 +862,8 @@ namespace Archipelago.RiskOfRain2.Handlers
                 shrineBeat();
                 return;
             }
-            int currentenvironment = (int)SceneCatalog.mostRecentSceneDef.sceneDefIndex;
-            if (currentlocations.TryGetValue((int)currentenvironment, out var locationsinenvironment))
+
+            if (currentlocations.TryGetValue(sceneIndex, out var locationsinenvironment))
             {
                 Log.LogDebug($"amount of shrine locations left {locationsinenvironment[LocationTypes.shrine]}");
                 if (locationsinenvironment[1] == 0) return;
