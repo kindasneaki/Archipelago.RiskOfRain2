@@ -233,15 +233,16 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// </summary>
         public void CatchUpSceneLocations(string sceneName)
         {
+            int index = GetSceneIndex(sceneName);
             Dictionary<int, LocationInformationTemplate> locationscopy = currentlocations.ToDictionary(k => k.Key, k => k.Value.copy());
-            if (!locationscopy.TryGetValue(sceneIndex, out LocationInformationTemplate location)) {
+            if (!locationscopy.TryGetValue(index, out LocationInformationTemplate location)) {
                 return;
             }
 
             ReadOnlyCollection<long> completedchecks = session.Locations.AllLocationsChecked;
-            int environment_start_id = sceneIndex * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
+            int environment_start_id = index * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
 
-            Log.LogDebug($"Doing catch up on environment: index {sceneIndex}");
+            Log.LogDebug($"Doing catch up on environment: index {index}");
             Log.LogDebug($"environment_start_id {environment_start_id}");
             for (int type = 0; type < (int)LocationTypes.MAX; type++)
             {
@@ -258,7 +259,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"caught up to {LocationTypesShortName[type]} {location[type]}");
             }
 
-            currentlocations[(int)sceneIndex] = location;
+            currentlocations[index] = location;
         }
         public void Hook()
         {
@@ -382,16 +383,15 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self);
             sceneDef = self.sceneDef;
-            GetSceneIndex();
+            GetCurrentSceneIndex();
             Log.LogDebug($"Scene Index is {sceneIndex}");
-            CatchUpSceneLocations(sceneDef.cachedName);
         }
 
         public static SceneDef GetLocationScene()
         {
             return sceneDef;
         }
-        public void GetSceneIndex()
+        public void GetCurrentSceneIndex()
         {
             foreach (var scene in StageBlockerHandler.locationsNames)
             {
@@ -403,7 +403,17 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
             sceneIndex = 100;
         }
-
+        public int GetSceneIndex(string sceneName)
+        {
+            foreach (var scene in StageBlockerHandler.locationsNames)
+            {
+                if (scene.Value == sceneName)
+                {
+                    return scene.Key;
+                }
+            }
+            return 0;
+        }
         private void updateBar(LocationTypes loctype)
         {
             ArchipelagoLocationCheckProgressBarUI bar = null;
@@ -613,7 +623,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             for (int i=0; i < dest.Count; i++)
             {
                 // add 5 weight to per location left in an environment
-                int environment_index = (int) dest.choices[i].value.sceneDefIndex;
+                string stageName = dest.choices[i].value.cachedName;
+                int environment_index = GetSceneIndex(stageName);
+                CatchUpSceneLocations(stageName);
                 if (currentlocations.TryGetValue(environment_index, out var locations))
                 {
                     int addweight = locations.total() * 5;
