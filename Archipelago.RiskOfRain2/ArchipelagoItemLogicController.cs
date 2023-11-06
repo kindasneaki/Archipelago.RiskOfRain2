@@ -45,6 +45,7 @@ namespace Archipelago.RiskOfRain2
         private Queue<KeyValuePair<long, string>> environmentReceivedQueue = new Queue<KeyValuePair<long, string>>();
         private Queue<KeyValuePair<long, string>> fillerReceivedQueue = new Queue<KeyValuePair<long, string>>();
         private Queue<KeyValuePair<long, string>> trapReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<KeyValuePair<long, string>> stageReceivedQueue = new Queue<KeyValuePair<long, string>>();
         // TODO get magic numbers from somewhere else (eg move to LocationHandler.cs)
         private const long environmentRangeLower = 37700;
         private const long environmentRangeUpper = 37999;
@@ -52,6 +53,8 @@ namespace Archipelago.RiskOfRain2
         private const long fillerRangeUpper = 37399;
         private const long trapRangeLower = 37400;
         private const long trapRangeUpper = 37499;
+        private const long stageRangeLower = 37500;
+        private const long stageRangeUpper = 37599;
         private bool spawnedMonster = false;
         private bool monsterShrineRecently = false;
         private bool teleportedRecently = false;
@@ -282,6 +285,10 @@ namespace Archipelago.RiskOfRain2
             else if (trapRangeLower <= itemId && itemId <= trapRangeUpper) {
                 trapReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
             }
+            else if (stageRangeLower <= itemId && itemId <= stageRangeUpper)
+            {
+                stageReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
+            }
             else
             {
                 itemReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
@@ -333,6 +340,10 @@ namespace Archipelago.RiskOfRain2
                 if (trapReceivedQueue.Any())
                 {
                     HandleReceivedTrapQueueItem();
+                }
+                if (stageReceivedQueue.Any())
+                {
+                    HandleReceivedStageQueueItem();
                 }
             }
 
@@ -408,6 +419,15 @@ namespace Archipelago.RiskOfRain2
                     TeleportPlayer();
                     break;
             }
+        }
+        private void HandleReceivedStageQueueItem()
+        {
+            KeyValuePair<long, string> itemReceived = stageReceivedQueue.Dequeue();
+
+            long itemIdRecieved = itemReceived.Key;
+            string itemNameReceived = itemReceived.Value;
+
+            StageBlockerHandler.stageUnlocks[itemNameReceived] = true;
         }
 
         private void HandleReceivedItemQueueItem()

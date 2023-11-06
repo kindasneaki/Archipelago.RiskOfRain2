@@ -180,23 +180,28 @@ namespace Archipelago.RiskOfRain2
                     Locationhandler.shrineUseStep = shrineUseStep;
                 }
             }
-
+            
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
-                victoryCondition = victory.ToString();
-                    switch (victory)
+                    switch (victory.ToString())
                 {
-                    case "mithrix":
+                    // Mithrix
+                    case "1":
                         acceptableEndings = new[] { RoR2Content.GameEndings.MainEnding };
                         acceptableLosses = new[] { "moon", "moon2" };
+                        victoryCondition = "Mithrix";
                         break;
-                    case "voidling":
+                    // Voidling
+                    case "2":
                         acceptableEndings = new[] { DLC1Content.GameEndings.VoidEnding };
                         acceptableLosses = new[] { "voidraid" };
+                        victoryCondition = "Voidling";
                         break;
-                    case "limbo":
+                    // Limbo
+                    case "3":
                         acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
                         acceptableLosses = new[] { "mysterspace" };
+                        victoryCondition = "Limbo";
                         break;
                     default:
                         victoryCondition = "any";
@@ -213,7 +218,9 @@ namespace Archipelago.RiskOfRain2
                             "mysterspace"
                         };
                         break;
+                    
                 }
+                Log.LogDebug($"{victory} Victory condition {victory.GetType()}");
             } else
             {
                 victoryCondition = "any";
@@ -256,6 +263,20 @@ namespace Archipelago.RiskOfRain2
             }
 
             ItemLogic.Precollect();
+            // Needed for backwards compatability
+            if (session.Items.GetItemName(37501) == null)
+            {
+                StageBlockerHandler.stageUnlocks["Stage 1"] = true;
+                StageBlockerHandler.stageUnlocks["Stage 2"] = true;
+                StageBlockerHandler.stageUnlocks["Stage 3"] = true;
+                StageBlockerHandler.stageUnlocks["Stage 4"] = true;
+            } else
+            {
+                StageBlockerHandler.stageUnlocks["Stage 1"] = false;
+                StageBlockerHandler.stageUnlocks["Stage 2"] = false;
+                StageBlockerHandler.stageUnlocks["Stage 3"] = false;
+                StageBlockerHandler.stageUnlocks["Stage 4"] = false;
+            }
         }
 
         public void Dispose()

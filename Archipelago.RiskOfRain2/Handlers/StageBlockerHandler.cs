@@ -47,6 +47,27 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int limbo = 27;            // Hidden Realm: A Moment, Whole
         public const int mysteryspace = 33;     // Hidden Realm: A Moment, Fractured
                                                 // TODO these should probably go somewhere else to better keep track of them since they are used in several places
+        public static Dictionary<string, bool> stageUnlocks = new()
+        {
+            { "Stage 1", false },
+            { "Stage 2", false },
+            { "Stage 3", false },
+            { "Stage 4", false },
+
+        };
+        public readonly Dictionary<string, string> stageLookup = new()
+        {
+            { "ancientloft", "Stage 1" },
+            { "dampcavesimple", "Stage 3" },
+            { "foggyswamp", "Stage 1" },
+            { "frozenwall", "Stage 2" },
+            { "goolake", "Stage 1" },
+            { "rootjungle", "Stage 3" },
+            { "shipgraveyard", "Stage 3" },
+            { "skymeadow", "Stage 4" },
+            { "sulfurpools", "Stage 2" },
+            { "wispgraveyard", "Stage 2" },
+        };
         public static readonly Dictionary<int, string> locationsNames = new()
         {
             { 3, "ancientloft" },
@@ -129,6 +150,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.Run.PickNextStageScene -= Run_PickNextStageScene;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
+            blocked_stages = null;
+            unblocked_stages = null;
+            blocked_string_stages = null;
+            unblocked_string_stages = null;
         }
 
         public void BlockAll()
@@ -223,6 +248,14 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool CheckBlocked(string stageName)
         {
+            if (Run.instance.nextStageScene != null && stageLookup.ContainsKey(stageName))
+            {
+                // Checks to make sure you have the Stage item required to get to the next set of stages
+                if (!stageUnlocks[stageLookup[stageName]])
+                {
+                    return true;
+                }
+            }
             // Checking the list linearly should be fine.
             // Hooking update methods were avoided as much as they could be and the list itself is short.
             foreach (string block in blocked_string_stages)
@@ -263,7 +296,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private void SceneExitController_SetState(On.RoR2.SceneExitController.orig_SetState orig, SceneExitController self, SceneExitController.ExitState newState)
         {
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
-            // They would be garunteed to be stuck in that level on the next stage.
+            // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
             if (SceneExitController.ExitState.Finished == newState && self.useRunNextStageScene)
             {
@@ -539,6 +572,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             // - this should do nothing special unless the current scene happens to be an ordered stage
             if (manuallyPickingStage && SceneCatalog.mostRecentSceneDef &&  1 <= SceneCatalog.mostRecentSceneDef.stageOrder && 5 >= SceneCatalog.mostRecentSceneDef.stageOrder)
             {
+                //string nextStage = $"Stage {self.nextStageScene.stageOrder - 1}";
+                //Log.LogDebug($"Stage {self.nextStageScene.stageOrder} == {stageUnlocks[nextStage]}");
                 // populate choices (in some manner) when there are no choices
                 if (0 == choices.Count)
                 {
