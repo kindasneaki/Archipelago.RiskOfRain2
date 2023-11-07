@@ -200,7 +200,7 @@ namespace Archipelago.RiskOfRain2
                     // Limbo
                     case "3":
                         acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
-                        acceptableLosses = new[] { "mysterspace" };
+                        acceptableLosses = new[] { "mysterspace", "limbo" };
                         victoryCondition = "Limbo";
                         break;
                     default:
@@ -215,7 +215,8 @@ namespace Archipelago.RiskOfRain2
                             "moon",
                             "moon2",
                             "voidraid",
-                            "mysterspace"
+                            "mysterspace",
+                            "limbo"
                         };
                         break;
                     
