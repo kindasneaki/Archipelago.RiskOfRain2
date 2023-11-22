@@ -1,10 +1,12 @@
 # Archipelago.RiskOfRain2 | ![Discord Shield](https://discordapp.com/api/guilds/731205301247803413/widget.png?style=shield)
 
+## To be used with [Archipelago](https://archipelago.gg)
+
 This mod adds support to Risk of Rain 2 for playing as an Archipelago client. For more information on Archipelago head over to https://archipelago.gg or join our Discord.
 
 Multiplayer compatible. Be sure to scale up your YAML settings if you play in multiplayer. All players require the mod in multiplayer.
 
-![In Game Example](./docs/img/Example.png)
+![In Game Example](https://raw.githubusercontent.com/kindasneaki/Archipelago.RiskOfRain2/main/docs/img/Example.png)
 ## Gameplay 
 
 ### Classic mode
@@ -47,82 +49,29 @@ Explore mode also attempts to help against being stuck in RNG hell; the teleport
 Achieving victory is defined as beating Mithrix, defeating the Twisted Scavenger, or beating the Voidling (DLC enabled). (This is both true for Classic and Explore modes.)
 
 Alternatively you can change the Final Stage Death is Win setting to enable Obliteration ending as well as if you
-die in the Commencement map (the moon)/ The Planetarium (DLC enabled). 
+die in the Commencement map (the moon)/ The Planetarium (DLC enabled)/ Hidden Realm: A Momemt, Whole (limbo). 
 
 Due to the nature of roguelike games, you can possibly die and lose your place completely. This is mitigated partly by the free grants of `Dio's Best Friend`
 but it is still possible to lose. If you do lose, you can reconnect to the Archipelago server and start a new run. The server will send you the items you have
 earned thus far, giving you a small boost to the start of your run.
 
 ## YAML Settings
-An example YAML would look like this:
-```yaml
-Risk of Rain 2:
-  progression_balancing: 50
-  accessibility: items
-  goal: explore
-  total_locations: 145
-  chests_per_stage: 10
-  shrines_per_stage: 5
-  scavengers_per_stage: 0
-  scanner_per_stage: 1
-  altars_per_stage: 2
-  total_revivals: 10
-  start_with_revive: 'true'
-  final_stage_death: 'false'
-  environments_as_items: 'true'
-  begin_with_loop: 'false'
-  dlc_sotv: 'false'
-  death_link: 'true'
-  item_pickup_step: 0
-  shrine_use_step: 0
-  enable_lunar: 'true'
-  item_weights: default
-  item_pool_presets: 'false'
-  green_scrap: 16
-  red_scrap: 4
-  yellow_scrap: 1
-  white_scrap: 32
-  common_item: 64
-  uncommon_item: 32
-  legendary_item: 8
-  boss_item: 4
-  lunar_item: 16
-  void_item: 16
-  equipment: 32
-description: 'Risk of Rain 2 explore yaml'
-game: Risk of Rain 2
-name: Sneaki{player}
-```
 
-| Name               | Description                                                                                                                                                                                                        | Allowed values                                                                   |
-|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| total_locations    | The total number of location checks that will be attributed to the Risk of Rain player. This option is ALSO the total number of items in the item pool for the Risk of Rain player.                                | 10 - 250                                                                         |
-| total_revivals     | The total number of items in the Risk of Rain player's item pool as a percentage of total items (items other players pick up for them) replaced with `Dio's Best Friend`.                                          | 0 - 10                                                                           |
-| chests_per_stage   | The total amount of chests per stage.                                                                                                                                                                              | 2-20                                                                             |
-| shrines_per_stage  | The total amount of shrines per stage.                                                                                                                                                                             | 2-20                                                                             |
-| start_with_revive   | Starts the player off with a `Dio's Best Friend`. Functionally equivalent to putting a `Dio's Best Friend` in your `starting_inventory`.                                                                           | true/false                                                                       |
-| item_pickup_step    | The number of item pickups which you are allowed to claim before they become an Archipelago location check.                                                                                                        | 0 - 5                                                                            |
-| enable_lunar        | Allows for lunar items to be shuffled into the item pool on behalf of the Risk of Rain player.                                                                                                                     | true/false                                                                       |
-| item_weights        | Each option here is a preset item weight that can be used to customize your generate item pool with certain settings.                                                                                              | default, new, uncommon, legendary, lunartic, chaos, no_scraps, even, scraps_only |
-| item_pool_presets   | A simple toggle to determine whether the item_weight presets are used or the custom item pool as defined below                                                                                                     | true/false                                                                       |
-| custom item weights | Each defined item here is a single item in the pool that will have a weight against the other items when the item pool gets generated. These values can be modified to adjust how frequently certain items appear  | 0-100                                                                            |
-
-
+To create a YAML please goto [Archipelago RoR2 Settings](https://archipelago.gg/games/Risk%20of%20Rain%202/player-settings)
 
 ## Connecting to an Archipelago Server
 
-I assume you already have an Archipelago server running. Instructions on how to run a server are available on https://archipelago.gg.
+I assume you already have an Archipelago server running. Instructions on how to run a server are available at [Setup Guide](https://archipelago.gg/tutorial/Archipelago/setup/en#hosting-an-archipelago-server).
 
 Fill in the relevant info and click `Connect To AP` to connect to the server
 
 Keep password blank if there is no password on the server.
 
-![In Lobby UI Example](./docs/img/lobby.png)
+![In Lobby UI Example](https://raw.githubusercontent.com/kindasneaki/Archipelago.RiskOfRain2/main/docs/img/lobby.png)
 
 Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
-Internal versions are unreleased versions of the mod. They are pointed out in the changelog so that I can sort my work and to allow others to follow my progress between releases.
 
 **1.3.0**
 
@@ -138,6 +87,7 @@ Internal versions are unreleased versions of the mod. They are pointed out in th
 * New console command to highlight satellites to make them easier to see. (`archipelago_highlight_satellite true/false`)
 * Look up checks when entering a map instead of when starting a run.
 * Toggle Connect To AP button to Disconnect.
+* Stage items will be required to enter then next set of stages in explore mode.
 
 * **Bug Fixes:**
     * Passwords are apparently a thing.
