@@ -73,6 +73,10 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.3.1**
+* **Bug Fixes:**
+    * Fix Obliterating yourself 
+
 **1.3.0**
 
 * **Added Support for multiplayer in explore mode!**
