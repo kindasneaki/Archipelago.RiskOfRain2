@@ -200,7 +200,7 @@ namespace Archipelago.RiskOfRain2
                     // Limbo
                     case "3":
                         acceptableEndings = new[] { RoR2Content.GameEndings.LimboEnding };
-                        acceptableLosses = new[] { "mysterspace", "limbo" };
+                        acceptableLosses = new[] { "mysteryspace", "limbo" };
                         victoryCondition = "Limbo";
                         break;
                     default:
@@ -215,7 +215,7 @@ namespace Archipelago.RiskOfRain2
                             "moon",
                             "moon2",
                             "voidraid",
-                            "mysterspace",
+                            "mysteryspace",
                             "limbo"
                         };
                         break;
@@ -235,7 +235,8 @@ namespace Archipelago.RiskOfRain2
                     "moon",
                     "moon2",
                     "voidraid",
-                    "mysterspace"
+                    "mysteryspace",
+                    "limbo"
                 };
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
