@@ -429,7 +429,7 @@ namespace Archipelago.RiskOfRain2
             if (itemIdRecieved == 37505)
             {
                 StageBlockerHandler.amountOfStages += 1;
-                ChatMessage.SendColored($"Received {itemNameReceived} #{StageBlockerHandler.amountOfStages + 1}!", Color.magenta);
+                ChatMessage.SendColored($"Received {itemNameReceived} #{StageBlockerHandler.amountOfStages}!", Color.magenta);
             } 
             else
             {
