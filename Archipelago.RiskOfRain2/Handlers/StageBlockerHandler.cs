@@ -175,6 +175,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.EntityStates.LunarTeleporter.Active.OnEnter -= Active_OnEnter;
             On.RoR2.Run.CanPickStage -= Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene -= Run_PickNextStageScene;
+            On.RoR2.UI.ChatBox.OnEnable -= ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
             blocked_stages = null;
