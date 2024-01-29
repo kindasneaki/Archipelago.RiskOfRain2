@@ -74,8 +74,8 @@ Once connected it will print in chat that you have successfully connected!
 ## Changelog
 
 **1.3.2**
-    * Support for Progressive Stage items
-    * Messaging when you can't progress any further
+* Support for Progressive Stage items
+* Messaging when you can't progress any further
 
 **1.3.1**
 * **Bug Fixes:**
