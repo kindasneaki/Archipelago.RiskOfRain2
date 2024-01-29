@@ -67,7 +67,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 14, "Hidden Realm: Gilded Coast" },
             { 27, "Hidden Realm: A Moment, Whole"},
             { 33, "Hidden Realm: A Moment, Fractured" },
-
         };
         public static int sceneIndex = 0;
         public enum LocationTypes

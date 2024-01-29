@@ -55,18 +55,32 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "Stage 4", false },
 
         };
-        public readonly Dictionary<string, string> stageLookup = new()
+        public static int amountOfStages = 0;
+        public readonly Dictionary<string, int> stageLookup = new()
         {
-            { "ancientloft", "Stage 1" },
-            { "dampcavesimple", "Stage 3" },
-            { "foggyswamp", "Stage 1" },
-            { "frozenwall", "Stage 2" },
-            { "goolake", "Stage 1" },
-            { "rootjungle", "Stage 3" },
-            { "shipgraveyard", "Stage 3" },
-            { "skymeadow", "Stage 4" },
-            { "sulfurpools", "Stage 2" },
-            { "wispgraveyard", "Stage 2" },
+            { "ancientloft", 1 },
+            { "dampcavesimple", 3 },
+            { "foggyswamp", 1 },
+            { "frozenwall", 2 },
+            { "goolake", 1 },
+            { "rootjungle", 3 },
+            { "shipgraveyard", 3 },
+            { "skymeadow", 4 },
+            { "sulfurpools", 2 },
+            { "wispgraveyard", 2 },
+        };
+        public readonly Dictionary<string, string> locationNames = new()
+        {
+            { "ancientloft", "Aphelian Sanctuary" },
+            { "dampcavesimple", "Abyssal Depths" },
+            { "foggyswamp", "Wetland Aspect" },
+            { "frozenwall", "Rallypoint Delta" },
+            { "goolake", "Abandoned Aqueduct" },
+            { "rootjungle", "Sundered Grove" },
+            { "shipgraveyard", "Siren's Call" },
+            { "skymeadow", "Sky Meadow" },
+            { "sulfurpools", "Sulfur Pools" },
+            { "wispgraveyard", "Scorched Acres" },
         };
         public static readonly Dictionary<int, string> locationsNames = new()
         {
@@ -105,6 +119,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
+        public static bool progressivesStages = false;
+        public static string revertToBeginningMessage = "";
 
         public StageBlockerHandler()
         {
@@ -130,9 +146,20 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.EntityStates.LunarTeleporter.Active.OnEnter += Active_OnEnter;
             On.RoR2.Run.CanPickStage += Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene += Run_PickNextStageScene;
+            On.RoR2.UI.ChatBox.OnEnable += ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate += VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
+        }
+
+        private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
+        {
+            orig(self);
+            if (revertToBeginningMessage != "")
+            {
+                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
+                revertToBeginningMessage = "";
+            }
         }
 
         public void UnHook()
@@ -251,7 +278,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (Run.instance.nextStageScene != null && stageLookup.ContainsKey(stageName))
             {
                 // Checks to make sure you have the Stage item required to get to the next set of stages
-                if (!stageUnlocks[stageLookup[stageName]])
+                if (!stageUnlocks[$"Stage {stageLookup[stageName]}"] && !progressivesStages)
+                {
+                    return true;
+                } else if(stageLookup[stageName] > amountOfStages && progressivesStages)
                 {
                     return true;
                 }
@@ -577,10 +607,48 @@ namespace Archipelago.RiskOfRain2.Handlers
                 // populate choices (in some manner) when there are no choices
                 if (0 == choices.Count)
                 {
+                    string reason = "";
                     Log.LogDebug("no choices for next scene; setting up alternate choices");
 
                     if (prevOrderedStage) Log.LogDebug($"prev scene {prevOrderedStage.sceneDefIndex} in stage {prevOrderedStage.stageOrder}");
                     else Log.LogDebug("no prev scene");
+                    Log.LogDebug($"Most recent scene stage order Stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+                    if (!stageUnlocks[$"Stage {SceneCatalog.mostRecentSceneDef.stageOrder}"] && !progressivesStages)
+                    {
+                        reason = $"you need Stage {SceneCatalog.mostRecentSceneDef.stageOrder}";
+                    }
+                    else if (SceneCatalog.mostRecentSceneDef.stageOrder > amountOfStages && progressivesStages)
+                    {
+                        reason = $"you need {SceneCatalog.mostRecentSceneDef.stageOrder} Progressive Stages";
+                    } else
+                    {
+                        List<string> stagesNeeded = new List<string>();
+                        reason = $"you are missing ";
+                        foreach (KeyValuePair<string, int> entry in stageLookup)
+                        {
+
+                            if(entry.Value == SceneCatalog.mostRecentSceneDef.stageOrder)
+                            {
+                                stagesNeeded.Add(entry.Key);
+                            }
+                        }
+                        if (stagesNeeded != null && stagesNeeded.Count > 0)
+                        {
+                            for (var i = 0; i < stagesNeeded.Count; i++)
+                            {
+                                if (i < stagesNeeded.Count - 1 || stagesNeeded.Count == 1)
+                                {
+                                    reason += $"{locationNames[stagesNeeded[i]]}, ";
+                                }
+                                else
+                                {
+                                    reason += $"or {locationNames[stagesNeeded[i]]}";
+                                }
+                            }
+                        }
+
+                    }
+                    revertToBeginningMessage = $"Unable to advance to the next set of stages because {reason}!";
 
                     Log.LogDebug("adding choices for stage 1");
                     self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);

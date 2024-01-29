@@ -90,7 +90,7 @@ namespace Archipelago.RiskOfRain2
             itemCheckBar = null;
             shrineCheckBar = null;
 
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 4), password: password);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 5), password: password);
 
             if (!result.Successful)
             {
@@ -180,10 +180,13 @@ namespace Archipelago.RiskOfRain2
                     Locationhandler.shrineUseStep = shrineUseStep;
                 }
             }
-            
+            if (successResult.SlotData.TryGetValue("progressiveStages", out var progressive))
+            {
+                StageBlockerHandler.progressivesStages = Convert.ToBoolean(progressive);
+            }
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
-                    switch (victory.ToString())
+                switch (victory.ToString())
                 {
                     // Mithrix
                     case "1":
@@ -219,10 +222,10 @@ namespace Archipelago.RiskOfRain2
                             "limbo"
                         };
                         break;
-                    
+
                 }
-                Log.LogDebug($"{victory} Victory condition {victory.GetType()}");
-            } else
+            }
+            else
             {
                 victoryCondition = "any";
                 acceptableEndings = new[] {
@@ -272,7 +275,8 @@ namespace Archipelago.RiskOfRain2
                 StageBlockerHandler.stageUnlocks["Stage 2"] = true;
                 StageBlockerHandler.stageUnlocks["Stage 3"] = true;
                 StageBlockerHandler.stageUnlocks["Stage 4"] = true;
-            } else
+            }
+            else
             {
                 StageBlockerHandler.stageUnlocks["Stage 1"] = false;
                 StageBlockerHandler.stageUnlocks["Stage 2"] = false;

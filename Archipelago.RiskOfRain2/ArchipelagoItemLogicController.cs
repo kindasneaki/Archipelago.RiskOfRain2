@@ -426,8 +426,17 @@ namespace Archipelago.RiskOfRain2
 
             long itemIdRecieved = itemReceived.Key;
             string itemNameReceived = itemReceived.Value;
-
-            StageBlockerHandler.stageUnlocks[itemNameReceived] = true;
+            if (itemIdRecieved == 37505)
+            {
+                StageBlockerHandler.amountOfStages += 1;
+                ChatMessage.SendColored($"Received {itemNameReceived} #{StageBlockerHandler.amountOfStages + 1}!", Color.magenta);
+            } 
+            else
+            {
+                StageBlockerHandler.stageUnlocks[itemNameReceived] = true;
+                ChatMessage.SendColored($"Received {itemNameReceived}!", Color.magenta);
+            }
+            
         }
 
         private void HandleReceivedItemQueueItem()
