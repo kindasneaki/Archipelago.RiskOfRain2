@@ -26,7 +26,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.3.2";
+        public const string PluginVersion = "1.3.3.beta";
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }
@@ -34,11 +34,11 @@ namespace Archipelago.RiskOfRain2
         private ArchipelagoClient AP;
         private ClientItemsHandler ClientItems;
         //private bool isInLobbyConfigLoaded = false;
-        internal static string apServerUri = "archipelago.gg";
+        internal static string apServerUri = "localhost";
         internal static int apServerPort = 38281;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        internal static string apSlotName = "";
+        internal static string apSlotName = "SneakiRoR";
         //private string apSlotName;
         internal static string apPassword;
 
@@ -134,6 +134,10 @@ namespace Archipelago.RiskOfRain2
             if (isPlayingAP && (isHost || RoR2Application.isInSinglePlayer))
             {
                 //StartCoroutine(AP.AttemptConnection());
+            }
+            if (AP.reconnecting)
+            {
+                StartCoroutine(AP.AttemptReconnection());
             }
         }
         public void OnClick_ConnectToArchipelagoWithButton()

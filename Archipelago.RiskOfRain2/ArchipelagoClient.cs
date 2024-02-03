@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Collections;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
@@ -28,7 +29,9 @@ namespace Archipelago.RiskOfRain2
         public delegate void ClientDisconnected(string reason);
         public event ClientDisconnected OnClientDisconnect;
 
-        public Uri LastServerUrl { get; set; }
+        public string lastServerUrl { get; set; }
+        public string lastSlotName { get; set; }
+        public string lastPassword { get; set; }
         internal DeathLinkHandler Deathlinkhandler { get; private set; }
         internal StageBlockerHandler Stageblockerhandler { get; private set; }
         internal LocationHandler Locationhandler { get; private set; }
@@ -51,6 +54,9 @@ namespace Archipelago.RiskOfRain2
         public delegate void CollectClick(bool prompt);
         public static CollectClick OnCollectClick;
         private GameObject genericMenuButton;
+        public bool reconnecting { get; set; } = false;
+        public static int lastReceivedItemindex { get; set; } = 0;
+        public static bool isInGame { get; set; } = false;
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
         public static string victoryCondition;
@@ -77,7 +83,9 @@ namespace Archipelago.RiskOfRain2
             isEndingAcceptable = false;
             ChatMessage.SendColored($"Attempting to connect to Archipelago at {url}.", Color.green);
 
-            //LastServerUrl = url;
+            lastServerUrl = url;
+            lastSlotName = slotName;
+            lastPassword = password;
             try
             {
                 session = ArchipelagoSessionFactory.CreateSession(url);
@@ -89,7 +97,10 @@ namespace Archipelago.RiskOfRain2
             ItemLogic = new ArchipelagoItemLogicController(session);
             itemCheckBar = null;
             shrineCheckBar = null;
-
+            if (!isInGame)
+            {
+                lastReceivedItemindex = 0;
+            }
             var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 5), password: password);
 
             if (!result.Successful)
@@ -276,7 +287,7 @@ namespace Archipelago.RiskOfRain2
                 StageBlockerHandler.stageUnlocks["Stage 3"] = true;
                 StageBlockerHandler.stageUnlocks["Stage 4"] = true;
             }
-            else
+            else if (!isInGame)
             {
                 StageBlockerHandler.stageUnlocks["Stage 1"] = false;
                 StageBlockerHandler.stageUnlocks["Stage 2"] = false;
@@ -333,6 +344,8 @@ namespace Archipelago.RiskOfRain2
             shrineChanceHelper?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoReconnectCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoReconnectCommandCalled;
+            session.Socket.ErrorReceived += Socket_ErrorReceived;
         }
 
         private void UnhookGame()
@@ -355,6 +368,7 @@ namespace Archipelago.RiskOfRain2
             shrineChanceHelper?.UnHook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
+            session.Socket.ErrorReceived -= Socket_ErrorReceived;
 
         }
         private void SceneObjectToggleGroup_Awake(On.RoR2.SceneObjectToggleGroup.orig_Awake orig, SceneObjectToggleGroup self)
@@ -401,8 +415,14 @@ namespace Archipelago.RiskOfRain2
             {
                 var sayPacket = new SayPacket();
                 sayPacket.Text = message;
-                session.Socket.SendPacket(sayPacket);
+                session.Socket.SendPacketAsync(sayPacket);
             }
+        }
+
+        private void ArchipelagoConsoleCommand_OnArchipelagoReconnectCommandCalled()
+        {
+            reconnecting = true;
+            Session_SocketClosed("Making sure to be disconnected before reconnecting.");
         }
 
         private void ItemLogicHandler_ItemDropProcessed(int pickedUpCount)
@@ -429,7 +449,7 @@ namespace Archipelago.RiskOfRain2
             {
                 var sayPacket = new SayPacket();
                 sayPacket.Text = text;
-                session.Socket.SendPacket(sayPacket);
+                session.Socket.SendPacketAsync(sayPacket);
 
                 self.inputField.text = string.Empty;
                 orig(self);
@@ -438,6 +458,13 @@ namespace Archipelago.RiskOfRain2
             {
                 orig(self);
             }
+        }
+
+        private void Socket_ErrorReceived(Exception e, string message)
+        {
+            Log.LogDebug($"Error received: {e}, message: {message}");
+            reconnecting = true;
+            Session_SocketClosed(message);
         }
 
         private void Session_SocketClosed(string reason)
@@ -478,6 +505,41 @@ namespace Archipelago.RiskOfRain2
         //    reconnecting = false;
         //    RecentlyReconnected = true;
         //}
+
+        public IEnumerator<WaitForSeconds> AttemptReconnection()
+        {
+            Log.LogDebug("Attempting to reconnect!");
+            var retryCounter = 0;
+            if (!isInGame)
+            {
+                ArchipelagoConnectButtonController.ChangeButtonWhenDisconnected();
+            }
+            while ((session == null || !session.Socket.Connected)&& retryCounter < 5)
+            {
+                ChatMessage.Send($"Connection attempt #{retryCounter+1}");
+                retryCounter++;
+                yield return new WaitForSeconds(3f);
+                Connect(lastServerUrl, lastSlotName, lastPassword);
+            }
+
+            if (session == null || !session.Socket.Connected)
+            {
+                ChatMessage.SendColored("Could not connect to Archipelago.", Color.red);
+                Dispose();
+            }
+            else if (session != null && session.Socket.Connected)
+            {
+                ChatMessage.SendColored("Established Archipelago connection.", Color.green);
+                new ArchipelagoStartMessage().Send(NetworkDestination.Clients);
+                if (Locationhandler != null && isInGame)
+                {
+                    Locationhandler.CatchUpSceneLocations(LocationHandler.sceneDef.cachedName);
+                    Locationhandler.LoadItemPickupHooks();
+                }
+            }
+
+            reconnecting = false;
+        }
         private void Session_OnMessageReceived(LogMessage message)
         {
             Thread thread = new Thread(() => Session_OnMessageReceived_Thread(message));
@@ -506,7 +568,7 @@ namespace Archipelago.RiskOfRain2
              
                 var packet = new StatusUpdatePacket();
                 packet.Status = ArchipelagoClientState.ClientGoal;
-                session.Socket.SendPacket(packet);
+                session.Socket.SendPacketAsync(packet);
 
                 new ArchipelagoEndMessage().Send(NetworkDestination.Clients);
             }
@@ -521,8 +583,11 @@ namespace Archipelago.RiskOfRain2
                 (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding) && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName));
         }
 
+        // When exiting to menu/game this will run
         private void Run_onRunDestroyGlobal(Run obj)
         {
+            isInGame = false;
+            lastReceivedItemindex = 0;
             Disconnect();
         }
 
@@ -627,7 +692,7 @@ namespace Archipelago.RiskOfRain2
             {
                 Log.LogDebug($"Releasing the rest of the items {isEndingAcceptable}");
                 sayPacket.Text = "!release";
-                session.Socket.SendPacket(sayPacket);
+                session.Socket.SendPacketAsync(sayPacket);
             }
             ReleasePromptPanel.SetActive(false);
             if (CollectPromptPanel != null) 
@@ -643,7 +708,7 @@ namespace Archipelago.RiskOfRain2
             {
                 Log.LogDebug($"Collect the rest of the items {isEndingAcceptable}");
                 sayPacket.Text = "!collect";
-                session.Socket.SendPacket(sayPacket);
+                session.Socket.SendPacketAsync(sayPacket);
             }
             CollectPromptPanel?.SetActive(false);
 

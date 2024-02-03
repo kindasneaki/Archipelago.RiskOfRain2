@@ -55,6 +55,7 @@ namespace Archipelago.RiskOfRain2
         private const long trapRangeUpper = 37499;
         private const long stageRangeLower = 37500;
         private const long stageRangeUpper = 37599;
+        private int lastReceivedItemindex = 0;
         private bool spawnedMonster = false;
         private bool monsterShrineRecently = false;
         private bool teleportedRecently = false;
@@ -129,6 +130,7 @@ namespace Archipelago.RiskOfRain2
         {
             orig(self);
             exitedPod = true;
+            ArchipelagoClient.isInGame = true;
         }
 
         private void SurvivorPodController_OnPassengerExit(On.RoR2.SurvivorPodController.orig_OnPassengerExit orig, SurvivorPodController self, GameObject passenger)
@@ -139,6 +141,7 @@ namespace Archipelago.RiskOfRain2
             thread.Start();
             teleportedRecently = true;
             exitedPod = true;
+            ArchipelagoClient.isInGame = true;
         }
 
         private void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
@@ -149,8 +152,17 @@ namespace Archipelago.RiskOfRain2
 
         private void Items_ItemReceived(ReceivedItemsHelper helper)
         {
+            Log.LogDebug($"Last item received {ArchipelagoClient.lastReceivedItemindex} allitemsreceived {helper.AllItemsReceived.Count} helper index {helper.Index}");
             var newItem = helper.DequeueItem();
-            EnqueueItem(newItem.Item);
+            if (ArchipelagoClient.lastReceivedItemindex < helper.AllItemsReceived.Count)
+            {
+                EnqueueItem(newItem.Item);
+                ArchipelagoClient.lastReceivedItemindex = helper.AllItemsReceived.Count;
+            }
+            else if (environmentRangeLower <= newItem.Item && newItem.Item <= environmentRangeUpper)
+            {
+                EnqueueItem(newItem.Item);
+            }
         }
         private void Check_Locations(ReadOnlyCollection<long> item)
         {
@@ -262,6 +274,11 @@ namespace Archipelago.RiskOfRain2
                         PickedUpItemCount = CurrentChecks * ItemPickupStep;
                         break;
                     }
+/*                case ArchipelagoPacketType.ReceivedItems:
+                    var receivedItemsPacket = (ReceivedItemsPacket)packet;
+
+
+                    break;*/
             }
         }
 
@@ -896,7 +913,7 @@ namespace Archipelago.RiskOfRain2
                 var packet = new LocationChecksPacket();
                 packet.Locations = new List<long> { itemLocationId }.ToArray();
 
-                session.Socket.SendPacket(packet);
+                session.Socket.SendPacketAsync(packet);
                 if (CurrentChecks == TotalChecks)
                 {
                     ArchipelagoTotalChecksObjectiveController.CurrentChecks = ArchipelagoTotalChecksObjectiveController.TotalChecks;

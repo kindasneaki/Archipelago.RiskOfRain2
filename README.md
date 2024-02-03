@@ -73,6 +73,11 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.3.3**
+* Reconnecting feature added.
+* **Bug Fixes:**
+    * When the socket receives the error it will attempt to reconnect
+
 **1.3.2**
 * Support for Progressive Stage items
 * Messaging when you can't progress any further

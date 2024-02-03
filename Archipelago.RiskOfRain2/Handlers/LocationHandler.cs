@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using UnityEngine.Networking;
 using R2API.Utils;
 using R2API.Networking;
@@ -447,9 +446,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             LocationChecksPacket packet = new LocationChecksPacket();
             packet.Locations = new List<long> { id }.ToArray();
             Log.LogDebug($"planning to send location {id}"); // XXX
-            // why synchronous? that's how Ijwu had done it before, unsure of the specific reasoning:
-            // https://github.com/Ijwu/Archipelago.RiskOfRain2/blob/4318f37e7aa3fea258830de0d08a41014b19228b/Archipelago.RiskOfRain2/ArchipelagoItemLogicController.cs#L311
-            session.Socket.SendPacket(packet);
+            // Changed to Async.. lets see if it breaks something else
+            session.Socket.SendPacketAsync(packet);
+            
         }
 
         /// <summary>
@@ -558,6 +557,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         private void SceneCatalog_OnActiveSceneChanged(On.RoR2.SceneCatalog.orig_OnActiveSceneChanged orig, UnityEngine.SceneManagement.Scene oldScene, UnityEngine.SceneManagement.Scene newScene)
         {
             orig(oldScene, newScene);
+            LoadItemPickupHooks();
+        }
+
+        public void LoadItemPickupHooks()
+        {
             // We want to hook directly to SceneCatalog_OnActiveSceneChanged rather than delegate
             //  to SceneCatalog_OnActiveSceneChanged so that we can take advantage of the changed mostRecentSceneDef.
             Log.LogDebug($"sceneDefIndex {(int)SceneCatalog.mostRecentSceneDef.sceneDefIndex}");
@@ -604,6 +608,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
 
             // TODO maybe the make sure the ArchipelagoTotalChecksObjectiveController.CurrentChecks gets synced here (since sending a location increments it and could possibly desync it?)
+
         }
         private void SceneExitController_OnDestroy(On.RoR2.SceneExitController.orig_OnDestroy orig, SceneExitController self)
         {
