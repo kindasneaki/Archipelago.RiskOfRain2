@@ -75,6 +75,7 @@ Once connected it will print in chat that you have successfully connected!
 
 **1.3.3**
 * Reconnecting feature added.
+* New console command to reconnect(`archipelago_reconnect)
 * **Bug Fixes:**
     * When the socket receives the error it will attempt to reconnect
 
