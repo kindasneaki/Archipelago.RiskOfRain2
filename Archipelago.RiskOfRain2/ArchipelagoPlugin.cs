@@ -26,7 +26,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.3.3.beta";
+        public const string PluginVersion = "1.3.3";
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }
@@ -34,11 +34,11 @@ namespace Archipelago.RiskOfRain2
         private ArchipelagoClient AP;
         private ClientItemsHandler ClientItems;
         //private bool isInLobbyConfigLoaded = false;
-        internal static string apServerUri = "localhost";
+        internal static string apServerUri = "archipelago.gg";
         internal static int apServerPort = 38281;
         private bool willConnectToAP = true;
         private bool isPlayingAP = false;
-        internal static string apSlotName = "SneakiRoR";
+        internal static string apSlotName = "";
         //private string apSlotName;
         internal static string apPassword;
 
