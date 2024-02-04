@@ -152,7 +152,6 @@ namespace Archipelago.RiskOfRain2
 
         private void Items_ItemReceived(ReceivedItemsHelper helper)
         {
-            Log.LogDebug($"Last item received {ArchipelagoClient.lastReceivedItemindex} allitemsreceived {helper.AllItemsReceived.Count} helper index {helper.Index}");
             var newItem = helper.DequeueItem();
             if (ArchipelagoClient.lastReceivedItemindex < helper.AllItemsReceived.Count)
             {
