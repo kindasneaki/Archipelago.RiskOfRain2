@@ -437,7 +437,6 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private void PortalDialerIdleState_OnActivationServer(On.RoR2.PortalDialerController.PortalDialerIdleState.orig_OnActivationServer orig, BaseState self, Interactor interactor)
         {
-            // TODO add goal message
             ChatMessage.SendColored($"Victory conditon is {ArchipelagoClient.victoryCondition}.", Color.magenta);
             if (CheckBlocked("artifactworld"))
             {

@@ -72,12 +72,15 @@ Keep password blank if there is no password on the server.
 Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
+**1.3.4**
+* **Bug Fixes:**
+    * You couldn't see the goal in classic
 
 **1.3.3**
 * Reconnecting feature added.
 * New console command to reconnect(`archipelago_reconnect)
 * **Bug Fixes:**
-    * When the socket receives the error it will attempt to reconnect
+    * When the socket receives an error it will attempt to reconnect
 
 **1.3.2**
 * Support for Progressive Stage items
