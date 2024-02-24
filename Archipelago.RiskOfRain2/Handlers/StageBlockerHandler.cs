@@ -437,7 +437,7 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         private void PortalDialerIdleState_OnActivationServer(On.RoR2.PortalDialerController.PortalDialerIdleState.orig_OnActivationServer orig, BaseState self, Interactor interactor)
         {
-            ChatMessage.SendColored($"Victory conditon is {ArchipelagoClient.victoryCondition}.", Color.magenta);
+            // ChatMessage.SendColored($"Victory conditon is {ArchipelagoClient.victoryCondition}.", Color.magenta);
             if (CheckBlocked("artifactworld"))
             {
                 // give a message so the user is aware the portal dialer interaction is blocked

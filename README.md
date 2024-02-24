@@ -72,6 +72,10 @@ Keep password blank if there is no password on the server.
 Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
+**1.3.5
+* **Bug Fixes:**
+    * Victory messaging happens twice in explore mode now..
+
 **1.3.4**
 * **Bug Fixes:**
     * You couldn't see the goal in classic
