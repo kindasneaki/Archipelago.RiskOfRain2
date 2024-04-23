@@ -291,6 +291,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock += RadiotowerTerminal_GrantUnlock;
             ArchipelagoConsoleCommand.OnArchipelagoHighlightSatelliteCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoHighlightSatelliteCommandCalled;
+            ArchipelagoConsoleCommand_OnArchipelagoHighlightSatelliteCommandCalled(ArchipelagoPlugin.SatelliteEntry.Value);
             // Newt Altars
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Blue;
             // Highlight Satellite

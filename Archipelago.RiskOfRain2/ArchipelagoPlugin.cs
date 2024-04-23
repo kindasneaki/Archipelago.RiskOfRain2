@@ -27,6 +27,12 @@ namespace Archipelago.RiskOfRain2
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
         public const string PluginVersion = "1.3.5";
+
+        public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
+        public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }
+        public static BepInEx.Configuration.ConfigEntry<string> ServerNameEntry { get; set; }
+        public static BepInEx.Configuration.ConfigEntry<int> PortEntry { get; set; }
+        public static BepInEx.Configuration.ConfigEntry<string> PasswordEntry { get; set; }
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }
@@ -48,7 +54,16 @@ namespace Archipelago.RiskOfRain2
         }
         public void Awake()
         {
+
             Log.Init(Logger);
+
+            CreateConfigurations();
+
+            apSlotName = SlotNameEntry.Value;
+            apServerUri = ServerNameEntry.Value;
+            apServerPort = PortEntry.Value;
+            apPassword = PasswordEntry.Value;
+
             Instance = this;
             AP = new ArchipelagoClient();
             ArchipelagoConnectButtonController.OnConnectClick += OnClick_ConnectToArchipelagoWithButton;
@@ -150,6 +165,7 @@ namespace Archipelago.RiskOfRain2
 
             AP.Connect(url, apSlotName, apPassword);
             //Log.LogDebug("On Click Connect");
+            SlotNameEntry.Value = apSlotName;
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
@@ -191,6 +207,35 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoConnectButtonController.OnPasswordChanged = (newValue) => apPassword = newValue;
             ArchipelagoConnectButtonController.OnUrlChanged = (newValue) => apServerUri = newValue;
             ArchipelagoConnectButtonController.OnPortChanged = ChangePort;
+        }
+        private void CreateConfigurations()
+        {
+            SatelliteEntry = Config.Bind<bool>(
+                "HighlightSatellite",
+                "satellite",
+                true,
+                "This will highlight all satellites");
+            SlotNameEntry = Config.Bind<string>(
+                "SlotName",
+                "slotName",
+                "",
+                "Change the default slot name");
+            ServerNameEntry = Config.Bind<string>(
+                "ServerName",
+                "serverName",
+                "archipelago.gg",
+                "Change the default server name");
+            PortEntry = Config.Bind<int>(
+                "Port",
+                "port",
+                38281,
+                "Change the default port");
+            PasswordEntry = Config.Bind<string>(
+                "Password",
+                "password",
+                "",
+                "Change the default password");
+
         }
         private string ChangePort(string newValue)
         {
