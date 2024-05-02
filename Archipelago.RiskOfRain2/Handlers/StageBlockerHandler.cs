@@ -182,6 +182,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_stages = null;
             blocked_string_stages = null;
             unblocked_string_stages = null;
+            amountOfStages = 0;
         }
 
         public void BlockAll()
