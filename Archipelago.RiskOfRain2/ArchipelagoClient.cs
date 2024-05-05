@@ -101,7 +101,7 @@ namespace Archipelago.RiskOfRain2
             {
                 lastReceivedItemindex = 0;
             }
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 5), password: password);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 4, 6), password: password);
 
             if (!result.Successful)
             {
