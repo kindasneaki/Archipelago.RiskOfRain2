@@ -129,6 +129,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_stages = new List<int>();
             blocked_string_stages = new List<string>();
             unblocked_string_stages = new List<string>();
+            amountOfStages = 0;
 
             // blocking stages should be down by the owner of this object
         }
@@ -182,7 +183,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_stages = null;
             blocked_string_stages = null;
             unblocked_string_stages = null;
-            amountOfStages = 0;
         }
 
         public void BlockAll()
