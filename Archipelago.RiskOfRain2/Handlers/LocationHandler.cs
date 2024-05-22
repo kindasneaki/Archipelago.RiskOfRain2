@@ -366,7 +366,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public uint shrineUseStep = 3; // is the interval at which archipelago locations are sent from shrine objects; 1 is every, 2 is every other, etc
 
         private bool chestblockitem = false; // used to keep track of when the chest's item(s) are blocked as a location check
-        private bool sacraficeitem = false; // used to keep track of when an item is being dropped by the sacrafice artifiact
+        private bool sacrificeitem = false; // used to keep track of when an item is being dropped by the sacrifice artifiact
         private bool chanceshrineblockitem = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
         private bool chanceshrinebeat = false; // used to keep track of if the chance shrine intended on rewarding a check
         private bool bloodshrineblockgold = false; // used to keep track of when the blood shrine is attempting to give gold so the gold can be blocked
@@ -574,7 +574,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // reset the values in case the shrine was somehow busy when the stage changed
             chestblockitem = false;
-            sacraficeitem = false;
+            sacrificeitem = false;
             chanceshrineblockitem = false;
             chanceshrinebeat = false;
             bloodshrineblockgold = false;
@@ -688,38 +688,36 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 chestblockitem = chestOpened();
             }
+            if (!chestblockitem)
+            {
+                orig(self);
+            }
 
-            orig(self); // the original will end up calling PickupDropletController_CreatePickupDroplet as well as other things
+             // the original will end up calling PickupDropletController_CreatePickupDroplet as well as other things
             chestblockitem = false;
         }
 
         private void SacrificeArtifactManager_OnServerCharacterDeath(On.RoR2.Artifacts.SacrificeArtifactManager.orig_OnServerCharacterDeath orig, DamageReport damageReport)
         {
-            sacraficeitem = true;
+            sacrificeitem = true;
             // OnServerCharacterDeath has a percent chance of calling CreatePickupDroplet_Chest.
             // Only when it is called will we want to treat it as a chest being opened.
             orig(damageReport);
-            sacraficeitem = false;
+            sacrificeitem = false;
         }
 
         private void PickupDropletController_CreatePickupDroplet_Chest(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
-            // check if the item being dropped is being asked to not drop
-            if (chestblockitem)
+            // check if the item is being dropped by sacrifice
+            if (sacrificeitem)
             {
-                Log.LogDebug($"chest item {pickupIndex} was used to satisfy a location and thus is consumed");
-                return;
-            }
-            // check if the item is being dropped by sacrafice
-            else if (sacraficeitem)
-            {
-                // if the item is from sacrafice, treat it as opening a chest
+                // if the item is from sacrifice, treat it as opening a chest
                 if (chestOpened())
                 {
-                    Log.LogDebug($"sacrafice chest item {pickupIndex} was used to satisfy a location and thus is consumed");
+                    Log.LogDebug($"sacrifice chest item {pickupIndex} was used to satisfy a location and thus is consumed");
                     return;
                 }
-                Log.LogDebug($"sacrafice chest item {pickupIndex} passed through");
+                Log.LogDebug($"sacrifice chest item {pickupIndex} passed through");
             }
             orig(pickupIndex, position, velocity);
         }

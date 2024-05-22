@@ -215,11 +215,15 @@ namespace Archipelago.RiskOfRain2
                         if (classic)
                         {
                             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+                            On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop;
+                            
                             session.Locations.CheckedLocationsUpdated += Check_Locations;
                         }
                         else
                         {
                             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+                            On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop;
+
                             session.Locations.CheckedLocationsUpdated -= Check_Locations;
                         }
 
@@ -315,6 +319,7 @@ namespace Archipelago.RiskOfRain2
         public void Dispose()
         {
             On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+            On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop;
             On.RoR2.RoR2Application.Update -= RoR2Application_Update;
 
             if (session != null)
@@ -847,6 +852,26 @@ namespace Archipelago.RiskOfRain2
 
             });
 
+        }
+
+        private void ChestBehavior_ItemDrop(On.RoR2.ChestBehavior.orig_ItemDrop orig, ChestBehavior self)
+        {
+            var spawnItem = finishedAllChecks || HandleItemDrop();
+
+            if (OnItemDropProcessed != null)
+            {
+                OnItemDropProcessed(PickedUpItemCount);
+            }
+
+            if (spawnItem) orig(self);
+
+            new SyncTotalCheckProgress(finishedAllChecks ? TotalChecks : CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);
+
+            if (finishedAllChecks)
+            {
+                ArchipelagoTotalChecksObjectiveController.RemoveObjective();
+                new AllChecksComplete().Send(NetworkDestination.Clients);
+            }
         }
 
         private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, PickupIndex pickupIndex, Vector3 position, Vector3 velocity)
