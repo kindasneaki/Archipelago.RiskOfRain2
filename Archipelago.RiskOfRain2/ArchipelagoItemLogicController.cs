@@ -155,12 +155,12 @@ namespace Archipelago.RiskOfRain2
             var newItem = helper.DequeueItem();
             if (ArchipelagoClient.lastReceivedItemindex < helper.AllItemsReceived.Count)
             {
-                EnqueueItem(newItem.Item);
+                EnqueueItem(newItem.ItemId);
                 ArchipelagoClient.lastReceivedItemindex = helper.AllItemsReceived.Count;
             }
-            else if (environmentRangeLower <= newItem.Item && newItem.Item <= environmentRangeUpper)
+            else if (environmentRangeLower <= newItem.ItemId && newItem.ItemId <= environmentRangeUpper)
             {
-                EnqueueItem(newItem.Item);
+                EnqueueItem(newItem.ItemId);
             }
         }
         private void Check_Locations(ReadOnlyCollection<long> item)
