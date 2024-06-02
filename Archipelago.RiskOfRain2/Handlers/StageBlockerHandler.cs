@@ -16,6 +16,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         // main scenes
         public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int arena = 4;             // Void Fields
+        public const int lakes = 28;            // Verdant Falls
         public const int blackbeach = 7;        // Distant Roost
         public const int blackbeach2 = 8;       // Distant Roost
         public const int dampcavesimple = 10;   // Abyssal Depths
@@ -98,6 +99,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 16, "golemplains2" },
             { 17, "goolake" },
             { 27, "limbo" },
+            { 28, "lakes"},
             { 32, "moon2" },
             { 33, "mysteryspace" },
             { 35, "rootjungle" },
@@ -207,6 +209,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // block all main scenes
 /*            Block(ancientloft);        // Aphelian Sanctuary
             Block(arena);              // Void Fields
+            Block(lakes);              // Verdant Falls
             Block(blackbeach);         // Distant Roost
             Block(blackbeach2);        // Distant Roost
             Block(dampcavesimple);     // Abyssal Depths
