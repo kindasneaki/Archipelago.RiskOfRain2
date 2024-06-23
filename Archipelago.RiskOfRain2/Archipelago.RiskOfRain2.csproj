@@ -16,14 +16,14 @@
     <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb; $(TargetDir)/$(TargetName).deps.json" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="$(OutputPath)/Archipelago.MultiClient.Net.dll;$(OutputPath)/Newtonsoft.Json.dll;" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="$(RiskOfRain2Refs)" />
-    <ZipDirectory SourceDirectory="bin/Build" DestinationFile="bin/zip/Sneaki-Archipelago-$(VersionPrefix)-beta.zip" Overwrite="true" />
+    <ZipDirectory SourceDirectory="bin/Build" DestinationFile="bin/zip/Sneaki-Archipelago-$(VersionPrefix).zip" Overwrite="true" />
   </Target>
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.0.0-rc5" />
+    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.1.1" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4.4-r.1" />

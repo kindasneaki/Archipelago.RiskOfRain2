@@ -73,6 +73,9 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.1**
+* Updated Multiclient.net to 6.1.1
+
 **1.4.0**
 * New Stage, Verdant Falls added
 
