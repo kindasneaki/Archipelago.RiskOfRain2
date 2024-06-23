@@ -27,6 +27,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int blackbeach = 7;        // Distant Roost
         public const int blackbeach2 = 8;       // Distant Roost (2)
+        public const int lakes = 28;            // Verdant Falls
         public const int dampcavesimple = 10;   // Abyssal Depths
         public const int foggyswamp = 12;       // Wetland Aspect
         public const int frozenwall = 13;       // Rallypoint Delta
@@ -45,6 +46,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 3, "Aphelian Sanctuary" },
             { 7, "Distant Roost" },
             { 8, "Distant Roost (2)" },
+            { 28, "Verdant Falls"},
             { 10, "Abyssal Depths" },
             { 12, "Wetland Aspect" },
             { 13, "Rallypoint Delta" },
@@ -210,6 +212,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations.Add(ancientloft,       locationstemplate); // Aphelian Sanctuary
             currentlocations.Add(blackbeach,        locationstemplate); // Distant Roost
             currentlocations.Add(blackbeach2,       locationstemplate); // Distant Roost
+            currentlocations.Add(lakes,             locationstemplate); // Verdant Falls
             currentlocations.Add(dampcavesimple,    locationstemplate); // Abyssal Depths
             currentlocations.Add(foggyswamp,        locationstemplate); // Wetland Aspect
             currentlocations.Add(frozenwall,        locationstemplate); // Rallypoint Delta

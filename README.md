@@ -73,17 +73,23 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
-**1.3.7
+**1.4.1**
+* Updated Multiclient.net to 6.1.1
+
+**1.4.0**
+* New Stage, Verdant Falls added
+
+**1.3.7**
 * **Bug Fixes:**
     * Update broke chest checks.
 
-**1.3.6
+**1.3.6**
 * Added in slot info configuration
 * Added in highlight satellite configuration
 * **Bug Fixes:**
     * Progressive amount was not resetting
 
-**1.3.5
+**1.3.5**
 * **Bug Fixes:**
     * Victory messaging happens twice in explore mode now..
 
