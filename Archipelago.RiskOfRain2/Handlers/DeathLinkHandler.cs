@@ -1,6 +1,7 @@
 ﻿using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using R2API.Utils;
 using RoR2;
+using System;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -133,7 +134,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             // TODO it does not make sense for multiplayer to kill all players, each players client should suicide independently if deathlink is enabled
             foreach (PlayerCharacterMasterController player in players)
             {
-                ChatMessage.SendColored($"...and so does {player.GetDisplayName()}.", Color.red);
                 Log.LogDebug($"Selected player {player.GetDisplayName()} to die. NetID: {player.netId}");
                 player.master.GetBody().healthComponent.Suicide(damageType: DamageType.VoidDeath);
             }

@@ -20,13 +20,12 @@ namespace Archipelago.RiskOfRain2
     [BepInDependency("com.bepis.r2api")]
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     //[BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.HardDependency)]
-    [R2APISubmoduleDependency(nameof(NetworkingAPI), nameof(PrefabAPI), nameof(CommandHelper))]
     public class ArchipelagoPlugin : BaseUnityPlugin
     {
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.4.1";
+        public const string PluginVersion = "1.4.2";
 
         public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }

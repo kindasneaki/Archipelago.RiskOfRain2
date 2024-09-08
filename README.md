@@ -73,6 +73,12 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.2**
+* Update Multiclient.net to 6.3.1
+* Update Target Framework to netstandard 2.1
+* Update Game Libraries
+
+
 **1.4.1**
 * Updated Multiclient.net to 6.1.1
 
