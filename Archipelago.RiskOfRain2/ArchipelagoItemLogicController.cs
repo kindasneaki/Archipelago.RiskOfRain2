@@ -344,16 +344,17 @@ namespace Archipelago.RiskOfRain2
 
         private void RoR2Application_Update(On.RoR2.RoR2Application.orig_Update orig, RoR2Application self)
         {
+            if (environmentReceivedQueue.Any())
+            {
+                HandleReceivedEnvironmentQueueItem();
+            }
             if (IsInGame)
             {
                 if (itemReceivedQueue.Any())
                 {
                     HandleReceivedItemQueueItem();
                 }
-                if (environmentReceivedQueue.Any())
-                {
-                    HandleReceivedEnvironmentQueueItem();
-                }
+
                 if (fillerReceivedQueue.Any())
                 {
                     HandleReceivedFillerQueueItem();

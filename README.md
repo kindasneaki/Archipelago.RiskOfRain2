@@ -73,6 +73,10 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.4**
+* **Bug Fix:**
+    * When loading to many items, it would sometimes skip the environments from loading.
+
 **1.4.3**
 * Temporarily make green portals act like blue portals until new stages can get added into the pool.
 
