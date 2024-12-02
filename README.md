@@ -73,6 +73,9 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.3**
+* Temporarily make green portals act like blue portals until new stages can get added into the pool.
+
 **1.4.2**
 * Update Multiclient.net to 6.3.1
 * Update Target Framework to netstandard 2.1

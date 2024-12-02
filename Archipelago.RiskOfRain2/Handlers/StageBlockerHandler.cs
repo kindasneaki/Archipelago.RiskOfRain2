@@ -155,6 +155,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
         }
 
+
+
         private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
         {
             orig(self);
@@ -333,6 +335,12 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
+
+            if (self.isColossusPortal)
+            {
+                self.useRunNextStageScene = true;
+            }
+            
             if (SceneExitController.ExitState.Finished == newState && self.useRunNextStageScene)
             {
                 manuallyPickingStage = true;
