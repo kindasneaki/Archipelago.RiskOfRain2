@@ -73,6 +73,9 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.5**
+* Update Multiclient.net to 6.5.0
+
 **1.4.4**
 * **Bug Fix:**
     * When loading to many items, it would sometimes skip the environments from loading.

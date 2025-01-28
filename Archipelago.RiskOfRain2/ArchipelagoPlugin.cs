@@ -25,7 +25,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.4.4";
+        public const string PluginVersion = "1.4.5";
 
         public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }
