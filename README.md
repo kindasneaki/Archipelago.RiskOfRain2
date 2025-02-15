@@ -73,6 +73,9 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.6**
+* Extra null checking to attempt to fix an issue.
+
 **1.4.5**
 * Update Multiclient.net to 6.5.0
 

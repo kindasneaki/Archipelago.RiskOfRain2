@@ -382,18 +382,24 @@ namespace Archipelago.RiskOfRain2
         private void SceneObjectToggleGroup_Awake(On.RoR2.SceneObjectToggleGroup.orig_Awake orig, SceneObjectToggleGroup self)
         {
             Log.LogDebug($"Scene group length {self.toggleGroups.Length}");
-            for (var i = 0; i < self.toggleGroups.Length; i++)
+            if (self.toggleGroups != null)
             {
-                if (self.toggleGroups[i].objects[0].name == "NewtStatue" || self.toggleGroups[i].objects[0].name == "NewtStatue (1)")
+                for (var i = 0; i < self.toggleGroups.Length; i++)
                 {
-                    Log.LogDebug($"Scene Object Toggle Group min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
-                    Log.LogDebug("Changing newt alters min and max values");
-                    self.toggleGroups[i].minEnabled = 1;
-                    self.toggleGroups[i].maxEnabled = 2;
-                    Log.LogDebug($"Scene Object Toggle Group  min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
-                    break;
-                }
+                    if (self.toggleGroups[i].objects != null && self.toggleGroups[i].objects[0] != null)
+                    {
+                        if (self.toggleGroups[i].objects[0].name == "NewtStatue" || self.toggleGroups[i].objects[0].name == "NewtStatue (1)")
+                        {
+                            Log.LogDebug($"Scene Object Toggle Group min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                            Log.LogDebug("Changing newt alters min and max values");
+                            self.toggleGroups[i].minEnabled = 1;
+                            self.toggleGroups[i].maxEnabled = 2;
+                            Log.LogDebug($"Scene Object Toggle Group  min:{self.toggleGroups[i].minEnabled} max:{self.toggleGroups[i].maxEnabled}");
+                            break;
+                        }
+                    }
 
+                }
             }
             orig(self);
 
