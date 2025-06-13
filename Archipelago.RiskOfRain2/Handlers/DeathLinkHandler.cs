@@ -12,7 +12,7 @@ namespace Archipelago.RiskOfRain2.Handlers
     {
         private readonly DeathLinkService deathLink;
         private Thread thread;
-        // TODO perhaps a more robust system to prevent cyclical deaths is probably necessary
+        private Thread deathLinkThread;
         private bool recievedDeath = false; // used to prevent cyclical deaths
         private bool deathLinkActive = false;
 
@@ -123,7 +123,14 @@ namespace Archipelago.RiskOfRain2.Handlers
                 return;
             }
             recievedDeath = true;
-            classicDeathLink(deathLink);
+            if (deathLinkThread != null && deathLinkThread.IsAlive)
+            {
+                Log.LogDebug("Aborting previous deathLinkThread");
+                deathLinkThread.Abort();
+                deathLinkThread = null;
+            }
+            deathLinkThread = new Thread(() => classicDeathLink(deathLink));
+            deathLinkThread.Start();
         }
 
         private void classicDeathLink(DeathLink dl)
@@ -134,8 +141,24 @@ namespace Archipelago.RiskOfRain2.Handlers
             // TODO it does not make sense for multiplayer to kill all players, each players client should suicide independently if deathlink is enabled
             foreach (PlayerCharacterMasterController player in players)
             {
-                Log.LogDebug($"Selected player {player.GetDisplayName()} to die. NetID: {player.netId}");
-                player.master.GetBody().healthComponent.Suicide(damageType: DamageType.VoidDeath);
+                
+                if (player.master != null && player.master.GetBody() != null && player.master.GetBody().healthComponent != null) 
+                {
+                    Log.LogDebug($"Selected player {player.GetDisplayName()} to die. NetID: {player.netId}");
+                    try
+                    {
+                        player.master.GetBody().healthComponent.Suicide();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.LogDebug("Something went wrong on killing the player");
+                        Log.LogError(e);
+                    }
+                } 
+                else
+                {
+                    Log.LogError($"Selected player's body not found.");
+                }
             }
         }
     }
