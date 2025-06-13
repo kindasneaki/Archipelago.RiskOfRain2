@@ -23,6 +23,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
+        // scene id's will be incorrect when extra maps are included so make sure to call int index = GetSceneIndex(sceneName); when using sceneIndex
         // main scenes
         public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int blackbeach = 7;        // Distant Roost
@@ -463,7 +464,8 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <returns>Returns the amount of remaining locations.</returns>
         private int checkAvailable(LocationTypes loctype) // TODO make a method to check the nth location
         {
-            if (!currentlocations.TryGetValue(sceneIndex, out var locationsinenvironment))
+            int index = GetSceneIndex(sceneDef.baseSceneName);
+            if (!currentlocations.TryGetValue(index, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
             {
                 // if the locations in the environment are not being tracked, there must be 0 locations
@@ -568,7 +570,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // We want to hook directly to SceneCatalog_OnActiveSceneChanged rather than delegate
             //  to SceneCatalog_OnActiveSceneChanged so that we can take advantage of the changed mostRecentSceneDef.
-            Log.LogDebug($"sceneDefIndex {(int)SceneCatalog.mostRecentSceneDef.sceneDefIndex}");
+            CatchUpSceneLocations(sceneDef.baseSceneName);
 
             // don't reset the counters on moving between stages
             // this could make it absurdly hard to complete checks on very high step sizes
@@ -626,7 +628,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // In explore mode we will give help the player a little by adjusting the RNG to favor locations where checks need to still be performed.
             // This should help the player not get stuck in an RNG hell where they simply cannot roll into the stages they need to go to to complte things.
 
-            orig(self, dest, canAdd);
+
             if (null == dest) return; // prevent NRE
             for (int i=0; i < dest.Count; i++)
             {
@@ -643,6 +645,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 else Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} does not have locations.");
             }
+            orig(self, dest, canAdd);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////

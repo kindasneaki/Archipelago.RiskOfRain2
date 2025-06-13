@@ -348,6 +348,10 @@ namespace Archipelago.RiskOfRain2
             {
                 HandleReceivedEnvironmentQueueItem();
             }
+            if (stageReceivedQueue.Any())
+            {
+                HandleReceivedStageQueueItem();
+            }
             if (IsInGame)
             {
                 if (itemReceivedQueue.Any())
@@ -362,10 +366,6 @@ namespace Archipelago.RiskOfRain2
                 if (trapReceivedQueue.Any())
                 {
                     HandleReceivedTrapQueueItem();
-                }
-                if (stageReceivedQueue.Any())
-                {
-                    HandleReceivedStageQueueItem();
                 }
             }
 

@@ -73,6 +73,12 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.7**
+* **Bug Fixes:**
+    * After one of the more recent patches, the game now preloads the stage, so now we need to manually pick the next stage before that preload happens.
+    * The wrong sceneIndex was being used for chests/shrines UI display in explore mode.
+    * Preloading progressive/stage items to correctly display which ones are available in the next stage.
+
 **1.4.6**
 * Extra null checking to attempt to fix an issue.
 

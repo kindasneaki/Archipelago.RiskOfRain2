@@ -145,7 +145,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.PortalDialerController.PortalDialerIdleState.OnActivationServer += PortalDialerIdleState_OnActivationServer;
             On.RoR2.FrogController.Pet += FrogController_Pet;
             On.RoR2.Interactor.PerformInteraction += Interactor_PerformInteraction;
-            On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
+            On.RoR2.SceneExitController.Begin += SceneExitController_Begin;
             On.EntityStates.LunarTeleporter.Active.OnEnter += Active_OnEnter;
             On.RoR2.Run.CanPickStage += Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene += Run_PickNextStageScene;
@@ -176,7 +176,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.PortalDialerController.PortalDialerIdleState.OnActivationServer -= PortalDialerIdleState_OnActivationServer;
             On.RoR2.FrogController.Pet -= FrogController_Pet;
             On.RoR2.Interactor.PerformInteraction -= Interactor_PerformInteraction;
-            On.RoR2.SceneExitController.SetState -= SceneExitController_SetState;
+            On.RoR2.SceneExitController.Begin -= SceneExitController_Begin;
             On.EntityStates.LunarTeleporter.Active.OnEnter -= Active_OnEnter;
             On.RoR2.Run.CanPickStage -= Run_CanPickStage;
             On.RoR2.Run.PickNextStageScene -= Run_PickNextStageScene;
@@ -330,7 +330,8 @@ namespace Archipelago.RiskOfRain2.Handlers
          * Force the SceneExitController to rereoll the scene before moving to the next scene.
          * This is to help prevent going into the same environment on the next stage.
          */
-        private void SceneExitController_SetState(On.RoR2.SceneExitController.orig_SetState orig, SceneExitController self, SceneExitController.ExitState newState)
+
+        private void SceneExitController_Begin(On.RoR2.SceneExitController.orig_Begin orig, SceneExitController self)
         {
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
@@ -340,15 +341,15 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 self.useRunNextStageScene = true;
             }
-            
-            if (SceneExitController.ExitState.Finished == newState && self.useRunNextStageScene)
+
+            if (self.useRunNextStageScene)
             {
                 manuallyPickingStage = true;
                 Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
                 Log.LogDebug("SceneExitController_SetState forcefully reroll next stagescene");
                 manuallyPickingStage = false;
             }
-            orig(self, newState);
+            orig(self);
         }
 
         /**
@@ -606,6 +607,11 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("Switching to stage 1");
                 self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
                 
+            }
+
+            if (SceneCatalog.mostRecentSceneDef.stageOrder == 0)
+            {
+                self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
             }
 
             // there are 2 conditions when we should mess with this call:
