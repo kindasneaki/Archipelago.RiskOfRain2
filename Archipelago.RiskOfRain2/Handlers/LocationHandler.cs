@@ -628,7 +628,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // In explore mode we will give help the player a little by adjusting the RNG to favor locations where checks need to still be performed.
             // This should help the player not get stuck in an RNG hell where they simply cannot roll into the stages they need to go to to complte things.
 
-
+            orig(self, dest, canAdd);
             if (null == dest) return; // prevent NRE
             for (int i=0; i < dest.Count; i++)
             {
@@ -645,7 +645,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 else Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} does not have locations.");
             }
-            orig(self, dest, canAdd);
+
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////

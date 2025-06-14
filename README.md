@@ -73,6 +73,10 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.8**
+* **Bug Fixes:**
+    * Fixed item weights not being applied correctly in explore mode.
+
 **1.4.7**
 * **Bug Fixes:**
     * After one of the more recent patches, the game now preloads the stage, so now we need to manually pick the next stage before that preload happens.

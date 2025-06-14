@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Linq;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -677,7 +678,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
 
             orig(self, choices);
-            Log.LogDebug($"next scene {self.nextStageScene.sceneDefIndex} in stage {self.nextStageScene.stageOrder}");
+            Log.LogDebug($"next scene {self.nextStageScene.baseSceneName} in stage {self.nextStageScene.stageOrder}");
         }
 
         // Checks to see when the Deep Portal spawns and to see if you have The Planetarium to proceed.
