@@ -601,18 +601,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
 
             // 46 = Void Locus and if you are on that stage and you dont have The Planetarium the player will be moved back to orderedstage 1.
-            if (SceneCatalog.mostRecentSceneDef.sceneDefIndex.ToString() == "46" && CheckBlocked("voidraid"))
+            if (SceneCatalog.mostRecentSceneDef.cachedName == "voidstage" && CheckBlocked("voidraid"))
             {
                 Log.LogDebug("loaded Void Locus without The Planetarium");
                 SceneCatalog.mostRecentSceneDef.stageOrder = 1;
                 Log.LogDebug("Switching to stage 1");
                 self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
                 
-            }
-
-            if (SceneCatalog.mostRecentSceneDef.stageOrder == 0)
-            {
-                self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
             }
 
             // there are 2 conditions when we should mess with this call:
@@ -678,7 +673,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
 
             orig(self, choices);
-            Log.LogDebug($"next scene {self.nextStageScene.baseSceneName} in stage {self.nextStageScene.stageOrder}");
+            Log.LogDebug($"next scene {self.nextStageScene.cachedName} in stage {self.nextStageScene.stageOrder}");
         }
 
         // Checks to see when the Deep Portal spawns and to see if you have The Planetarium to proceed.

@@ -73,6 +73,10 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.4.9**
+* **Bug Fixes:**
+    * Always use CachedName instead of baseStageName for the stage name in explore mode.
+
 **1.4.8**
 * **Bug Fixes:**
     * Fixed item weights not being applied correctly in explore mode.

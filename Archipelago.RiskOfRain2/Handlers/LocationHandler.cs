@@ -244,7 +244,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             ReadOnlyCollection<long> completedchecks = session.Locations.AllLocationsChecked;
             int environment_start_id = index * ArchipelagoLocationOffsets.allocation + ArchipelagoLocationOffsets.ror2_locations_start_orderedstage;
 
-            Log.LogDebug($"Doing catch up on environment: index {index}");
+            Log.LogDebug($"Doing catch up on environment: index {index}, stage name {sceneName}");
             Log.LogDebug($"environment_start_id {environment_start_id}");
             for (int type = 0; type < (int)LocationTypes.MAX; type++)
             {
@@ -464,7 +464,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <returns>Returns the amount of remaining locations.</returns>
         private int checkAvailable(LocationTypes loctype) // TODO make a method to check the nth location
         {
-            int index = GetSceneIndex(sceneDef.baseSceneName);
+            int index = GetSceneIndex(sceneDef.cachedName);
             if (!currentlocations.TryGetValue(index, out var locationsinenvironment))
             // prevent KeyNotFoundException by using TryGetValue
             {
@@ -570,7 +570,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // We want to hook directly to SceneCatalog_OnActiveSceneChanged rather than delegate
             //  to SceneCatalog_OnActiveSceneChanged so that we can take advantage of the changed mostRecentSceneDef.
-            CatchUpSceneLocations(sceneDef.baseSceneName);
+            CatchUpSceneLocations(sceneDef.cachedName);
 
             // don't reset the counters on moving between stages
             // this could make it absurdly hard to complete checks on very high step sizes
@@ -636,8 +636,9 @@ namespace Archipelago.RiskOfRain2.Handlers
                 string stageName = dest.choices[i].value.cachedName;
                 int environment_index = GetSceneIndex(stageName);
                 CatchUpSceneLocations(stageName);
+                Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has stage name {stageName}.");
                 if (currentlocations.TryGetValue(environment_index, out var locations))
-                {
+                { 
                     int addweight = locations.total() * 5;
                     Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight / 5} locations, adjusting weight.");
                     dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);

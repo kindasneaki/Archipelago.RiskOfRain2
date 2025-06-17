@@ -591,10 +591,10 @@ namespace Archipelago.RiskOfRain2
 
         private bool IsEndingAcceptable(GameEndingDef gameEndingDef)
         {
-            Log.LogDebug($"ending stage is {Stage.instance.sceneDef.baseSceneName}");
+            Log.LogDebug($"ending stage is {Stage.instance.sceneDef.cachedName}");
             return acceptableEndings.Contains(gameEndingDef) ||
-                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss) && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName)) ||
-                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding) && (acceptableLosses.Contains(Stage.instance.sceneDef.baseSceneName));
+                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.StandardLoss) && (acceptableLosses.Contains(Stage.instance.sceneDef.cachedName)) ||
+                (finalStageDeath && gameEndingDef == RoR2Content.GameEndings.ObliterationEnding) && (acceptableLosses.Contains(Stage.instance.sceneDef.cachedName));
         }
 
         // When exiting to menu/game this will run
