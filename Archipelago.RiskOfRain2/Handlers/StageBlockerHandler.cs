@@ -119,11 +119,14 @@ namespace Archipelago.RiskOfRain2.Handlers
         List<int> unblocked_stages;
         List<string> blocked_string_stages;
         List<string> unblocked_string_stages;
+        List<SceneDef> stages_available;
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
         public static bool progressivesStages = false;
         public static string revertToBeginningMessage = "";
+
+        private SeerPortal seerPortal;
 
         public StageBlockerHandler()
         {
@@ -132,6 +135,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_stages = new List<int>();
             blocked_string_stages = new List<string>();
             unblocked_string_stages = new List<string>();
+            stages_available = new List<SceneDef>();
             amountOfStages = 0;
 
             // blocking stages should be down by the owner of this object
@@ -139,6 +143,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void Hook()
         {
+            On.RoR2.SceneDirector.PlaceTeleporter += SceneDirector_PlaceTeleporter;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals += TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene += SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter += ReadyToEndGame_OnEnter;
@@ -156,20 +161,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
         }
 
-
-
-        private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
-        {
-            orig(self);
-            if (revertToBeginningMessage != "")
-            {
-                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
-                revertToBeginningMessage = "";
-            }
-        }
-
         public void UnHook()
         {
+            On.RoR2.SceneDirector.PlaceTeleporter -= SceneDirector_PlaceTeleporter;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals -= TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene -= SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter -= ReadyToEndGame_OnEnter;
@@ -184,10 +178,24 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.UI.ChatBox.OnEnable -= ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
+
+            // Reset values to prevent issues when restarting a run
             blocked_stages = null;
             unblocked_stages = null;
             blocked_string_stages = null;
             unblocked_string_stages = null;
+            seerPortal = null;
+            stages_available = null;
+        }
+
+        private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
+        {
+            orig(self);
+            if (revertToBeginningMessage != "")
+            {
+                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
+                revertToBeginningMessage = "";
+            }
         }
 
         public void BlockAll()
@@ -337,7 +345,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
-
             if (self.isColossusPortal)
             {
                 self.useRunNextStageScene = true;
@@ -527,6 +534,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self, sceneDef);
         }
 
+        private void SceneDirector_PlaceTeleporter(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
+        {
+            orig(self);
+            seerPortal = null;
+            seerPortal = new SeerPortal();
+            seerPortal.Initialize();
+        }
+
         /**
          * Block portals for blocked environments that would be spawned by the finishing teleporter event.
          */
@@ -540,7 +555,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Hidden Realm: Bazaar Between Time
             // Hidden Realm: Gilded Coast
             // Hidden Realm: A Moment, Fractured
-
+            GetAvailableStages();
             if (CheckBlocked("bazaar"))
             {
                 if (self.shouldAttemptToSpawnShopPortal)
@@ -584,10 +599,19 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("blocking.");
                 return false;
             }
-
+            stages_available.Add(scenedef);
             Log.LogDebug("passing through.");
 
             return orig(self, scenedef);
+        }
+
+        public void GetAvailableStages()
+        {
+            stages_available.Clear();
+            manuallyPickingStage = true;
+            Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
+            manuallyPickingStage = false;
+            seerPortal.CreatePortal(stages_available);
         }
 
         private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)

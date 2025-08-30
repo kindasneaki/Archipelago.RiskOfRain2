@@ -283,6 +283,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ShrineRestackBehavior.AddShrineStack += ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
+            On.RoR2.ShrineColossusAccessBehavior.OnInteraction += ShrineColossusAccessBehavior_OnInteraction;
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter += Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Scavenger;
@@ -346,6 +347,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ShrineRestackBehavior.AddShrineStack -= ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack -= ShrineHealingBehavior_AddShrineStack;
+            On.RoR2.ShrineColossusAccessBehavior.OnInteraction -= ShrineColossusAccessBehavior_OnInteraction;
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter -= Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Scavenger;
@@ -691,7 +693,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
             // Therefore we need to manually make sure the call here is not from the backpack.
-            if(NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
+            if (NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
             {
                 chestblockitem = chestOpened();
             }
@@ -892,6 +894,17 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
             if (self.purchaseCount == 1) ChatMessage.Send("Hmm thats weird, maybe try again");
         }
+
+        private void ShrineColossusAccessBehavior_OnInteraction(On.RoR2.ShrineColossusAccessBehavior.orig_OnInteraction orig, ShrineColossusAccessBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            shrineBeat();
+        }
+
+        /// <summary>
+        /// Interacting with colossus shrine beats it.
+        /// </summary>
+
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 
