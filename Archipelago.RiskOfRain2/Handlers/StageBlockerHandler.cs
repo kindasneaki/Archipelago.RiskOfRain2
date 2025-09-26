@@ -178,6 +178,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.FixedUpdate += VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
+            On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
         }
 
         public void UnHook()
@@ -197,6 +198,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.UI.ChatBox.OnEnable -= ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
+            On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
 
             // Reset values to prevent issues when restarting a run
             blocked_stages = null;
@@ -205,6 +207,20 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_string_stages = null;
             seerPortal = null;
             stages_available = null;
+        }
+
+        private void SceneDef_AddDestinationsToWeightedSelection(On.RoR2.SceneDef.orig_AddDestinationsToWeightedSelection orig, SceneDef self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
+        {
+            // This forces it to use the normal destination group instead of switching to the looped group after the first loop. (the looped ones are in this group for some reason).
+            // This is probably really unstable with updates to the game but I don't see any other way to do this currently.
+            if (self.destinationsGroup)
+            {
+                self.destinationsGroup.AddToWeightedSelection(dest, canAdd);
+            }
+            else
+            {
+                orig(self, dest, canAdd);
+            }
         }
 
         private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
@@ -222,11 +238,18 @@ namespace Archipelago.RiskOfRain2.Handlers
             foreach (SceneDef scenedef in SceneCatalog.allSceneDefs)
             {
                 Log.LogDebug($"scene index {SceneCatalog.FindSceneIndex(scenedef.cachedName)} scene name {scenedef.cachedName}");
+                Log.LogDebug($"blocked by loop? {scenedef.isLockedBeforeLooping}");               
+                scenedef.isLockedBeforeLooping = false; // this is only used for the bazaar to block them before the first loop which we dont want
+
+                // I need to figure out how to edit the loopedDestinations group to prevent specific stages to not show up after a loop
+                // scenedef.loopedDestinationsGroup.sceneEntries is readonly
+                // currently we are just blocking loopedDestinations entirely in SceneDef_AddDestinationsToWeightedSelection
+
                 if (scenedef.sceneType == SceneType.Stage || scenedef.sceneType == SceneType.Intermission)
                 {
                     SceneIndex index = SceneCatalog.FindSceneIndex(scenedef.cachedName);
                     if (index == SceneIndex.Invalid) return;
-                    
+
                     Block(scenedef.cachedName);
 
                 }
@@ -237,39 +260,39 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
             // block all main scenes
-/*            Block(ancientloft);        // Aphelian Sanctuary
-            Block(arena);              // Void Fields
-            Block(lakes);              // Verdant Falls
-            Block(blackbeach);         // Distant Roost
-            Block(blackbeach2);        // Distant Roost
-            Block(dampcavesimple);     // Abyssal Depths
-            Block(foggyswamp);         // Wetland Aspect
-            Block(frozenwall);         // Rallypoint Delta
-            Block(golemplains);        // Titanic Plains
-            Block(golemplains2);       // Titanic Plains
-            Block(goolake);            // Abandoned Aqueduct
-*//*            Block(itancientloft);      // The Simulacrum
-            Block(itdampcave);         // The Simulacrum
-            Block(itfrozenwall);       // The Simulacrum
-            Block(itgolemplains);      // The Simulacrum
-            Block(itgoolake);          // The Simulacrum
-            Block(itmoon);             // The Simulacrum
-            Block(itskymeadow);        // The Simulacrum*//*
-            Block(moon2);              // Commencement
-            Block(rootjungle);         // Sundered Grove
-            Block(shipgraveyard);      // Siren's Call
-            Block(skymeadow);          // Sky Meadow
-            Block(snowyforest);        // Siphoned Forest
-            Block(sulfurpools);        // Sulfur Pools
-            Block(voidstage);          // Void Locus
-            Block(voidraid);           // The Planetarium
-            Block(wispgraveyard);      // Scorched Acres
-            // block all hidden realms
-            Block(artifactworld);      // Hidden Realm: Bulwark's Ambry
-            Block(bazaar);             // Hidden Realm: Bazaar Between Time
-            Block(goldshores);         // Hidden Realm: Gilded Coast
-            Block(limbo);              // Hidden Realm: A Moment, Whole
-            Block(mysteryspace);       // Hidden Realm: A Moment, Fractured*/
+            /*            Block(ancientloft);        // Aphelian Sanctuary
+                        Block(arena);              // Void Fields
+                        Block(lakes);              // Verdant Falls
+                        Block(blackbeach);         // Distant Roost
+                        Block(blackbeach2);        // Distant Roost
+                        Block(dampcavesimple);     // Abyssal Depths
+                        Block(foggyswamp);         // Wetland Aspect
+                        Block(frozenwall);         // Rallypoint Delta
+                        Block(golemplains);        // Titanic Plains
+                        Block(golemplains2);       // Titanic Plains
+                        Block(goolake);            // Abandoned Aqueduct
+            *//*            Block(itancientloft);      // The Simulacrum
+                        Block(itdampcave);         // The Simulacrum
+                        Block(itfrozenwall);       // The Simulacrum
+                        Block(itgolemplains);      // The Simulacrum
+                        Block(itgoolake);          // The Simulacrum
+                        Block(itmoon);             // The Simulacrum
+                        Block(itskymeadow);        // The Simulacrum*//*
+                        Block(moon2);              // Commencement
+                        Block(rootjungle);         // Sundered Grove
+                        Block(shipgraveyard);      // Siren's Call
+                        Block(skymeadow);          // Sky Meadow
+                        Block(snowyforest);        // Siphoned Forest
+                        Block(sulfurpools);        // Sulfur Pools
+                        Block(voidstage);          // Void Locus
+                        Block(voidraid);           // The Planetarium
+                        Block(wispgraveyard);      // Scorched Acres
+                        // block all hidden realms
+                        Block(artifactworld);      // Hidden Realm: Bulwark's Ambry
+                        Block(bazaar);             // Hidden Realm: Bazaar Between Time
+                        Block(goldshores);         // Hidden Realm: Gilded Coast
+                        Block(limbo);              // Hidden Realm: A Moment, Whole
+                        Block(mysteryspace);       // Hidden Realm: A Moment, Fractured*/
         }
 
         public void UnBlockAll()
@@ -364,9 +387,37 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
+            
             if (self.isColossusPortal)
             {
-                self.useRunNextStageScene = true;
+                bool runNextStage = true;
+                int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
+                Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}.");
+                switch (stageOrder)
+                {
+                    case 1:
+                        runNextStage = CheckBlocked("lenuriantemple");
+                        break;
+                    case 2:
+                        // with habitatfall being a stage you usually cant get to without an initial loop we need to add special handling for it
+                        runNextStage = CheckBlocked("habitat") && CheckBlocked("habitatfall");
+                        WeightedSelection<SceneDef> tier2Selection = new WeightedSelection<SceneDef>();
+                        if (!CheckBlocked("habitat")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitat"), 10);
+                        if (!CheckBlocked("habitatfall")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitatfall"), 10);
+                        Run.instance.PickNextStageScene(tier2Selection);
+                        Log.LogDebug($"next stage Scene testing is {Run.instance.nextStageScene}, alternate destination {self.tier3AlternateDestinationScene}");
+                        self.tier3AlternateDestinationScene = Run.instance.nextStageScene;
+                        Log.LogDebug($"next stage Scene testing is {Run.instance.nextStageScene}, alternate destination {self.tier3AlternateDestinationScene}");
+                        break;
+                    case 3:  
+                    case 4:
+                    case 5:
+                        runNextStage = CheckBlocked("meridian");
+                        break;
+                }
+               
+
+                self.useRunNextStageScene = runNextStage;
             }
 
             if (self.useRunNextStageScene)
@@ -630,7 +681,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             manuallyPickingStage = true;
             Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
             manuallyPickingStage = false;
-            seerPortal.CreatePortal(stages_available);
+            if (stages_available.Count > 1)
+            {
+                seerPortal.CreatePortal(stages_available);
+            }
         }
 
         private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
@@ -642,6 +696,21 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
 
             Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+            bool hasHabitat = false;
+            bool hasHabitatFall = false;
+
+            // Since hatitatfall is a stage you usually cant get to without an initial loop we need to add special handling for it
+            choices.choices.ForEachTry( choice =>
+            {
+                if (choice.value.cachedName == "habitat") hasHabitat = true;
+                if (choice.value.cachedName == "habitatfall") hasHabitatFall = true;
+            });
+
+            if (hasHabitat && hasHabitatFall)
+            {
+                self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
+            }
+
 
             // 46 = Void Locus and if you are on that stage and you dont have The Planetarium the player will be moved back to orderedstage 1.
             if (SceneCatalog.mostRecentSceneDef.cachedName == "voidstage" && CheckBlocked("voidraid"))
