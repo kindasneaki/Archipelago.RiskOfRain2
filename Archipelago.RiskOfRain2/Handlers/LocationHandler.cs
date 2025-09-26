@@ -41,6 +41,15 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int snowyforest = 39;      // Siphoned Forest
         public const int sulfurpools = 41;      // Sulfur Pools
         public const int wispgraveyard = 47;    // Scorched Acres
+        // Seekers of the Storm
+        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
+        public const int village = 54;          // Shattered Abodes
+        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
+        public const int lemuriantemple = 36;   // Lemurian Temple
+        public const int habitat = 21;          // Treeborn Colony
+        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
+        public const int helminthroost = 23;    // Helminth Hatchery
+        public const int meridian = 40;         // Prime Meridian
 
         public static readonly Dictionary<int, string> locationsNames = new()
         {
@@ -69,6 +78,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 14, "Hidden Realm: Gilded Coast" },
             { 27, "Hidden Realm: A Moment, Whole"},
             { 33, "Hidden Realm: A Moment, Fractured" },
+            { 34, "Viscous Falls" },
+            { 54, "Shattered Abodes" },
+            { 55, "Disturbed Impact" },
+            { 36, "Lemurian Temple" },
+            { 21, "Treeborn Colony" },
+            { 22, "Golden Dieback" },
+            { 23, "Helminth Hatchery" },
+            { 40, "Prime Meridian" }
         };
         public static int sceneIndex = 0;
         public enum LocationTypes
@@ -226,6 +243,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations.Add(snowyforest,       locationstemplate); // Siphoned Forest
             currentlocations.Add(sulfurpools,       locationstemplate); // Sulfur Pools
             currentlocations.Add(wispgraveyard,     locationstemplate); // Scorched Acres
+            // Seekers of the Storm
+            currentlocations.Add(lakesnight,        locationstemplate); // Viscous Falls
+            currentlocations.Add(village,           locationstemplate); // Shattered Abodes
+            currentlocations.Add(villagenight,      locationstemplate); // Disturbed Impact
+            currentlocations.Add(lemuriantemple,    locationstemplate); // Lemurian Temple
+            currentlocations.Add(habitat,           locationstemplate); // Treeborn Colony
+            currentlocations.Add(habitatfall,       locationstemplate); // Golden Dieback
+            currentlocations.Add(helminthroost,    locationstemplate);  // Helminth Hatchery
             // TODO separate out the DLC locations
         }
 

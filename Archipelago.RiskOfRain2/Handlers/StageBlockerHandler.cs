@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Linq;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -15,7 +14,6 @@ namespace Archipelago.RiskOfRain2.Handlers
         // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
-        public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int arena = 4;             // Void Fields
         public const int lakes = 28;            // Verdant Falls
         public const int blackbeach = 7;        // Distant Roost
@@ -26,22 +24,26 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int golemplains = 15;      // Titanic Plains
         public const int golemplains2 = 16;     // Titanic Plains
         public const int goolake = 17;          // Abandoned Aqueduct
-        public const int itancientloft = 20;    // The Simulacrum
-        public const int itdampcave = 21;       // The Simulacrum
-        public const int itfrozenwall = 22;     // The Simulacrum
-        public const int itgolemplains = 23;    // The Simulacrum
-        public const int itgoolake = 24;        // The Simulacrum
-        public const int itmoon = 25;           // The Simulacrum
-        public const int itskymeadow = 26;      // The Simulacrum
         public const int moon2 = 32;            // Commencement
         public const int rootjungle = 35;       // Sundered Grove
         public const int shipgraveyard = 37;    // Siren's Call
         public const int skymeadow = 38;        // Sky Meadow
+        public const int wispgraveyard = 47;    // Scorched Acres
+        // Survivors of the Void
         public const int snowyforest = 39;      // Siphoned Forest
+        public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int sulfurpools = 41;      // Sulfur Pools
         public const int voidstage = 46;        // Void Locus
         public const int voidraid = 45;         // The Planetarium
-        public const int wispgraveyard = 47;    // Scorched Acres
+        // Seekers of the Storm
+        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
+        public const int village = 54;          // Shattered Abodes
+        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
+        public const int lemuriantemple = 36;   // Lemurian Temple
+        public const int habitat = 21;          // Treeborn Colony
+        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
+        public const int helminthroost = 23;    // Helminhe Hatchery
+        public const int meridian = 40;         // Prime Meridian
         // hidden realms
         public const int artifactworld = 5;     // Hidden Realm: Bulwark's Ambry
         public const int bazaar = 6;            // Hidden Realm: Bazaar Between Time
@@ -70,6 +72,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "skymeadow", 4 },
             { "sulfurpools", 2 },
             { "wispgraveyard", 2 },
+            { "lemuriantemple", 1 },
+            { "habitat", 2 },
+            { "helminthroost", 4 },
+            { "meridian", 3 },
         };
         public readonly Dictionary<string, string> locationNames = new()
         {
@@ -83,6 +89,11 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "skymeadow", "Sky Meadow" },
             { "sulfurpools", "Sulfur Pools" },
             { "wispgraveyard", "Scorched Acres" },
+            { "lemuriantemple", "Lemurian Temple" },
+            { "habitat", "Treeborn Colony" },
+            { "habitatfall", "Golden Dieback" },
+            { "helminthroost", "Helminhe Hatchery" },
+            { "meridian", "Prime Meridian" },
         };
         public static readonly Dictionary<int, string> locationsNames = new()
         {
@@ -111,6 +122,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 45, "voidraid" },
             { 46, "voidstage" },
             { 47, "wispgraveyard" },
+            { 34, "lakesnight" },
+            { 54, "village" },
+            { 55, "villagenight" },
+            { 36, "lemuriantemple" },
+            { 21, "habitat" },
+            { 22, "habitatfall" },
+            { 23, "helminthroost" },
+            { 40, "meridian" },
         };
 
         // A list of stages that should be blocked because they are locked by archipelago
