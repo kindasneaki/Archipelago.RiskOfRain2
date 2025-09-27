@@ -12,6 +12,7 @@ using UnityEngine.Networking;
 using R2API.Utils;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
+using Archipelago.RiskOfRain2.Lookup;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -51,42 +52,6 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int helminthroost = 23;    // Helminth Hatchery
         public const int meridian = 40;         // Prime Meridian
 
-        public static readonly Dictionary<int, string> locationsNames = new()
-        {
-            { 3, "Aphelian Sanctuary" },
-            { 7, "Distant Roost" },
-            { 8, "Distant Roost (2)" },
-            { 28, "Verdant Falls"},
-            { 10, "Abyssal Depths" },
-            { 12, "Wetland Aspect" },
-            { 13, "Rallypoint Delta" },
-            { 15, "Titanic Plains" },
-            { 16, "Titanic Plains (2)" },
-            { 17, "Abandoned Aqueduct" },
-            { 35, "Sundered Grove" },
-            { 37, "Siren's Call" },
-            { 38, "Sky Meadow" },
-            { 39, "Siphoned Forest" },
-            { 41, "Sulfur Pools" },
-            { 47, "Scorched Acres" },
-            { 32, "Commencement" },
-            { 4, "Void Fields" },
-            { 46, "Void Locus" },
-            { 45, "The Planetarium" },
-            { 5, "Hidden Realm: Bulwark's Ambry"},
-            { 6, "Hidden Realm: Bazaar Between Time"},
-            { 14, "Hidden Realm: Gilded Coast" },
-            { 27, "Hidden Realm: A Moment, Whole"},
-            { 33, "Hidden Realm: A Moment, Fractured" },
-            { 34, "Viscous Falls" },
-            { 54, "Shattered Abodes" },
-            { 55, "Disturbed Impact" },
-            { 36, "Reformed Altar" },
-            { 21, "Treeborn Colony" },
-            { 22, "Golden Dieback" },
-            { 23, "Helminth Hatchery" },
-            { 40, "Prime Meridian" }
-        };
         public static int sceneIndex = 0;
         public enum LocationTypes
         {
@@ -170,10 +135,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 SceneDef scene = LocationHandler.GetLocationScene();
                 /*                Log.LogDebug($"{scene.sceneDefIndex} scene this");*/
-                if (locationsNames.ContainsKey(sceneIndex))
+                if (LocationNames.locationsNames.ContainsKey(sceneIndex))
                 {
-                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{locationsNames[sceneIndex]}";
-                    return $"{locationsNames[sceneIndex]}";
+                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{LocationNames.locationsNames[sceneIndex]}";
+                    return $"{LocationNames.locationsNames[sceneIndex]}";
                 }
                 ArchipelagoLocationsInEnvironmentController.CurrentScene = $"Environment Location";
                 return $"Environment Location";
@@ -423,7 +388,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         public void GetCurrentSceneIndex()
         {
-            foreach (var scene in StageBlockerHandler.locationsNames)
+            foreach (var scene in LocationNames.cachedLocationsNames)
             {
                 if (scene.Value == sceneDef.cachedName)
                 {
@@ -435,7 +400,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         public int GetSceneIndex(string sceneName)
         {
-            foreach (var scene in StageBlockerHandler.locationsNames)
+            foreach (var scene in LocationNames.cachedLocationsNames)
             {
                 if (scene.Value == sceneName)
                 {

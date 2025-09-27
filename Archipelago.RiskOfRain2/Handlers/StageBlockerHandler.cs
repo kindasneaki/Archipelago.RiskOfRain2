@@ -1,5 +1,6 @@
-﻿using EntityStates;
-using Archipelago.RiskOfRain2.Console;
+﻿using Archipelago.RiskOfRain2.Console;
+using Archipelago.RiskOfRain2.Lookup;
+using EntityStates;
 using R2API.Utils;
 using RoR2;
 using System;
@@ -51,6 +52,10 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int limbo = 27;            // Hidden Realm: A Moment, Whole
         public const int mysteryspace = 33;     // Hidden Realm: A Moment, Fractured
                                                 // TODO these should probably go somewhere else to better keep track of them since they are used in several places
+
+        public LocationNames locationsNames = new LocationNames();
+
+        // Stage Progression system
         public static Dictionary<string, bool> stageUnlocks = new()
         {
             { "Stage 1", false },
@@ -78,6 +83,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "helminthroost", 4 },
             { "meridian", 3 },
         };
+
+        // Used to display the full location names in chat when a stage is needed to progress
         public readonly Dictionary<string, string> locationNames = new()
         {
             { "ancientloft", "Aphelian Sanctuary" },
@@ -96,42 +103,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "helminthroost", "Helminhe Hatchery" },
             { "meridian", "Prime Meridian" },
         };
-        public static readonly Dictionary<int, string> locationsNames = new()
-        {
-            { 3, "ancientloft" },
-            { 4, "arena" },
-            { 5, "artifactworld" },
-            { 6, "bazaar" },
-            { 7, "blackbeach" },
-            { 8, "blackbeach2" },
-            { 10, "dampcavesimple" },
-            { 12, "foggyswamp" },
-            { 13, "frozenwall" },
-            { 14, "goldshores" },
-            { 15, "golemplains" },
-            { 16, "golemplains2" },
-            { 17, "goolake" },
-            { 27, "limbo" },
-            { 28, "lakes"},
-            { 32, "moon2" },
-            { 33, "mysteryspace" },
-            { 35, "rootjungle" },
-            { 37, "shipgraveyard" },
-            { 38, "skymeadow" },
-            { 39, "snowyforest" },
-            { 41, "sulfurpools" },
-            { 45, "voidraid" },
-            { 46, "voidstage" },
-            { 47, "wispgraveyard" },
-            { 34, "lakesnight" },
-            { 54, "village" },
-            { 55, "villagenight" },
-            { 36, "lemuriantemple" },
-            { 21, "habitat" },
-            { 22, "habitatfall" },
-            { 23, "helminthroost" },
-            { 40, "meridian" },
-        };
+        // End Stage Progression system
+
 
         // A list of stages that should be blocked because they are locked by archipelago
         // uses scene names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
@@ -242,10 +215,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"blocked by loop? {scenedef.isLockedBeforeLooping}");               
                 scenedef.isLockedBeforeLooping = false; // this is only used for the bazaar to block them before the first loop which we dont want
 
-                // I need to figure out how to edit the loopedDestinations group to prevent specific stages to not show up after a loop
-                // scenedef.loopedDestinationsGroup.sceneEntries is readonly
-                // currently we are just blocking loopedDestinations entirely in SceneDef_AddDestinationsToWeightedSelection
-
                 if (scenedef.sceneType == SceneType.Stage || scenedef.sceneType == SceneType.Intermission)
                 {
                     SceneIndex index = SceneCatalog.FindSceneIndex(scenedef.cachedName);
@@ -255,45 +224,8 @@ namespace Archipelago.RiskOfRain2.Handlers
 
                 }
             }
-            // TODO add support for only blocking environments known to be in the pool
-            // (eg. simulacrum should not be blocked if not in the pool, otherwise it would be permanently locked)
-            Log.LogDebug($"StageBlocker blocking all...");
 
             // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
-            // block all main scenes
-            /*            Block(ancientloft);        // Aphelian Sanctuary
-                        Block(arena);              // Void Fields
-                        Block(lakes);              // Verdant Falls
-                        Block(blackbeach);         // Distant Roost
-                        Block(blackbeach2);        // Distant Roost
-                        Block(dampcavesimple);     // Abyssal Depths
-                        Block(foggyswamp);         // Wetland Aspect
-                        Block(frozenwall);         // Rallypoint Delta
-                        Block(golemplains);        // Titanic Plains
-                        Block(golemplains2);       // Titanic Plains
-                        Block(goolake);            // Abandoned Aqueduct
-            *//*            Block(itancientloft);      // The Simulacrum
-                        Block(itdampcave);         // The Simulacrum
-                        Block(itfrozenwall);       // The Simulacrum
-                        Block(itgolemplains);      // The Simulacrum
-                        Block(itgoolake);          // The Simulacrum
-                        Block(itmoon);             // The Simulacrum
-                        Block(itskymeadow);        // The Simulacrum*//*
-                        Block(moon2);              // Commencement
-                        Block(rootjungle);         // Sundered Grove
-                        Block(shipgraveyard);      // Siren's Call
-                        Block(skymeadow);          // Sky Meadow
-                        Block(snowyforest);        // Siphoned Forest
-                        Block(sulfurpools);        // Sulfur Pools
-                        Block(voidstage);          // Void Locus
-                        Block(voidraid);           // The Planetarium
-                        Block(wispgraveyard);      // Scorched Acres
-                        // block all hidden realms
-                        Block(artifactworld);      // Hidden Realm: Bulwark's Ambry
-                        Block(bazaar);             // Hidden Realm: Bazaar Between Time
-                        Block(goldshores);         // Hidden Realm: Gilded Coast
-                        Block(limbo);              // Hidden Realm: A Moment, Whole
-                        Block(mysteryspace);       // Hidden Realm: A Moment, Fractured*/
         }
 
         public void UnBlockAll()
@@ -323,7 +255,7 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool UnBlock(int index)
         {
-            string stageName = locationsNames[index];
+            string stageName = LocationNames.cachedLocationsNames[index];
             Log.LogDebug($"UnBlocking environment: index {stageName}.");
             unblocked_string_stages.Add(stageName);
             return blocked_string_stages.Remove(stageName);
@@ -357,7 +289,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             foreach (var scene in unblocked_string_stages)
             {
-                if (locationsNames.ContainsValue(scene))
+                if (LocationNames.cachedLocationsNames.ContainsValue(scene))
                 {
                     ChatMessage.Send($"{scene}");
                 }
