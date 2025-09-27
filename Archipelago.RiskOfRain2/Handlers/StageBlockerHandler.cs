@@ -405,8 +405,16 @@ namespace Archipelago.RiskOfRain2.Handlers
                         WeightedSelection<SceneDef> tier2Selection = new WeightedSelection<SceneDef>();
                         if (!CheckBlocked("habitat")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitat"), 10);
                         if (!CheckBlocked("habitatfall")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitatfall"), 10);
+                        // This will prevent what loop you are on to decided what stage you go to.
+                        if (!runNextStage)
+                        {
+                            self.isAlternatePath = false;
+                        }
                         Run.instance.PickNextStageScene(tier2Selection);
+                        Log.LogDebug($"tier3 Alternate original destination {self.tier3AlternateDestinationScene?.cachedName}");
                         self.tier3AlternateDestinationScene = Run.instance.nextStageScene;
+                        Log.LogDebug($"tier3 Alternate new destination {self.tier3AlternateDestinationScene?.cachedName}");
+                        self.destinationScene = Run.instance.nextStageScene;
                         break;
                     case 3:  
                     case 4:
@@ -680,7 +688,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             manuallyPickingStage = true;
             Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
             manuallyPickingStage = false;
-            if (stages_available.Count > 1)
+            if (stages_available.Count > 0)
             {
                 seerPortal.CreatePortal(stages_available);
             }
@@ -704,9 +712,16 @@ namespace Archipelago.RiskOfRain2.Handlers
                 if (choice.value.cachedName == "habitatfall") hasHabitatFall = true;
             });
 
-            if (hasHabitat && hasHabitatFall)
+            if (hasHabitat || hasHabitatFall)
             {
+                // We need a new sceneGroup here because startingSceneGroup has all the first stages in it and we only want to roll the two alternate stages at this level.
+                SceneCollection habitatSceneGroup = new SceneCollection();
+                SceneCollection originalStartingSceneGroup = self.startingSceneGroup;
+                self.startingSceneGroup = habitatSceneGroup;
                 self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
+                orig(self, choices);
+                self.startingSceneGroup = originalStartingSceneGroup;
+                return;
             }
 
 
