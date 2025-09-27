@@ -45,7 +45,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
         public const int village = 54;          // Shattered Abodes
         public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
-        public const int lemuriantemple = 36;   // Lemurian Temple
+        public const int lemuriantemple = 36;   // Reformed Altar
         public const int habitat = 21;          // Treeborn Colony
         public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
         public const int helminthroost = 23;    // Helminth Hatchery
@@ -81,7 +81,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { 34, "Viscous Falls" },
             { 54, "Shattered Abodes" },
             { 55, "Disturbed Impact" },
-            { 36, "Lemurian Temple" },
+            { 36, "Reformed Altar" },
             { 21, "Treeborn Colony" },
             { 22, "Golden Dieback" },
             { 23, "Helminth Hatchery" },
@@ -247,7 +247,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations.Add(lakesnight,        locationstemplate); // Viscous Falls
             currentlocations.Add(village,           locationstemplate); // Shattered Abodes
             currentlocations.Add(villagenight,      locationstemplate); // Disturbed Impact
-            currentlocations.Add(lemuriantemple,    locationstemplate); // Lemurian Temple
+            currentlocations.Add(lemuriantemple,    locationstemplate); // Reformed Altar
             currentlocations.Add(habitat,           locationstemplate); // Treeborn Colony
             currentlocations.Add(habitatfall,       locationstemplate); // Golden Dieback
             currentlocations.Add(helminthroost,    locationstemplate);  // Helminth Hatchery

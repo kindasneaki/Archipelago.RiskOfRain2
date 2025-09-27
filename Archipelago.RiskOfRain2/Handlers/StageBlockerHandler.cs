@@ -39,7 +39,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
         public const int village = 54;          // Shattered Abodes
         public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
-        public const int lemuriantemple = 36;   // Lemurian Temple
+        public const int lemuriantemple = 36;   // Reformed Altar
         public const int habitat = 21;          // Treeborn Colony
         public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
         public const int helminthroost = 23;    // Helminhe Hatchery
@@ -74,6 +74,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "wispgraveyard", 2 },
             { "lemuriantemple", 1 },
             { "habitat", 2 },
+            { "habitatfall", 2 },
             { "helminthroost", 4 },
             { "meridian", 3 },
         };
@@ -89,7 +90,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "skymeadow", "Sky Meadow" },
             { "sulfurpools", "Sulfur Pools" },
             { "wispgraveyard", "Scorched Acres" },
-            { "lemuriantemple", "Lemurian Temple" },
+            { "lemuriantemple", "Reformed Altar" },
             { "habitat", "Treeborn Colony" },
             { "habitatfall", "Golden Dieback" },
             { "helminthroost", "Helminhe Hatchery" },
@@ -396,7 +397,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 switch (stageOrder)
                 {
                     case 1:
-                        runNextStage = CheckBlocked("lenuriantemple");
+                        runNextStage = CheckBlocked("lemuriantemple");
                         break;
                     case 2:
                         // with habitatfall being a stage you usually cant get to without an initial loop we need to add special handling for it
@@ -405,9 +406,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                         if (!CheckBlocked("habitat")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitat"), 10);
                         if (!CheckBlocked("habitatfall")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitatfall"), 10);
                         Run.instance.PickNextStageScene(tier2Selection);
-                        Log.LogDebug($"next stage Scene testing is {Run.instance.nextStageScene}, alternate destination {self.tier3AlternateDestinationScene}");
                         self.tier3AlternateDestinationScene = Run.instance.nextStageScene;
-                        Log.LogDebug($"next stage Scene testing is {Run.instance.nextStageScene}, alternate destination {self.tier3AlternateDestinationScene}");
                         break;
                     case 3:  
                     case 4:
@@ -695,7 +694,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             // The reason for this is if the player is playing with explore mode, the player's next environment could be in a different already unlocked environment.
             // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
 
-            Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
             bool hasHabitat = false;
             bool hasHabitatFall = false;
 
