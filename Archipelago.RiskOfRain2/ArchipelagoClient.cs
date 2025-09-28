@@ -195,6 +195,10 @@ namespace Archipelago.RiskOfRain2
             {
                 StageBlockerHandler.progressivesStages = Convert.ToBoolean(progressive);
             }
+            if (successResult.SlotData.TryGetValue("showSeerPortals", out var showSeerPortals))
+            {
+                StageBlockerHandler.showSeerPortals = Convert.ToBoolean(showSeerPortals);
+            }
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
                 switch (victory.ToString())

@@ -117,6 +117,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
         public static bool progressivesStages = false;
+        public static bool showSeerPortals = false;
         public static string revertToBeginningMessage = "";
 
         private SeerPortal seerPortal;
@@ -620,7 +621,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             manuallyPickingStage = true;
             Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
             manuallyPickingStage = false;
-            if (stages_available.Count > 0)
+            if (stages_available.Count > 0 && showSeerPortals)
             {
                 seerPortal.CreatePortal(stages_available);
             }

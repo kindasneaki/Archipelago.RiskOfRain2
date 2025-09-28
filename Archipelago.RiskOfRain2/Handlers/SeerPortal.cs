@@ -10,12 +10,13 @@ namespace Archipelago.RiskOfRain2.Handlers
     internal class SeerPortal
     {
         private GameObject portalPrefab;
-        private LocationNames lookupNames;
+        LocationNames locationNames;
+
 
         public void Initialize()
         {
             portalPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/bazaar/SeerStation.prefab").WaitForCompletion();
-            lookupNames = new LocationNames();
+            locationNames = new LocationNames();
         }
         public void CreatePortal(List<SceneDef> sceneDef, float radius = 10f)
         {
@@ -61,7 +62,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
                     purchaseInteraction.Networkcost = 0;
                     purchaseInteraction.cost = 0;
-                    purchaseInteraction.contextToken = lookupNames.GetLocationName(sceneDef[i].cachedName) ?? sceneDef[i].cachedName;
+                    purchaseInteraction.contextToken = locationNames.GetLocationName(sceneDef[i].cachedName) ?? sceneDef[i].cachedName;
                 }
             }
         }
