@@ -54,6 +54,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                                                 // TODO these should probably go somewhere else to better keep track of them since they are used in several places
 
         public LocationNames locationsNames = new LocationNames();
+        public int mostRecentStageGroup = 0;
 
         // Stage Progression system
         public static Dictionary<string, bool> stageUnlocks = new()
@@ -154,6 +155,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
+            On.RoR2.PortalSpawner.Start += PortalSpawner_Start;
         }
 
         public void UnHook()
@@ -174,6 +176,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
+            On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
 
             // Reset values to prevent issues when restarting a run
             blocked_stages = null;
@@ -182,6 +185,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_string_stages = null;
             seerPortal = null;
             stages_available = null;
+            mostRecentStageGroup = 0;
         }
 
         private void SceneDef_AddDestinationsToWeightedSelection(On.RoR2.SceneDef.orig_AddDestinationsToWeightedSelection orig, SceneDef self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
@@ -321,12 +325,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
-            
             if (self.isColossusPortal)
             {
                 bool runNextStage = true;
                 int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
-                Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}.");
+
+                Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}, mostRecent..{mostRecentStageGroup}.");
+                if (stageOrder > 5) stageOrder = mostRecentStageGroup; // if the stage order is greater than 5, use the current scene's stage order instead
+
                 switch (stageOrder)
                 {
                     case 1:
@@ -344,9 +350,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                             self.isAlternatePath = false;
                         }
                         Run.instance.PickNextStageScene(tier2Selection);
-                        Log.LogDebug($"tier3 Alternate original destination {self.tier3AlternateDestinationScene?.cachedName}");
                         self.tier3AlternateDestinationScene = Run.instance.nextStageScene;
-                        Log.LogDebug($"tier3 Alternate new destination {self.tier3AlternateDestinationScene?.cachedName}");
                         self.destinationScene = Run.instance.nextStageScene;
                         break;
                     case 3:  
@@ -367,6 +371,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("SceneExitController_SetState forcefully reroll next stagescene");
                 manuallyPickingStage = false;
             }
+            mostRecentStageGroup = SceneCatalog.mostRecentSceneDef.stageOrder;
             orig(self);
         }
 
@@ -412,16 +417,25 @@ namespace Archipelago.RiskOfRain2.Handlers
                                 }
                                 else gi.SetInteractabilityAvailable();
                                 break;
-                            // not blocking voidraid:
-                            // NOTE: Planetarium has two entrances, one in Void Locus and one in Commencement
-                            // Since this currently seems like an edge case where the player would truely decide to do both
-                            //  if the player gets the Planetarium portal from Void Locus, they can travel there.
-                            // Only the glass frog interaction in Commencement will be blocked.
-                            // This also prevents the player from becoming stuck.
+                            case "PORTAL_GOLDSHORES_CONTEXT":
+                                if (CheckBlocked("goldshores"))
+                                {
+                                    // prevents goldshores from being used from the halcyon shrine if not unlocked
+                                    ChatMessage.SendColored("The gold portal was missing the key to enter but stayed to taunt you.", Color.yellow);
+                                    gi.SetInteractabilityConditionsNotMet();
+                                }
+                                else gi.SetInteractabilityAvailable();
+                                break;
+                                // not blocking voidraid:
+                                // NOTE: Planetarium has two entrances, one in Void Locus and one in Commencement
+                                // Since this currently seems like an edge case where the player would truely decide to do both
+                                //  if the player gets the Planetarium portal from Void Locus, they can travel there.
+                                // Only the glass frog interaction in Commencement will be blocked.
+                                // This also prevents the player from becoming stuck.
 
-                            // Arguably the other portals could be handled here as well,
-                            // however it seems more user friendly to just not spawn the portal at all rather
-                            // than spawn the portal and make it unable to be interacted with.
+                                // Arguably the other portals could be handled here as well,
+                                // however it seems more user friendly to just not spawn the portal at all rather
+                                // than spawn the portal and make it unable to be interacted with.
                         }
                     }
                 }
@@ -592,6 +606,16 @@ namespace Archipelago.RiskOfRain2.Handlers
                     ChatMessage.Send("The celestial portal decided you aren't ready!");
                 }
                 self.shouldAttemptToSpawnMSPortal = false;
+            }
+            orig(self);
+        }
+
+        private void PortalSpawner_Start(On.RoR2.PortalSpawner.orig_Start orig, PortalSpawner self)
+        {
+
+            if (self.bannedEventFlag == "FalseSonBossComplete")
+            {
+                self.bannedEventFlag = ""; // this prevents the colossus portal from being blocked after false son has been defeated
             }
             orig(self);
         }
