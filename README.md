@@ -73,6 +73,25 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.5.0**
+* **Seekers Of The Storm DLC support added.**
+    * New Stages for Archipelago Explore Mode:
+        * Shattered Abodes added
+        * Helminth Hatchery added 
+        * **Alternate paths:** (Colossus Portal)
+            * Reformed Altar
+            * Treeborn Colony
+            * Golden Dieback (Variant stage for Treeborn Colony)
+            * Prime Meridian
+        * **Variant Stages added:**
+            * Disturbed Impact added (Variant stage for Shattered Abodes)
+            * Viscious Falls (Variant stage for Verdant Falls)
+    * **New Ending**:
+        * Rebirth (Requires beating False Son)
+* **New Seer Portal System added.**
+    * Spawns seer portals on the teleporter to allow for easier access to stages you have unlocked.
+* **Updated Multiclient.net to 6.6.1**
+
 **1.4.9**
 * **Bug Fixes:**
     * Always use CachedName instead of baseStageName for the stage name in explore mode.

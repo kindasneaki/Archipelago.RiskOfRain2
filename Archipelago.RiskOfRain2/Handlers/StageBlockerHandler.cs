@@ -1,12 +1,12 @@
-﻿using EntityStates;
-using Archipelago.RiskOfRain2.Console;
+﻿using Archipelago.RiskOfRain2.Console;
+using Archipelago.RiskOfRain2.Lookup;
+using EntityStates;
 using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Linq;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -15,7 +15,6 @@ namespace Archipelago.RiskOfRain2.Handlers
         // setup all scene indexes as magic numbers
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
-        public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int arena = 4;             // Void Fields
         public const int lakes = 28;            // Verdant Falls
         public const int blackbeach = 7;        // Distant Roost
@@ -26,22 +25,26 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int golemplains = 15;      // Titanic Plains
         public const int golemplains2 = 16;     // Titanic Plains
         public const int goolake = 17;          // Abandoned Aqueduct
-        public const int itancientloft = 20;    // The Simulacrum
-        public const int itdampcave = 21;       // The Simulacrum
-        public const int itfrozenwall = 22;     // The Simulacrum
-        public const int itgolemplains = 23;    // The Simulacrum
-        public const int itgoolake = 24;        // The Simulacrum
-        public const int itmoon = 25;           // The Simulacrum
-        public const int itskymeadow = 26;      // The Simulacrum
         public const int moon2 = 32;            // Commencement
         public const int rootjungle = 35;       // Sundered Grove
         public const int shipgraveyard = 37;    // Siren's Call
         public const int skymeadow = 38;        // Sky Meadow
+        public const int wispgraveyard = 47;    // Scorched Acres
+        // Survivors of the Void
         public const int snowyforest = 39;      // Siphoned Forest
+        public const int ancientloft = 3;       // Aphelian Sanctuary
         public const int sulfurpools = 41;      // Sulfur Pools
         public const int voidstage = 46;        // Void Locus
         public const int voidraid = 45;         // The Planetarium
-        public const int wispgraveyard = 47;    // Scorched Acres
+        // Seekers of the Storm
+        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
+        public const int village = 54;          // Shattered Abodes
+        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
+        public const int lemuriantemple = 36;   // Reformed Altar
+        public const int habitat = 21;          // Treeborn Colony
+        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
+        public const int helminthroost = 23;    // Helminhe Hatchery
+        public const int meridian = 40;         // Prime Meridian
         // hidden realms
         public const int artifactworld = 5;     // Hidden Realm: Bulwark's Ambry
         public const int bazaar = 6;            // Hidden Realm: Bazaar Between Time
@@ -49,6 +52,11 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int limbo = 27;            // Hidden Realm: A Moment, Whole
         public const int mysteryspace = 33;     // Hidden Realm: A Moment, Fractured
                                                 // TODO these should probably go somewhere else to better keep track of them since they are used in several places
+
+        public LocationNames locationsNames = new LocationNames();
+        public int mostRecentStageGroup = 0;
+
+        // Stage Progression system
         public static Dictionary<string, bool> stageUnlocks = new()
         {
             { "Stage 1", false },
@@ -70,7 +78,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "skymeadow", 4 },
             { "sulfurpools", 2 },
             { "wispgraveyard", 2 },
+            { "lemuriantemple", 1 },
+            { "habitat", 2 },
+            { "habitatfall", 2 },
+            { "helminthroost", 4 },
+            { "meridian", 3 },
         };
+
+        // Used to display the full location names in chat when a stage is needed to progress
         public readonly Dictionary<string, string> locationNames = new()
         {
             { "ancientloft", "Aphelian Sanctuary" },
@@ -83,35 +98,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "skymeadow", "Sky Meadow" },
             { "sulfurpools", "Sulfur Pools" },
             { "wispgraveyard", "Scorched Acres" },
+            { "lemuriantemple", "Reformed Altar" },
+            { "habitat", "Treeborn Colony" },
+            { "habitatfall", "Golden Dieback" },
+            { "helminthroost", "Helminhe Hatchery" },
+            { "meridian", "Prime Meridian" },
         };
-        public static readonly Dictionary<int, string> locationsNames = new()
-        {
-            { 3, "ancientloft" },
-            { 4, "arena" },
-            { 5, "artifactworld" },
-            { 6, "bazaar" },
-            { 7, "blackbeach" },
-            { 8, "blackbeach2" },
-            { 10, "dampcavesimple" },
-            { 12, "foggyswamp" },
-            { 13, "frozenwall" },
-            { 14, "goldshores" },
-            { 15, "golemplains" },
-            { 16, "golemplains2" },
-            { 17, "goolake" },
-            { 27, "limbo" },
-            { 28, "lakes"},
-            { 32, "moon2" },
-            { 33, "mysteryspace" },
-            { 35, "rootjungle" },
-            { 37, "shipgraveyard" },
-            { 38, "skymeadow" },
-            { 39, "snowyforest" },
-            { 41, "sulfurpools" },
-            { 45, "voidraid" },
-            { 46, "voidstage" },
-            { 47, "wispgraveyard" },
-        };
+        // End Stage Progression system
+
 
         // A list of stages that should be blocked because they are locked by archipelago
         // uses scene names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
@@ -119,11 +113,15 @@ namespace Archipelago.RiskOfRain2.Handlers
         List<int> unblocked_stages;
         List<string> blocked_string_stages;
         List<string> unblocked_string_stages;
+        List<SceneDef> stages_available;
         private bool manuallyPickingStage = false; // used to keep track of when the call to PickNextStageScene is from the StageBlocker
         private bool voidPortalSpawned = false; // used for the deep void portal in Void Locus.
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
         public static bool progressivesStages = false;
+        public static bool showSeerPortals = false;
         public static string revertToBeginningMessage = "";
+
+        private SeerPortal seerPortal;
 
         public StageBlockerHandler()
         {
@@ -132,6 +130,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             unblocked_stages = new List<int>();
             blocked_string_stages = new List<string>();
             unblocked_string_stages = new List<string>();
+            stages_available = new List<SceneDef>();
             amountOfStages = 0;
 
             // blocking stages should be down by the owner of this object
@@ -139,6 +138,7 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         public void Hook()
         {
+            On.RoR2.SceneDirector.PlaceTeleporter += SceneDirector_PlaceTeleporter;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals += TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene += SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter += ReadyToEndGame_OnEnter;
@@ -154,22 +154,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.FixedUpdate += VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable += VoidStageMissionController_OnDisable;
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
-        }
-
-
-
-        private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
-        {
-            orig(self);
-            if (revertToBeginningMessage != "")
-            {
-                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
-                revertToBeginningMessage = "";
-            }
+            On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
+            On.RoR2.PortalSpawner.Start += PortalSpawner_Start;
         }
 
         public void UnHook()
         {
+            On.RoR2.SceneDirector.PlaceTeleporter -= SceneDirector_PlaceTeleporter;
             On.RoR2.TeleporterInteraction.AttemptToSpawnAllEligiblePortals -= TeleporterInteraction_AttemptToSpawnAllEligiblePortals1;
             On.RoR2.SeerStationController.SetTargetScene -= SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter -= ReadyToEndGame_OnEnter;
@@ -184,10 +175,41 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.UI.ChatBox.OnEnable -= ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
+            On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
+            On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
+
+            // Reset values to prevent issues when restarting a run
             blocked_stages = null;
             unblocked_stages = null;
             blocked_string_stages = null;
             unblocked_string_stages = null;
+            seerPortal = null;
+            stages_available = null;
+            mostRecentStageGroup = 0;
+        }
+
+        private void SceneDef_AddDestinationsToWeightedSelection(On.RoR2.SceneDef.orig_AddDestinationsToWeightedSelection orig, SceneDef self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
+        {
+            // This forces it to use the normal destination group instead of switching to the looped group after the first loop. (the looped ones are in this group for some reason).
+            // This is probably really unstable with updates to the game but I don't see any other way to do this currently.
+            if (self.destinationsGroup)
+            {
+                self.destinationsGroup.AddToWeightedSelection(dest, canAdd);
+            }
+            else
+            {
+                orig(self, dest, canAdd);
+            }
+        }
+
+        private void ChatBox_OnEnable(On.RoR2.UI.ChatBox.orig_OnEnable orig, RoR2.UI.ChatBox self)
+        {
+            orig(self);
+            if (revertToBeginningMessage != "")
+            {
+                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
+                revertToBeginningMessage = "";
+            }
         }
 
         public void BlockAll()
@@ -195,54 +217,20 @@ namespace Archipelago.RiskOfRain2.Handlers
             foreach (SceneDef scenedef in SceneCatalog.allSceneDefs)
             {
                 Log.LogDebug($"scene index {SceneCatalog.FindSceneIndex(scenedef.cachedName)} scene name {scenedef.cachedName}");
+                Log.LogDebug($"blocked by loop? {scenedef.isLockedBeforeLooping}");               
+                scenedef.isLockedBeforeLooping = false; // this is only used for the bazaar to block them before the first loop which we dont want
+
                 if (scenedef.sceneType == SceneType.Stage || scenedef.sceneType == SceneType.Intermission)
                 {
                     SceneIndex index = SceneCatalog.FindSceneIndex(scenedef.cachedName);
                     if (index == SceneIndex.Invalid) return;
-                    
+
                     Block(scenedef.cachedName);
 
                 }
             }
-            // TODO add support for only blocking environments known to be in the pool
-            // (eg. simulacrum should not be blocked if not in the pool, otherwise it would be permanently locked)
-            Log.LogDebug($"StageBlocker blocking all...");
 
             // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
-            // block all main scenes
-/*            Block(ancientloft);        // Aphelian Sanctuary
-            Block(arena);              // Void Fields
-            Block(lakes);              // Verdant Falls
-            Block(blackbeach);         // Distant Roost
-            Block(blackbeach2);        // Distant Roost
-            Block(dampcavesimple);     // Abyssal Depths
-            Block(foggyswamp);         // Wetland Aspect
-            Block(frozenwall);         // Rallypoint Delta
-            Block(golemplains);        // Titanic Plains
-            Block(golemplains2);       // Titanic Plains
-            Block(goolake);            // Abandoned Aqueduct
-*//*            Block(itancientloft);      // The Simulacrum
-            Block(itdampcave);         // The Simulacrum
-            Block(itfrozenwall);       // The Simulacrum
-            Block(itgolemplains);      // The Simulacrum
-            Block(itgoolake);          // The Simulacrum
-            Block(itmoon);             // The Simulacrum
-            Block(itskymeadow);        // The Simulacrum*//*
-            Block(moon2);              // Commencement
-            Block(rootjungle);         // Sundered Grove
-            Block(shipgraveyard);      // Siren's Call
-            Block(skymeadow);          // Sky Meadow
-            Block(snowyforest);        // Siphoned Forest
-            Block(sulfurpools);        // Sulfur Pools
-            Block(voidstage);          // Void Locus
-            Block(voidraid);           // The Planetarium
-            Block(wispgraveyard);      // Scorched Acres
-            // block all hidden realms
-            Block(artifactworld);      // Hidden Realm: Bulwark's Ambry
-            Block(bazaar);             // Hidden Realm: Bazaar Between Time
-            Block(goldshores);         // Hidden Realm: Gilded Coast
-            Block(limbo);              // Hidden Realm: A Moment, Whole
-            Block(mysteryspace);       // Hidden Realm: A Moment, Fractured*/
         }
 
         public void UnBlockAll()
@@ -272,7 +260,7 @@ namespace Archipelago.RiskOfRain2.Handlers
          */
         public bool UnBlock(int index)
         {
-            string stageName = locationsNames[index];
+            string stageName = LocationNames.cachedLocationsNames[index];
             Log.LogDebug($"UnBlocking environment: index {stageName}.");
             unblocked_string_stages.Add(stageName);
             return blocked_string_stages.Remove(stageName);
@@ -306,7 +294,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             foreach (var scene in unblocked_string_stages)
             {
-                if (locationsNames.ContainsValue(scene))
+                if (LocationNames.cachedLocationsNames.ContainsValue(scene))
                 {
                     ChatMessage.Send($"{scene}");
                 }
@@ -337,10 +325,43 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
-
             if (self.isColossusPortal)
             {
-                self.useRunNextStageScene = true;
+                bool runNextStage = true;
+                int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
+
+                Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}, mostRecent..{mostRecentStageGroup}.");
+                if (stageOrder > 5) stageOrder = mostRecentStageGroup; // if the stage order is greater than 5, use the current scene's stage order instead
+
+                switch (stageOrder)
+                {
+                    case 1:
+                        runNextStage = CheckBlocked("lemuriantemple");
+                        break;
+                    case 2:
+                        // with habitatfall being a stage you usually cant get to without an initial loop we need to add special handling for it
+                        runNextStage = CheckBlocked("habitat") && CheckBlocked("habitatfall");
+                        WeightedSelection<SceneDef> tier2Selection = new WeightedSelection<SceneDef>();
+                        if (!CheckBlocked("habitat")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitat"), 10);
+                        if (!CheckBlocked("habitatfall")) tier2Selection.AddChoice(SceneCatalog.FindSceneDef("habitatfall"), 10);
+                        // This will prevent what loop you are on to decided what stage you go to.
+                        if (!runNextStage)
+                        {
+                            self.isAlternatePath = false;
+                        }
+                        Run.instance.PickNextStageScene(tier2Selection);
+                        self.tier3AlternateDestinationScene = Run.instance.nextStageScene;
+                        self.destinationScene = Run.instance.nextStageScene;
+                        break;
+                    case 3:  
+                    case 4:
+                    case 5:
+                        runNextStage = CheckBlocked("meridian");
+                        break;
+                }
+               
+
+                self.useRunNextStageScene = runNextStage;
             }
 
             if (self.useRunNextStageScene)
@@ -350,6 +371,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("SceneExitController_SetState forcefully reroll next stagescene");
                 manuallyPickingStage = false;
             }
+            mostRecentStageGroup = SceneCatalog.mostRecentSceneDef.stageOrder;
             orig(self);
         }
 
@@ -395,16 +417,25 @@ namespace Archipelago.RiskOfRain2.Handlers
                                 }
                                 else gi.SetInteractabilityAvailable();
                                 break;
-                            // not blocking voidraid:
-                            // NOTE: Planetarium has two entrances, one in Void Locus and one in Commencement
-                            // Since this currently seems like an edge case where the player would truely decide to do both
-                            //  if the player gets the Planetarium portal from Void Locus, they can travel there.
-                            // Only the glass frog interaction in Commencement will be blocked.
-                            // This also prevents the player from becoming stuck.
+                            case "PORTAL_GOLDSHORES_CONTEXT":
+                                if (CheckBlocked("goldshores"))
+                                {
+                                    // prevents goldshores from being used from the halcyon shrine if not unlocked
+                                    ChatMessage.SendColored("The gold portal was missing the key to enter but stayed to taunt you.", Color.yellow);
+                                    gi.SetInteractabilityConditionsNotMet();
+                                }
+                                else gi.SetInteractabilityAvailable();
+                                break;
+                                // not blocking voidraid:
+                                // NOTE: Planetarium has two entrances, one in Void Locus and one in Commencement
+                                // Since this currently seems like an edge case where the player would truely decide to do both
+                                //  if the player gets the Planetarium portal from Void Locus, they can travel there.
+                                // Only the glass frog interaction in Commencement will be blocked.
+                                // This also prevents the player from becoming stuck.
 
-                            // Arguably the other portals could be handled here as well,
-                            // however it seems more user friendly to just not spawn the portal at all rather
-                            // than spawn the portal and make it unable to be interacted with.
+                                // Arguably the other portals could be handled here as well,
+                                // however it seems more user friendly to just not spawn the portal at all rather
+                                // than spawn the portal and make it unable to be interacted with.
                         }
                     }
                 }
@@ -527,6 +558,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self, sceneDef);
         }
 
+        private void SceneDirector_PlaceTeleporter(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
+        {
+            orig(self);
+            seerPortal = null;
+            seerPortal = new SeerPortal();
+            seerPortal.Initialize();
+        }
+
         /**
          * Block portals for blocked environments that would be spawned by the finishing teleporter event.
          */
@@ -540,7 +579,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Hidden Realm: Bazaar Between Time
             // Hidden Realm: Gilded Coast
             // Hidden Realm: A Moment, Fractured
-
+            GetAvailableStages();
             if (CheckBlocked("bazaar"))
             {
                 if (self.shouldAttemptToSpawnShopPortal)
@@ -571,6 +610,16 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self);
         }
 
+        private void PortalSpawner_Start(On.RoR2.PortalSpawner.orig_Start orig, PortalSpawner self)
+        {
+
+            if (self.bannedEventFlag == "FalseSonBossComplete")
+            {
+                self.bannedEventFlag = ""; // this prevents the colossus portal from being blocked after false son has been defeated
+            }
+            orig(self);
+        }
+
         /**
          * Forcefully fail to the CanPickStage check for stages that are blocked.
          */
@@ -584,10 +633,22 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("blocking.");
                 return false;
             }
-
+            stages_available.Add(scenedef);
             Log.LogDebug("passing through.");
 
             return orig(self, scenedef);
+        }
+
+        public void GetAvailableStages()
+        {
+            stages_available.Clear();
+            manuallyPickingStage = true;
+            Run.instance.PickNextStageSceneFromCurrentSceneDestinations();
+            manuallyPickingStage = false;
+            if (stages_available.Count > 0 && showSeerPortals)
+            {
+                seerPortal.CreatePortal(stages_available);
+            }
         }
 
         private void Run_PickNextStageScene(On.RoR2.Run.orig_PickNextStageScene orig, Run self, WeightedSelection<SceneDef> choices)
@@ -598,7 +659,28 @@ namespace Archipelago.RiskOfRain2.Handlers
             // The reason for this is if the player is playing with explore mode, the player's next environment could be in a different already unlocked environment.
             // Thus if the next unlock is somewhere, it would be nice to the the player get to that somewhere without restarting the run.
 
-            Log.LogDebug($"recent scene {SceneCatalog.mostRecentSceneDef.sceneDefIndex} in stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
+            bool hasHabitat = false;
+            bool hasHabitatFall = false;
+
+            // Since hatitatfall is a stage you usually cant get to without an initial loop we need to add special handling for it
+            choices.choices.ForEachTry( choice =>
+            {
+                if (choice.value.cachedName == "habitat") hasHabitat = true;
+                if (choice.value.cachedName == "habitatfall") hasHabitatFall = true;
+            });
+
+            if (hasHabitat || hasHabitatFall)
+            {
+                // We need a new sceneGroup here because startingSceneGroup has all the first stages in it and we only want to roll the two alternate stages at this level.
+                SceneCollection habitatSceneGroup = new SceneCollection();
+                SceneCollection originalStartingSceneGroup = self.startingSceneGroup;
+                self.startingSceneGroup = habitatSceneGroup;
+                self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
+                orig(self, choices);
+                self.startingSceneGroup = originalStartingSceneGroup;
+                return;
+            }
+
 
             // 46 = Void Locus and if you are on that stage and you dont have The Planetarium the player will be moved back to orderedstage 1.
             if (SceneCatalog.mostRecentSceneDef.cachedName == "voidstage" && CheckBlocked("voidraid"))

@@ -89,8 +89,6 @@ namespace Archipelago.RiskOfRain2
             On.RoR2.SurvivorPodController.OnPassengerExit += SurvivorPodController_OnPassengerExit;
             Log.LogDebug("Okay finished hooking.");
             smokescreenPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Junk/Bandit/SmokescreenEffect.prefab").WaitForCompletion();
-            // TODO Spawns the seerStation portal to pick where to go.. changing the id in game doesn't work.. looks to be a NetworkBehavior thing
-            // portalPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/bazaar/SeerStation.prefab").WaitForCompletion();
             
             Log.LogDebug("Okay, finished getting prefab.");
             Log.LogDebug($"smokescreen {smokescreenPrefab}");
@@ -607,7 +605,7 @@ namespace Archipelago.RiskOfRain2
                         GiveItemToPlayers(PickupCatalog.FindPickupIndex(RoR2Content.Items.ExtraLife.itemIndex), player);
                     }
                     break;
-                
+                   
             }
         }
 
@@ -899,7 +897,6 @@ namespace Archipelago.RiskOfRain2
             if (!spawnItem)
             {
                 EffectManager.SpawnEffect(smokescreenPrefab, new EffectData() { origin = position }, true);
-                // SpawnPortal(position);
             }
 
             new SyncTotalCheckProgress(finishedAllChecks ? TotalChecks : CurrentChecks, TotalChecks).Send(NetworkDestination.Clients);

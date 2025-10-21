@@ -12,6 +12,7 @@ using UnityEngine.Networking;
 using R2API.Utils;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
+using Archipelago.RiskOfRain2.Lookup;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -41,35 +42,16 @@ namespace Archipelago.RiskOfRain2.Handlers
         public const int snowyforest = 39;      // Siphoned Forest
         public const int sulfurpools = 41;      // Sulfur Pools
         public const int wispgraveyard = 47;    // Scorched Acres
+        // Seekers of the Storm
+        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
+        public const int village = 54;          // Shattered Abodes
+        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
+        public const int lemuriantemple = 36;   // Reformed Altar
+        public const int habitat = 21;          // Treeborn Colony
+        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
+        public const int helminthroost = 23;    // Helminth Hatchery
+        public const int meridian = 40;         // Prime Meridian
 
-        public static readonly Dictionary<int, string> locationsNames = new()
-        {
-            { 3, "Aphelian Sanctuary" },
-            { 7, "Distant Roost" },
-            { 8, "Distant Roost (2)" },
-            { 28, "Verdant Falls"},
-            { 10, "Abyssal Depths" },
-            { 12, "Wetland Aspect" },
-            { 13, "Rallypoint Delta" },
-            { 15, "Titanic Plains" },
-            { 16, "Titanic Plains (2)" },
-            { 17, "Abandoned Aqueduct" },
-            { 35, "Sundered Grove" },
-            { 37, "Siren's Call" },
-            { 38, "Sky Meadow" },
-            { 39, "Siphoned Forest" },
-            { 41, "Sulfur Pools" },
-            { 47, "Scorched Acres" },
-            { 32, "Commencement" },
-            { 4, "Void Fields" },
-            { 46, "Void Locus" },
-            { 45, "The Planetarium" },
-            { 5, "Hidden Realm: Bulwark's Ambry"},
-            { 6, "Hidden Realm: Bazaar Between Time"},
-            { 14, "Hidden Realm: Gilded Coast" },
-            { 27, "Hidden Realm: A Moment, Whole"},
-            { 33, "Hidden Realm: A Moment, Fractured" },
-        };
         public static int sceneIndex = 0;
         public enum LocationTypes
         {
@@ -153,10 +135,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 SceneDef scene = LocationHandler.GetLocationScene();
                 /*                Log.LogDebug($"{scene.sceneDefIndex} scene this");*/
-                if (locationsNames.ContainsKey(sceneIndex))
+                if (LocationNames.locationsNames.ContainsKey(sceneIndex))
                 {
-                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{locationsNames[sceneIndex]}";
-                    return $"{locationsNames[sceneIndex]}";
+                    ArchipelagoLocationsInEnvironmentController.CurrentScene = $"{LocationNames.locationsNames[sceneIndex]}";
+                    return $"{LocationNames.locationsNames[sceneIndex]}";
                 }
                 ArchipelagoLocationsInEnvironmentController.CurrentScene = $"Environment Location";
                 return $"Environment Location";
@@ -226,6 +208,14 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations.Add(snowyforest,       locationstemplate); // Siphoned Forest
             currentlocations.Add(sulfurpools,       locationstemplate); // Sulfur Pools
             currentlocations.Add(wispgraveyard,     locationstemplate); // Scorched Acres
+            // Seekers of the Storm
+            currentlocations.Add(lakesnight,        locationstemplate); // Viscous Falls
+            currentlocations.Add(village,           locationstemplate); // Shattered Abodes
+            currentlocations.Add(villagenight,      locationstemplate); // Disturbed Impact
+            currentlocations.Add(lemuriantemple,    locationstemplate); // Reformed Altar
+            currentlocations.Add(habitat,           locationstemplate); // Treeborn Colony
+            currentlocations.Add(habitatfall,       locationstemplate); // Golden Dieback
+            currentlocations.Add(helminthroost,    locationstemplate);  // Helminth Hatchery
             // TODO separate out the DLC locations
         }
 
@@ -283,6 +273,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ShrineRestackBehavior.AddShrineStack += ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
+            On.RoR2.ShrineColossusAccessBehavior.OnInteraction += ShrineColossusAccessBehavior_OnInteraction;
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter += Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Scavenger;
@@ -346,6 +337,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.ShrineRestackBehavior.AddShrineStack -= ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards;
             On.RoR2.ShrineHealingBehavior.AddShrineStack -= ShrineHealingBehavior_AddShrineStack;
+            On.RoR2.ShrineColossusAccessBehavior.OnInteraction -= ShrineColossusAccessBehavior_OnInteraction;
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter -= Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Scavenger;
@@ -396,7 +388,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         public void GetCurrentSceneIndex()
         {
-            foreach (var scene in StageBlockerHandler.locationsNames)
+            foreach (var scene in LocationNames.cachedLocationsNames)
             {
                 if (scene.Value == sceneDef.cachedName)
                 {
@@ -408,7 +400,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         public int GetSceneIndex(string sceneName)
         {
-            foreach (var scene in StageBlockerHandler.locationsNames)
+            foreach (var scene in LocationNames.cachedLocationsNames)
             {
                 if (scene.Value == sceneName)
                 {
@@ -691,7 +683,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
             // Therefore we need to manually make sure the call here is not from the backpack.
-            if(NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
+            if (NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
             {
                 chestblockitem = chestOpened();
             }
@@ -892,6 +884,17 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
             if (self.purchaseCount == 1) ChatMessage.Send("Hmm thats weird, maybe try again");
         }
+
+        private void ShrineColossusAccessBehavior_OnInteraction(On.RoR2.ShrineColossusAccessBehavior.orig_OnInteraction orig, ShrineColossusAccessBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            shrineBeat();
+        }
+
+        /// <summary>
+        /// Interacting with colossus shrine beats it.
+        /// </summary>
+
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -101,7 +101,7 @@ namespace Archipelago.RiskOfRain2
             {
                 lastReceivedItemindex = 0;
             }
-            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 5, 0), password: password);
+            var result = session.TryConnectAndLogin("Risk of Rain 2", slotName, ItemsHandlingFlags.AllItems, new Version(0, 6, 4), password: password);
 
             if (!result.Successful)
             {
@@ -195,6 +195,10 @@ namespace Archipelago.RiskOfRain2
             {
                 StageBlockerHandler.progressivesStages = Convert.ToBoolean(progressive);
             }
+            if (successResult.SlotData.TryGetValue("showSeerPortals", out var showSeerPortals))
+            {
+                StageBlockerHandler.showSeerPortals = Convert.ToBoolean(showSeerPortals);
+            }
             if (successResult.SlotData.TryGetValue("victory", out var victory))
             {
                 switch (victory.ToString())
@@ -217,20 +221,26 @@ namespace Archipelago.RiskOfRain2
                         acceptableLosses = new[] { "mysteryspace", "limbo" };
                         victoryCondition = "Limbo";
                         break;
+                    case "4":
+                        acceptableEndings = new[] { DLC2Content.GameEndings.RebirthEndingDef };
+                        victoryCondition = "Rebirth";
+                        break;
                     default:
                         victoryCondition = "any";
                         acceptableEndings = new[] {
                             RoR2Content.GameEndings.MainEnding, 
                             //RoR2Content.GameEndings.ObliterationEnding, 
                             RoR2Content.GameEndings.LimboEnding,
-                            DLC1Content.GameEndings.VoidEnding
+                            DLC1Content.GameEndings.VoidEnding,
+                            DLC2Content.GameEndings.RebirthEndingDef
                         };
                         acceptableLosses = new[] {
                             "moon",
                             "moon2",
                             "voidraid",
                             "mysteryspace",
-                            "limbo"
+                            "limbo",
+                            "meridian"
                         };
                         break;
 
@@ -243,14 +253,16 @@ namespace Archipelago.RiskOfRain2
                     RoR2Content.GameEndings.MainEnding, 
                     //RoR2Content.GameEndings.ObliterationEnding, 
                     RoR2Content.GameEndings.LimboEnding,
-                    DLC1Content.GameEndings.VoidEnding
+                    DLC1Content.GameEndings.VoidEnding,
+                    DLC2Content.GameEndings.RebirthEndingDef
                 };
                 acceptableLosses = new[] {
                     "moon",
                     "moon2",
                     "voidraid",
                     "mysteryspace",
-                    "limbo"
+                    "limbo",
+                    "meridian"
                 };
             }
             // make the bar if for it has not been created because classic mode or the slot data was missing
