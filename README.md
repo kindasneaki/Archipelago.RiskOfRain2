@@ -72,6 +72,9 @@ Keep password blank if there is no password on the server.
 Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
+**1.5.2**
+*  **Bug Fixes:**
+    * Fixed items not counting as checks when related to pickupDropletController
 
 **1.5.1**
 * Update for Allooyed Collective Patch

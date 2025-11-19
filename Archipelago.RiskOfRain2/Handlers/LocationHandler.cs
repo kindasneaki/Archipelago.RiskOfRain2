@@ -262,13 +262,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SceneCollection.AddToWeightedSelection += SceneCollection_AddToWeightedSelection;
             // Chests
             On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath += SacrificeArtifactManager_OnServerCharacterDeath;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChestDrop;
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
             On.RoR2.CharacterMaster.GiveMoney += CharacterMaster_GiveMoney;
             On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChanceShrine;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack += ShrineCombatBehavior_AddShrineStack;
             On.RoR2.ShrineRestackBehavior.AddShrineStack += ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
@@ -277,7 +277,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter += Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Scavenger;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Scavenger;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Scavenger;
             // Void Triple Chest
            /* On.RoR2.PurchaseInteraction.OnInteractionBegin += PurchaseInteraction_OnInteractionBegin;
             On.RoR2.OptionChestBehavior.ItemDrop += OptionChestBehavior_ItemDrop;
@@ -292,6 +292,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Highlight Satellite
             
         }
+
 
 
         /*        private void PickupDropletController_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
@@ -326,13 +327,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Chests
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
             On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath -= SacrificeArtifactManager_OnServerCharacterDeath;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChestDrop;
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack -= ShrineBloodBehavior_AddShrineStack;
             On.RoR2.CharacterMaster.GiveMoney -= CharacterMaster_GiveMoney;
             On.RoR2.ShrineChanceBehavior.AddShrineStack -= ShrineChanceBehavior_AddShrineStack;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChanceShrine;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack -= ShrineCombatBehavior_AddShrineStack;
             On.RoR2.ShrineRestackBehavior.AddShrineStack -= ShrineRestackBehavior_AddShrineStack;
             On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards;
@@ -341,7 +342,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Scavengers
             On.EntityStates.ScavBackpack.Opening.OnEnter -= Opening_OnEnter;
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Scavenger;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Scavenger;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Scavenger;
             // Radio Scanners
             On.RoR2.SceneDirector.PopulateScene -= SceneDirector_PopulateScene;
             On.RoR2.RadiotowerTerminal.GrantUnlock -= RadiotowerTerminal_GrantUnlock;
@@ -586,7 +587,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop_Chest;
                 On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath += SacrificeArtifactManager_OnServerCharacterDeath;
-                On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_Chest;
+                On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChestDrop;
             }
             // update the UI to match the new environment
             for (int type = 0; type < (int)LocationTypes.MAX; type++)
@@ -612,7 +613,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
             On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath -= SacrificeArtifactManager_OnServerCharacterDeath;
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChestDrop;
             orig(self);
         }
         private void SceneCollection_AddToWeightedSelection(On.RoR2.SceneCollection.orig_AddToWeightedSelection orig, SceneCollection self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
@@ -660,7 +661,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop_Chest;
                 On.RoR2.Artifacts.SacrificeArtifactManager.OnServerCharacterDeath -= SacrificeArtifactManager_OnServerCharacterDeath;
-                On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_Chest;
+                On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChestDrop;
             }
             // only count when checks are avaiable OR when counting does not roll over
             if (locationavailable || 0 != (chestitemsPickedUp + 1) % itemPickupStep)
@@ -705,7 +706,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             sacrificeitem = false;
         }
 
-        private void PickupDropletController_CreatePickupDroplet_Chest(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        private void PickupDropletController_CreatePickupDroplet_ChestDrop(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
             // check if the item is being dropped by sacrifice
             if (sacrificeitem)
@@ -713,12 +714,12 @@ namespace Archipelago.RiskOfRain2.Handlers
                 // if the item is from sacrifice, treat it as opening a chest
                 if (chestOpened())
                 {
-                    Log.LogDebug($"sacrifice chest item {pickupIndex} was used to satisfy a location and thus is consumed");
+                    Log.LogDebug($"sacrifice chest item {pickupInfo._pickupState} was used to satisfy a location and thus is consumed");
                     return;
                 }
-                Log.LogDebug($"sacrifice chest item {pickupIndex} passed through");
+                Log.LogDebug($"sacrifice chest item {pickupInfo._pickupState} passed through");
             }
-            orig(pickupIndex, position, velocity);
+            orig(pickupInfo, position, velocity);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -809,7 +810,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (chanceshrinebeat) shrineBeat();
         }
 
-        private void PickupDropletController_CreatePickupDroplet_ChanceShrine(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, RoR2.PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        private void PickupDropletController_CreatePickupDroplet_ChanceShrine(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
             // when an item dropplet is made, we will consider the shrine beat
             chanceshrinebeat = true;
@@ -819,10 +820,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             // check if the item being dropped is being asked to not drop
             if (chanceshrineblockitem)
             {
-                Log.LogDebug($"chance shrine item {pickupIndex} was used to satisfy a location and thus is consumed");
+                Log.LogDebug($"chance shrine item {pickupInfo._pickupState} was used to satisfy a location and thus is consumed");
                 return;
             }
-            orig(pickupIndex, position, velocity);
+            orig(pickupInfo, position, velocity);
         }
 
         /// <summary>
@@ -924,7 +925,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             scavbackpackblockitem = false;
         }
 
-        private void PickupDropletController_CreatePickupDroplet_Scavenger(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, PickupIndex pickupIndex, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
+        private void PickupDropletController_CreatePickupDroplet_Scavenger(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, UnityEngine.Vector3 position, UnityEngine.Vector3 velocity)
         {
             // check if the item being dropped is being asked to not drop
             if (scavbackpackblockitem)
@@ -932,7 +933,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug($"scavenger backpack was used as a location so this item will be consumed");
                 return;
             }
-            orig(pickupIndex, position, velocity);
+            orig(pickupInfo, position, velocity);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
