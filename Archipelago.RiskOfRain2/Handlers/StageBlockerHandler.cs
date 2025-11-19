@@ -143,7 +143,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SeerStationController.SetTargetScene += SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter += ReadyToEndGame_OnEnter;
             On.EntityStates.Interactables.MSObelisk.TransitionToNextStage.FixedUpdate += TransitionToNextStage_FixedUpdate;
-            On.RoR2.PortalDialerController.PortalDialerIdleState.OnActivationServer += PortalDialerIdleState_OnActivationServer;
+            On.RoR2.PortalDialerController.PerformActionServer += PortalDialerController_PerformActionServer;
             On.RoR2.FrogController.Pet += FrogController_Pet;
             On.RoR2.Interactor.PerformInteraction += Interactor_PerformInteraction;
             On.RoR2.SceneExitController.Begin += SceneExitController_Begin;
@@ -165,7 +165,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SeerStationController.SetTargetScene -= SeerStationController_SetTargetScene;
             On.EntityStates.Interactables.MSObelisk.ReadyToEndGame.OnEnter -= ReadyToEndGame_OnEnter;
             On.EntityStates.Interactables.MSObelisk.TransitionToNextStage.FixedUpdate -= TransitionToNextStage_FixedUpdate;
-            On.RoR2.PortalDialerController.PortalDialerIdleState.OnActivationServer -= PortalDialerIdleState_OnActivationServer;
+            On.RoR2.PortalDialerController.PerformActionServer -= PortalDialerController_PerformActionServer;
             On.RoR2.FrogController.Pet -= FrogController_Pet;
             On.RoR2.Interactor.PerformInteraction -= Interactor_PerformInteraction;
             On.RoR2.SceneExitController.Begin -= SceneExitController_Begin;
@@ -480,18 +480,17 @@ namespace Archipelago.RiskOfRain2.Handlers
         /**
          * Prevent the dialer from changing states if the Bulwark's Ambry is not unlocked.
          */
-        private void PortalDialerIdleState_OnActivationServer(On.RoR2.PortalDialerController.PortalDialerIdleState.orig_OnActivationServer orig, BaseState self, Interactor interactor)
+        private bool PortalDialerController_PerformActionServer(On.RoR2.PortalDialerController.orig_PerformActionServer orig, PortalDialerController self, byte[] sequence)
         {
-            // ChatMessage.SendColored($"Victory conditon is {ArchipelagoClient.victoryCondition}.", Color.magenta);
+            Log.LogDebug("PortalDialerController_PerformActionServer called.");
             if (CheckBlocked("artifactworld"))
             {
                 // give a message so the user is aware the portal dialer interaction is blocked
                 ChatMessage.SendColored($"The code will never work without Hidden Realm: Bulwark's Ambry.", Color.white);
-                return;
+                return false;
             }
-            orig(self, interactor);
+            return orig(self, sequence);
         }
-
         /**
          * Block going to A Monument, Whole if the environment is not unlocked.
          */
@@ -524,7 +523,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 for (int i = 0; i < CharacterMaster.readOnlyInstancesList.Count; i++)
                 {
-                    if (CharacterMaster.readOnlyInstancesList[i].inventory.GetItemCount(RoR2Content.Items.LunarTrinket) > 0)
+                    if (CharacterMaster.readOnlyInstancesList[i].inventory.GetItemCountEffective(RoR2Content.Items.LunarTrinket) > 0)
                     {
                         ChatMessage.SendColored("Despite having Beads, you are not yet ready...", new Color(0x5d, 0xd5, 0xe2));
                         break;

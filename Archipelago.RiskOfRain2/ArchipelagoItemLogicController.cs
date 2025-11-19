@@ -55,7 +55,6 @@ namespace Archipelago.RiskOfRain2
         private const long trapRangeUpper = 37499;
         private const long stageRangeLower = 37500;
         private const long stageRangeUpper = 37599;
-        private int lastReceivedItemindex = 0;
         private bool spawnedMonster = false;
         private bool monsterShrineRecently = false;
         private bool teleportedRecently = false;
@@ -63,7 +62,6 @@ namespace Archipelago.RiskOfRain2
         private PickupIndex[] skippedItems;
 
         private GameObject smokescreenPrefab;
-        private GameObject portalPrefab;
         private CombatDirector combatDirector;
 
         private bool IsInGame
@@ -644,7 +642,7 @@ namespace Archipelago.RiskOfRain2
         private void GiveItemToPlayers(PickupIndex pickupIndex, PlayerCharacterMasterController player)
         {
             var inventory = player.master.inventory;
-            inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
+            inventory.GiveItemPermanent(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
             if (!NetworkServer.active)
             {
                 CharacterMasterNotificationQueue.PushPickupNotification(player.master, pickupIndex);
@@ -692,7 +690,7 @@ namespace Archipelago.RiskOfRain2
                         maxDistance = 10f,
                     }, xoroshiro128PlusRadioScanner));
                     var position = card.transform.position;
-                    card.GetComponent<GenericPickupController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex);
+                    card.GetComponent<GenericPickupController>().pickupIndex = PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex);
                     Log.LogDebug($"coin position {position + new Vector3(0, 10, 0)}");
                     NetworkServer.Spawn(card);
                 }

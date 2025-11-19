@@ -73,6 +73,9 @@ Once connected it will print in chat that you have successfully connected!
 
 ## Changelog
 
+**1.5.1**
+* Update for Allooyed Collective Patch
+
 **1.5.0**
 * **Seekers Of The Storm DLC support added.**
     * New Stages for Archipelago Explore Mode:

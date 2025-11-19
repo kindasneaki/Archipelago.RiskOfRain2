@@ -683,7 +683,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
             // Therefore we need to manually make sure the call here is not from the backpack.
-            if (NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash != self.GetHashCode())
+            if (NetworkServer.active && self.currentPickup != UniquePickup.none && scavbackpackHash != self.GetHashCode())
             {
                 chestblockitem = chestOpened();
             }
@@ -914,7 +914,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             // All chest like objects drop 1 item, this includes scavenger backpacks which just call this method several times.
             // Therefore we need to manually make sure the call here is from the backpack.
-            if(NetworkServer.active && self.dropPickup != PickupIndex.none && scavbackpackHash == self.GetHashCode())
+            if(NetworkServer.active && self.currentPickup != UniquePickup.none && scavbackpackHash == self.GetHashCode())
             {
                 // TODO make an option to block scavenger backpacks from dropping items
                 scavbackpackblockitem = scavbackpackWasLocation;
