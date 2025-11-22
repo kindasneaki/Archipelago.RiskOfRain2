@@ -83,3 +83,6 @@ Once connected it will print in chat that you have successfully connected!
 * More item/reward types: warbanner drops, drones
 * Funny/joke item types: launching you into the air, switch left and right click
 * Trap item types: spawn bosses, drop bombs on the stage
+
+
+## [Change Log](CHANGELOG.md)
