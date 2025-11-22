@@ -55,15 +55,13 @@ namespace Archipelago.RiskOfRain2
         private const long trapRangeUpper = 37499;
         private const long stageRangeLower = 37500;
         private const long stageRangeUpper = 37599;
-        private int lastReceivedItemindex = 0;
         private bool spawnedMonster = false;
         private bool monsterShrineRecently = false;
         private bool teleportedRecently = false;
         private bool exitedPod = false;
-        private PickupIndex[] skippedItems;
+        private UniquePickup[] skippedItems;
 
         private GameObject smokescreenPrefab;
-        private GameObject portalPrefab;
         private CombatDirector combatDirector;
 
         private bool IsInGame
@@ -93,34 +91,33 @@ namespace Archipelago.RiskOfRain2
             Log.LogDebug("Okay, finished getting prefab.");
             Log.LogDebug($"smokescreen {smokescreenPrefab}");
 
-            skippedItems = new PickupIndex[]
-            {
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixBlue.equipmentIndex),
-                //PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixEcho.equipmentIndex), // Causes NRE... Not sure why.
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixHaunted.equipmentIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixLunar.equipmentIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixPoison.equipmentIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixRed.equipmentIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixWhite.equipmentIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Bomb.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Command.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.EliteOnly.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Enigma.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.FriendlyFire.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Glass.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.MixEnemy.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.MonsterTeamGainsItems.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.RandomSurvivorOnRespawn.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Sacrifice.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.ShadowClone.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.SingleMonsterType.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Swarms.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.TeamDeath.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WeakAssKnees.artifactIndex),
-                PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WispOnDeath.artifactIndex),
-            };
+            skippedItems = [
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixBlue.equipmentIndex)),
+                //new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixEcho.equipmentIndex)), // Causes NRE... Not sure why.
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixHaunted.equipmentIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixLunar.equipmentIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixPoison.equipmentIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixRed.equipmentIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Equipment.AffixWhite.equipmentIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Items.ArtifactKey.itemIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Bomb.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Command.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.EliteOnly.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Enigma.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.FriendlyFire.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Glass.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.MixEnemy.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.MonsterTeamGainsItems.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.RandomSurvivorOnRespawn.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Sacrifice.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.ShadowClone.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.SingleMonsterType.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.Swarms.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.TeamDeath.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WeakAssKnees.artifactIndex)),
+                new UniquePickup(PickupCatalog.FindPickupIndex(RoR2Content.Artifacts.WispOnDeath.artifactIndex)),               
+            ];
             Log.LogDebug("Ok, finished browsing catalog.");
         }
 
@@ -212,14 +209,15 @@ namespace Archipelago.RiskOfRain2
                         // TODO maybe this should be moved into a hook method with the other hooks from the constructor
                         if (classic)
                         {
-                            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet;
+
+                            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_CreatePickupInfo;
                             On.RoR2.ChestBehavior.ItemDrop += ChestBehavior_ItemDrop;
                             
                             session.Locations.CheckedLocationsUpdated += Check_Locations;
                         }
                         else
                         {
-                            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+                            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_CreatePickupInfo;
                             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop;
 
                             session.Locations.CheckedLocationsUpdated -= Check_Locations;
@@ -283,6 +281,8 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
+
+
         public void EnqueueItem(long itemId)
         {
             // convert the itemId to a name here instead of in the main loop
@@ -316,7 +316,7 @@ namespace Archipelago.RiskOfRain2
 
         public void Dispose()
         {
-            On.RoR2.PickupDropletController.CreatePickupDroplet_PickupIndex_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet;
+            On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_CreatePickupInfo;
             On.RoR2.ChestBehavior.ItemDrop -= ChestBehavior_ItemDrop;
             On.RoR2.RoR2Application.Update -= RoR2Application_Update;
 
@@ -644,7 +644,7 @@ namespace Archipelago.RiskOfRain2
         private void GiveItemToPlayers(PickupIndex pickupIndex, PlayerCharacterMasterController player)
         {
             var inventory = player.master.inventory;
-            inventory.GiveItem(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
+            inventory.GiveItemPermanent(PickupCatalog.GetPickupDef(pickupIndex)?.itemIndex ?? ItemIndex.None);
             if (!NetworkServer.active)
             {
                 CharacterMasterNotificationQueue.PushPickupNotification(player.master, pickupIndex);
@@ -692,7 +692,7 @@ namespace Archipelago.RiskOfRain2
                         maxDistance = 10f,
                     }, xoroshiro128PlusRadioScanner));
                     var position = card.transform.position;
-                    card.GetComponent<GenericPickupController>().NetworkpickupIndex = PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex);
+                    card.GetComponent<GenericPickupController>().pickupIndex = PickupCatalog.FindPickupIndex(RoR2Content.MiscPickups.LunarCoin.miscPickupIndex);
                     Log.LogDebug($"coin position {position + new Vector3(0, 10, 0)}");
                     NetworkServer.Spawn(card);
                 }
@@ -873,17 +873,18 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        private void PickupDropletController_CreatePickupDroplet(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_PickupIndex_Vector3_Vector3 orig, PickupIndex pickupIndex, Vector3 position, Vector3 velocity)
+        private void PickupDropletController_CreatePickupDroplet_CreatePickupInfo(On.RoR2.PickupDropletController.orig_CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 orig, GenericPickupController.CreatePickupInfo pickupInfo, Vector3 position, Vector3 velocity)
         {
-            if (skippedItems.Contains(pickupIndex))
+
+            if (Array.IndexOf(skippedItems, pickupInfo._pickupState) >= 0)
             {
-                orig(pickupIndex, position, velocity);
+                orig(pickupInfo, position, velocity);
                 return;
             }
 
             // Run `HandleItemDrop()` first so that the `PickedUpItemCount` is incremented by the time `ItemDropProcessed()` is called.
             var spawnItem = finishedAllChecks || HandleItemDrop();
-            
+
             if (OnItemDropProcessed != null)
             {
                 OnItemDropProcessed(PickedUpItemCount);
@@ -891,7 +892,7 @@ namespace Archipelago.RiskOfRain2
 
             if (spawnItem)
             {
-                orig(pickupIndex, position, velocity);
+                orig(pickupInfo, position, velocity);
             }
 
             if (!spawnItem)
@@ -907,18 +908,6 @@ namespace Archipelago.RiskOfRain2
                 new AllChecksComplete().Send(NetworkDestination.Clients);
             }
         }
-/*        private void SpawnPortal(Vector3 position)
-        {
-            if (portalPrefab != null)
-            {
-                var portal = GameObject.Instantiate(portalPrefab);
-                portal.transform.localPosition = position;
-                portal.transform.localScale = Vector3.one;
-                portal.GetComponent<SeerStationController>().GetNetworkChannel();
-                //connect to scene exit
-                //add stage id
-            }
-        }*/
         private bool HandleItemDrop()
         {
             PickedUpItemCount += 1;

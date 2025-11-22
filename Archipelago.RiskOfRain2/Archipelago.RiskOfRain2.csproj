@@ -4,7 +4,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <VersionPrefix>1.5.0</VersionPrefix>
+    <VersionPrefix>1.5.2</VersionPrefix>
     <RiskOfRain2Refs>$(UserProfile)\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Testing\BepInEx\plugins\Sneaki-Archipelago\</RiskOfRain2Refs>
     <OutputPath>bin\$(Configuration)</OutputPath>
   </PropertyGroup>
@@ -12,7 +12,7 @@
     <MakeDir Directories="bin/zip/" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb; $(TargetDir)/$(TargetName).deps.json" DestinationFolder="bin/Build/" />
     <Copy SourceFiles="$(OutputPath)/Archipelago.MultiClient.Net.dll;$(OutputPath)/Newtonsoft.Json.dll;" DestinationFolder="bin/Build/" />
-    <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="bin/Build/" />
+    <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png;../CHANGELOG.md" DestinationFolder="bin/Build/" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)/$(TargetName).pdb; $(TargetDir)/$(TargetName).deps.json" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="$(OutputPath)/Archipelago.MultiClient.Net.dll;$(OutputPath)/Newtonsoft.Json.dll;" DestinationFolder="$(RiskOfRain2Refs)" />
     <Copy SourceFiles="../README.md;./connectbundle;../manifest.json;../icon.png" DestinationFolder="$(RiskOfRain2Refs)" />
@@ -26,11 +26,10 @@
     <PackageReference Include="Archipelago.MultiClient.Net" Version="6.6.1" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.3.2-r.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
-    <PackageReference Include="MMHOOK.RoR2" Version="2024.9.5">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
+	<PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.0-r.0" />
+	<PackageReference Include="MMHOOK.RoR2" Version="2025.11.18" NoWarn="NU1701" />
+	<PackageReference Include="RoR2BepInExPack" Version="1.33.0" />
     <PackageReference Include="R2API" Version="5.0.5" />
   </ItemGroup>
 
