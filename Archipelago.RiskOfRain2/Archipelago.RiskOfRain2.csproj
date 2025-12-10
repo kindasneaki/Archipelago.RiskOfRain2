@@ -27,9 +27,9 @@
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" />
-	<PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.0-r.0" />
-	<PackageReference Include="MMHOOK.RoR2" Version="2025.11.18" NoWarn="NU1701" />
-	<PackageReference Include="RoR2BepInExPack" Version="1.33.0" />
+	<PackageReference Include="RiskOfRain2.GameLibs" Version="1.4.1-r.0" />
+	<PackageReference Include="MMHOOK.RoR2" Version="2025.12.9" NoWarn="NU1701" />
+	<PackageReference Include="RoR2BepInExPack" Version="1.40.0" />
     <PackageReference Include="R2API" Version="5.0.5" />
   </ItemGroup>
 
