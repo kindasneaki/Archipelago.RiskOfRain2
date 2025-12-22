@@ -57,56 +57,65 @@ namespace Archipelago.RiskOfRain2.Handlers
         }
         private void CharacterMaster_OnBodyDeath(On.RoR2.CharacterMaster.orig_OnBodyDeath orig, CharacterMaster self, CharacterBody body)
         {
-            // TODO for multiplayer, this needs to make sure the dying player belongs to this client as to prevent redundant deathlink signals
-            if (PlayerCharacterMasterController.instances.Select(x => x.master).Contains(self))
+            try
             {
-                //Single player does not send a Display name so we will use the slot name here.
-                string playerName = "";
-                if (self.playerCharacterMasterController.GetDisplayName() == "")
+                // TODO for multiplayer, this needs to make sure the dying player belongs to this client as to prevent redundant deathlink signals
+                if (PlayerCharacterMasterController.instances.Select(x => x.master).Contains(self))
                 {
-                    playerName = ArchipelagoClient.connectedPlayerName;
-                }
-                else
-                {
-                    playerName = self.playerCharacterMasterController.GetDisplayName();
-                }
-                Log.LogDebug($"Player OnBodyDeath of {playerName}.");
-                if (!recievedDeath) // if this client just recieved a death, don't send it cyclically
-                {
-                    recievedDeath = true;
-                    DeathLink dl = new DeathLink(playerName, $"The planet rejected {playerName}"); // TODO send the cause of death
-                    Log.LogDebug($"Deathlink sending. Source: {dl.Source} Cause: {dl.Cause} Timestamp: {dl.Timestamp}");
-                    try
+                    //Single player does not send a Display name so we will use the slot name here.
+                    string playerName = "";
+                    if (self.playerCharacterMasterController.GetDisplayName() == "")
                     {
-                        deathLink.SendDeathLink(dl);
+                        playerName = ArchipelagoClient.connectedPlayerName;
                     }
-                    // In some cases: the game will end, the archipelago socket will close, and then the player will die.
-                    // The above attempt to send the deathlink will fail because the socket closed, causing the gameover screen to not show up.
-                    // The simplest solution is to just give up rather than attempt to remedy the situation.
-                    // From testing, it does seemed that all deaths would send deathlink appropriately.
-                    catch (Archipelago.MultiClient.Net.Exceptions.ArchipelagoSocketClosedException)
+                    else
                     {
-                        Log.LogDebug("Deathlink failed to send because socket was closed.");
+                        playerName = self.playerCharacterMasterController.GetDisplayName();
                     }
-                }
-                if(thread == null)
-                {
-                    thread = new Thread(() => Prevent_Deathlink_Thread());
-                    thread.Start();
-                }
-                else
-                {
-                    if (!thread.IsAlive)
+                    Log.LogDebug($"Player OnBodyDeath of {playerName}.");
+                    if (!recievedDeath) // if this client just recieved a death, don't send it cyclically
+                    {
+                        recievedDeath = true;
+                        DeathLink dl = new DeathLink(playerName, $"The planet rejected {playerName}"); // TODO send the cause of death
+                        Log.LogDebug($"Deathlink sending. Source: {dl.Source} Cause: {dl.Cause} Timestamp: {dl.Timestamp}");
+                        try
+                        {
+                            deathLink.SendDeathLink(dl);
+                        }
+                        // In some cases: the game will end, the archipelago socket will close, and then the player will die.
+                        // The above attempt to send the deathlink will fail because the socket closed, causing the gameover screen to not show up.
+                        // The simplest solution is to just give up rather than attempt to remedy the situation.
+                        // From testing, it does seemed that all deaths would send deathlink appropriately.
+                        catch (Archipelago.MultiClient.Net.Exceptions.ArchipelagoSocketClosedException)
+                        {
+                            Log.LogDebug("Deathlink failed to send because socket was closed.");
+                        }
+                    }
+                    if (thread == null)
                     {
                         thread = new Thread(() => Prevent_Deathlink_Thread());
                         thread.Start();
                     }
-                }
-                
-                
-            }
+                    else
+                    {
+                        if (!thread.IsAlive)
+                        {
+                            thread = new Thread(() => Prevent_Deathlink_Thread());
+                            thread.Start();
+                        }
+                    }
 
-            orig(self, body);
+
+                }
+
+                orig(self, body);
+            }
+            catch (Exception e)
+            {
+                Log.LogError("Something went wrong in CharacterMaster_OnBodyDeath");
+                Log.LogError(e);
+                orig(self, body);
+            }
         }
         private void Prevent_Deathlink_Thread()
         {
