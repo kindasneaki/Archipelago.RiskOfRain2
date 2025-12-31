@@ -1,3 +1,9 @@
+**1.5.3**
+* Update gamelib/mmhook/ror2bepinexpack
+* Add more guards to deathlink to prevent attempt to prevent crashes.
+*  **Bug Fixes:**
+    * New Variant stages have a default weight of 0, causing them to never be accessable if locations are complete
+    * 
 **1.5.2**
 *  **Bug Fixes:**
     * Fixed items not counting as checks when related to pickupDropletController

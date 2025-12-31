@@ -636,6 +636,11 @@ namespace Archipelago.RiskOfRain2.Handlers
                     Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} has {addweight / 5} locations, adjusting weight.");
                     dest.ModifyChoiceWeight(i, dest.choices[i].weight + addweight);
                     Log.LogDebug($"Adjusted weight to {dest.choices[i].weight}.");
+                    if (dest.choices[i].weight <= 0)
+                    {
+                        Log.LogDebug($"Environment {environment_index} weight adjusted to 1 to prevent zero or negative weight.");
+                        dest.ModifyChoiceWeight(i, 1);
+                    }
                 }
                 else Log.LogDebug($"Environment {environment_index} with weight {dest.choices[i].weight} does not have locations.");
             }
