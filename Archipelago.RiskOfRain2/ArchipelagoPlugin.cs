@@ -32,6 +32,7 @@ namespace Archipelago.RiskOfRain2
         public static BepInEx.Configuration.ConfigEntry<string> ServerNameEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<int> PortEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> PasswordEntry { get; set; }
+        public static BepInEx.Configuration.ConfigEntry<bool> AutoReconnectAfterRunEntry { get; set; }
         internal static ArchipelagoPlugin Instance { get; private set; }
         //public string bundleName = "connectbundle";
         //public static AssetBundle localAssetBundle { get; private set; }
@@ -234,6 +235,11 @@ namespace Archipelago.RiskOfRain2
                 "password",
                 "",
                 "Change the default password");
+            AutoReconnectAfterRunEntry = Config.Bind<bool>(
+                "Connection",
+                "autoReconnectAfterRun",
+                true,
+                "Automatically reconnect to Archipelago after a run ends, so newly unlocked items are collected before the next run.");
 
         }
         private string ChangePort(string newValue)
