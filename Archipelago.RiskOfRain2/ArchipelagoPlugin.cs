@@ -25,7 +25,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.5.3";
+        public const string PluginVersion = "1.5.4";
 
         public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }
@@ -163,16 +163,18 @@ namespace Archipelago.RiskOfRain2
 
             Log.LogDebug($"Server {apServerUri} Port: {apServerPort} Slot: {apSlotName} Password: {apPassword}");
 
+            RememberConnectionSettings();
             AP.Connect(url, apSlotName, apPassword);
             //Log.LogDebug("On Click Connect");
-            SlotNameEntry.Value = apSlotName;
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
             willConnectToAP = true;
             isPlayingAP = true;
+            var serverName = url;
             url = url + ":" + port;
 
+            RememberConnectionSettings(serverName, port, slot, password);
             AP.Connect(url, slot, password);
             //StartCoroutine(AP.AttemptConnection());
         }
@@ -242,10 +244,31 @@ namespace Archipelago.RiskOfRain2
                 "Automatically reconnect to Archipelago after a run ends, so newly unlocked items are collected before the next run.");
 
         }
+
         private string ChangePort(string newValue)
         {
             apServerPort = int.Parse(newValue);
             return newValue;
+        }
+
+        private void RememberConnectionSettings()
+        {
+            RememberConnectionSettings(apServerUri, apServerPort, apSlotName, apPassword);
+        }
+
+        private void RememberConnectionSettings(string url, int port, string slot, string password)
+        {
+            apServerUri = url;
+            apServerPort = port;
+            apSlotName = slot;
+            apPassword = password;
+
+            ServerNameEntry.Value = apServerUri;
+            PortEntry.Value = apServerPort;
+            SlotNameEntry.Value = apSlotName;
+            PasswordEntry.Value = apPassword;
+
+            Config.Save();
         }
     }
 }
