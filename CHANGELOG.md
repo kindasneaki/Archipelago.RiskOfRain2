@@ -1,3 +1,8 @@
+**1.5.4**
+* **Bug Fixes:**
+    * Remember the Archipelago server host and port in the config so auto-reconnect after a run can reconnect to the same server.
+    * Preserve the last connection details when connecting from the lobby UI or console command.
+
 **1.5.3**
 * Update gamelib/mmhook/ror2bepinexpack
 * Add more guards to deathlink to prevent attempt to prevent crashes.

@@ -616,6 +616,10 @@ namespace Archipelago.RiskOfRain2
         {
             isInGame = false;
             lastReceivedItemindex = 0;
+            if (ArchipelagoPlugin.AutoReconnectAfterRunEntry != null && ArchipelagoPlugin.AutoReconnectAfterRunEntry.Value)
+            {
+                reconnecting = true;
+            }
             Disconnect();
         }
 
