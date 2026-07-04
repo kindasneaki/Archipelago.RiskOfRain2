@@ -3,7 +3,6 @@ using R2API.Utils;
 using RoR2;
 using System;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 
 namespace Archipelago.RiskOfRain2.Handlers
@@ -11,9 +10,9 @@ namespace Archipelago.RiskOfRain2.Handlers
     internal class DeathLinkHandler : IHandler
     {
         private readonly DeathLinkService deathLink;
-        private Thread thread;
-        private Thread deathLinkThread;
-        private bool recievedDeath = false; // used to prevent cyclical deaths
+        private readonly System.Collections.Concurrent.ConcurrentQueue<DeathLink> receivedDeathQueue = new();
+        private volatile bool recievedDeath = false; // used to prevent cyclical deaths
+        private float deathCooldownUntil = 0f;
         private bool deathLinkActive = false;
 
         public DeathLinkHandler(DeathLinkService deathLink)
@@ -27,6 +26,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 On.RoR2.SceneInfo.Awake += SceneInfo_Awake;
                 On.RoR2.SceneExitController.Begin += SceneExitController_Begin;
+                On.RoR2.RoR2Application.Update += DeathLink_Update;
                 deathLinkActive = true;
             }
         }
@@ -37,6 +37,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.CharacterMaster.OnBodyDeath -= CharacterMaster_OnBodyDeath;
             On.RoR2.SceneInfo.Awake -= SceneInfo_Awake;
             On.RoR2.SceneExitController.Begin -= SceneExitController_Begin;
+            On.RoR2.RoR2Application.Update -= DeathLink_Update;
             deathLinkActive = false;
         }
         private void SceneInfo_Awake(On.RoR2.SceneInfo.orig_Awake orig, SceneInfo self)
@@ -76,6 +77,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     if (!recievedDeath) // if this client just recieved a death, don't send it cyclically
                     {
                         recievedDeath = true;
+                        deathCooldownUntil = Time.time + 10f;
                         DeathLink dl = new DeathLink(playerName, $"The planet rejected {playerName}"); // TODO send the cause of death
                         Log.LogDebug($"Deathlink sending. Source: {dl.Source} Cause: {dl.Cause} Timestamp: {dl.Timestamp}");
                         try
@@ -91,21 +93,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                             Log.LogDebug("Deathlink failed to send because socket was closed.");
                         }
                     }
-                    if (thread == null)
-                    {
-                        thread = new Thread(() => Prevent_Deathlink_Thread());
-                        thread.Start();
-                    }
-                    else
-                    {
-                        if (!thread.IsAlive)
-                        {
-                            thread = new Thread(() => Prevent_Deathlink_Thread());
-                            thread.Start();
-                        }
-                    }
-
-
                 }
 
                 orig(self, body);
@@ -117,13 +104,36 @@ namespace Archipelago.RiskOfRain2.Handlers
                 orig(self, body);
             }
         }
-        private void Prevent_Deathlink_Thread()
+        // Runs on the Unity main thread. Applies at most one queued deathlink and manages the
+        // cooldown that prevents cyclical deaths. Any deathlinks that arrive during the cooldown
+        // window are discarded rather than buffered.
+        private void DeathLink_Update(On.RoR2.RoR2Application.orig_Update orig, RoR2Application self)
         {
-            Thread.Sleep(10000);
-            Log.LogDebug("It has been 10 seconds you can now die again!");
-            recievedDeath = false;
+            if (recievedDeath && Time.time >= deathCooldownUntil)
+            {
+                Log.LogDebug("It has been 10 seconds you can now die again!");
+                recievedDeath = false;
+            }
+
+            if (!recievedDeath)
+            {
+                if (receivedDeathQueue.TryDequeue(out DeathLink dl))
+                {
+                    recievedDeath = true;
+                    deathCooldownUntil = Time.time + 10f;
+                    classicDeathLink(dl);
+                }
+            }
+            else
+            {
+                // On cooldown: drop anything that queued up so nothing is applied after the window.
+                while (receivedDeathQueue.TryDequeue(out _)) { }
+            }
+
+            orig(self);
         }
 
+        // Runs on the Archipelago websocket receive thread. Only enqueues data; must not touch Unity.
         private void DeathLink_OnDeathLinkReceived(DeathLink deathLink)
         {
             Log.LogDebug($"Deathlink received. Source: {deathLink.Source} Cause: {deathLink.Cause} Timestamp: {deathLink.Timestamp}");
@@ -131,15 +141,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             {
                 return;
             }
-            recievedDeath = true;
-            if (deathLinkThread != null && deathLinkThread.IsAlive)
-            {
-                Log.LogDebug("Aborting previous deathLinkThread");
-                deathLinkThread.Abort();
-                deathLinkThread = null;
-            }
-            deathLinkThread = new Thread(() => classicDeathLink(deathLink));
-            deathLinkThread.Start();
+            receivedDeathQueue.Enqueue(deathLink);
         }
 
         private void classicDeathLink(DeathLink dl)
