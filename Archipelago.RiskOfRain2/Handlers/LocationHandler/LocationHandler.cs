@@ -43,30 +43,30 @@ namespace Archipelago.RiskOfRain2.Handlers
         // TODO this should probably become generic so that environment sets can be passed in (e.g. normal environments, simulacrum environments, etc)
         private void InitialSetupLocationDict(LocationInformationTemplate locationstemplate)
         {
-            currentlocations.Add(ancientloft,       locationstemplate); // Aphelian Sanctuary
-            currentlocations.Add(blackbeach,        locationstemplate); // Distant Roost
-            currentlocations.Add(blackbeach2,       locationstemplate); // Distant Roost
-            currentlocations.Add(lakes,             locationstemplate); // Verdant Falls
-            currentlocations.Add(dampcavesimple,    locationstemplate); // Abyssal Depths
-            currentlocations.Add(foggyswamp,        locationstemplate); // Wetland Aspect
-            currentlocations.Add(frozenwall,        locationstemplate); // Rallypoint Delta
-            currentlocations.Add(golemplains,       locationstemplate); // Titanic Plains
-            currentlocations.Add(golemplains2,      locationstemplate); // Titanic Plains
-            currentlocations.Add(goolake,           locationstemplate); // Abandoned Aqueduct
-            currentlocations.Add(rootjungle,        locationstemplate); // Sundered Grove
-            currentlocations.Add(shipgraveyard,     locationstemplate); // Siren's Call
-            currentlocations.Add(skymeadow,         locationstemplate); // Sky Meadow
-            currentlocations.Add(snowyforest,       locationstemplate); // Siphoned Forest
-            currentlocations.Add(sulfurpools,       locationstemplate); // Sulfur Pools
-            currentlocations.Add(wispgraveyard,     locationstemplate); // Scorched Acres
+            currentlocations.Add(LocationNames.ancientloft,       locationstemplate); // Aphelian Sanctuary
+            currentlocations.Add(LocationNames.blackbeach,        locationstemplate); // Distant Roost
+            currentlocations.Add(LocationNames.blackbeach2,       locationstemplate); // Distant Roost
+            currentlocations.Add(LocationNames.lakes,             locationstemplate); // Verdant Falls
+            currentlocations.Add(LocationNames.dampcavesimple,    locationstemplate); // Abyssal Depths
+            currentlocations.Add(LocationNames.foggyswamp,        locationstemplate); // Wetland Aspect
+            currentlocations.Add(LocationNames.frozenwall,        locationstemplate); // Rallypoint Delta
+            currentlocations.Add(LocationNames.golemplains,       locationstemplate); // Titanic Plains
+            currentlocations.Add(LocationNames.golemplains2,      locationstemplate); // Titanic Plains
+            currentlocations.Add(LocationNames.goolake,           locationstemplate); // Abandoned Aqueduct
+            currentlocations.Add(LocationNames.rootjungle,        locationstemplate); // Sundered Grove
+            currentlocations.Add(LocationNames.shipgraveyard,     locationstemplate); // Siren's Call
+            currentlocations.Add(LocationNames.skymeadow,         locationstemplate); // Sky Meadow
+            currentlocations.Add(LocationNames.snowyforest,       locationstemplate); // Siphoned Forest
+            currentlocations.Add(LocationNames.sulfurpools,       locationstemplate); // Sulfur Pools
+            currentlocations.Add(LocationNames.wispgraveyard,     locationstemplate); // Scorched Acres
             // Seekers of the Storm
-            currentlocations.Add(lakesnight,        locationstemplate); // Viscous Falls
-            currentlocations.Add(village,           locationstemplate); // Shattered Abodes
-            currentlocations.Add(villagenight,      locationstemplate); // Disturbed Impact
-            currentlocations.Add(lemuriantemple,    locationstemplate); // Reformed Altar
-            currentlocations.Add(habitat,           locationstemplate); // Treeborn Colony
-            currentlocations.Add(habitatfall,       locationstemplate); // Golden Dieback
-            currentlocations.Add(helminthroost,    locationstemplate);  // Helminth Hatchery
+            currentlocations.Add(LocationNames.lakesnight,        locationstemplate); // Viscous Falls
+            currentlocations.Add(LocationNames.village,           locationstemplate); // Shattered Abodes
+            currentlocations.Add(LocationNames.villagenight,      locationstemplate); // Disturbed Impact
+            currentlocations.Add(LocationNames.lemuriantemple,    locationstemplate); // Reformed Altar
+            currentlocations.Add(LocationNames.habitat,           locationstemplate); // Treeborn Colony
+            currentlocations.Add(LocationNames.habitatfall,       locationstemplate); // Golden Dieback
+            currentlocations.Add(LocationNames.helminthroost,    locationstemplate);  // Helminth Hatchery
             // TODO separate out the DLC locations
         }
 

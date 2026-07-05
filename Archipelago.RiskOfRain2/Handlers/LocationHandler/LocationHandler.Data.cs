@@ -8,36 +8,8 @@ namespace Archipelago.RiskOfRain2.Handlers
 {
     partial class LocationHandler
     {
-        // setup all scene indexes as magic numbers
-        // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
+        // Scene indexes live in Archipelago.RiskOfRain2.Lookup.LocationNames as the single source of truth.
         // scene id's will be incorrect when extra maps are included so make sure to call int index = GetSceneIndex(sceneName); when using sceneIndex
-        // main scenes
-        public const int ancientloft = 3;       // Aphelian Sanctuary
-        public const int blackbeach = 7;        // Distant Roost
-        public const int blackbeach2 = 8;       // Distant Roost (2)
-        public const int lakes = 28;            // Verdant Falls
-        public const int dampcavesimple = 10;   // Abyssal Depths
-        public const int foggyswamp = 12;       // Wetland Aspect
-        public const int frozenwall = 13;       // Rallypoint Delta
-        public const int golemplains = 15;      // Titanic Plains
-        public const int golemplains2 = 16;     // Titanic Plains (2)
-        public const int goolake = 17;          // Abandoned Aqueduct
-        public const int rootjungle = 35;       // Sundered Grove
-        public const int shipgraveyard = 37;    // Siren's Call
-        public const int skymeadow = 38;        // Sky Meadow
-        public const int snowyforest = 39;      // Siphoned Forest
-        public const int sulfurpools = 41;      // Sulfur Pools
-        public const int wispgraveyard = 47;    // Scorched Acres
-        // Seekers of the Storm
-        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
-        public const int village = 54;          // Shattered Abodes
-        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
-        public const int lemuriantemple = 36;   // Reformed Altar
-        public const int habitat = 21;          // Treeborn Colony
-        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
-        public const int helminthroost = 23;    // Helminth Hatchery
-        public const int meridian = 40;         // Prime Meridian
-
         public static int sceneIndex = 0;
         public enum LocationTypes
         {
