@@ -60,7 +60,13 @@ namespace Archipelago.RiskOfRain2
                         break;
                     case "4":
                         acceptableEndings = new[] { DLC2Content.GameEndings.RebirthEndingDef };
+                        acceptableLosses = new[] { "meridian" };
                         victoryCondition = "Rebirth";
+                        break;
+                    case "5":
+                        acceptableEndings = new[] { DLC3Content.GameEndings.DecompileEnding };
+                        acceptableLosses = new[] { "solusweb" };
+                        victoryCondition = "Solus Heart";
                         break;
                     default:
                         victoryCondition = "any";
@@ -77,7 +83,8 @@ namespace Archipelago.RiskOfRain2
                             "voidraid",
                             "mysteryspace",
                             "limbo",
-                            "meridian"
+                            "meridian",
+                            "solusweb"
                         };
                         break;
 
