@@ -34,6 +34,11 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "habitatfall", 2 },
             { "helminthroost", 4 },
             { "meridian", 3 },
+            { "nest", 1 },
+            { "ironalluvium", 2 },
+            { "ironalluvium2", 2 },
+            { "conduitcanyon", 3 },
+            { "repurposedcrater", 3 },
         };
 
         // Used to display the full location names in chat when a stage is needed to progress
@@ -54,6 +59,11 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "habitatfall", "Golden Dieback" },
             { "helminthroost", "Helminhe Hatchery" },
             { "meridian", "Prime Meridian" },
+            { "nest", "Pretender's Precipice" },
+            { "ironalluvium", "Iron Alluvium" },
+            { "ironalluvium2", "Iron Auroras" },
+            { "conduitcanyon", "Conduit Canyon" },
+            { "repurposedcrater", "Repurposed Crater" },
         };
 
         public static bool progressivesStages = false;

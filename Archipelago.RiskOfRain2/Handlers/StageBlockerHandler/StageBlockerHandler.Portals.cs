@@ -1,3 +1,4 @@
+using EntityStates.MinorConstruct;
 using R2API.Utils;
 using RoR2;
 using UnityEngine;
@@ -45,6 +46,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     GenericInteraction gi = comp as GenericInteraction;
                     if (gi)
                     {
+                        Log.LogDebug($"Checking interaction with context token {gi.contextToken} and name of {gi.gameObject.name}");
                         switch (gi.contextToken)
                         {
                             case "PORTAL_ARENA_CONTEXT":
@@ -68,6 +70,33 @@ namespace Archipelago.RiskOfRain2.Handlers
                                 {
                                     // prevents goldshores from being used from the halcyon shrine if not unlocked
                                     ChatMessage.SendColored("The gold portal was missing the key to enter but stayed to taunt you.", Color.yellow);
+                                    gi.SetInteractabilityConditionsNotMet();
+                                }
+                                else gi.SetInteractabilityAvailable();
+                                break;
+                            case "ACCESSCODES_PORTAL_CONTEXT":
+                                if (CheckBlocked("solutionalhaunt") && gi.gameObject.name == "HardwareProgPortal_Haunt(Clone)" && SceneCatalog.mostRecentSceneDef.cachedName == "conduitcanyon")
+                                {
+                                    ChatMessage.SendColored("The solutional haunt portal failed to decypher the access code but stayed to taunt you.", Color.yellow);
+                                    gi.SetInteractabilityConditionsNotMet();
+                                } else if (CheckBlocked("conduitcanyon") && (gi.gameObject.name == "HardwareProgPortal(Clone)" || gi.gameObject.name == "HardwareProgPortal_Haunt(Clone)"))
+                                {
+                                    ChatMessage.SendColored("The conduit portal failed to decypher the access code but stayed to taunt you.", Color.yellow);
+                                    gi.SetInteractabilityConditionsNotMet();
+                                }
+                                else gi.SetInteractabilityAvailable();
+                                break;
+                            case "PORTAL_EYEPORTAL_CONTEXT":
+                                if (CheckBlocked("computationalexchange"))
+                                {
+                                    ChatMessage.SendColored("That is one big eye isn't it. Too bad it won't let you in!", Color.yellow);
+                                }
+                                break;
+                            case "PORTAL_SOLUSWEB_CONTEXT":
+                                if (CheckBlocked("solusweb"))
+                                {
+                                    ChatMessage.SendColored("You are right there at the entrance but you are missing the most imporant part!!", Color.yellow);
+                                    ChatMessage.SendColored($"Come back when you have Hidden Realm: Neural Sanctum", Color.green);
                                     gi.SetInteractabilityConditionsNotMet();
                                 }
                                 else gi.SetInteractabilityAvailable();
@@ -253,6 +282,15 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 self.shouldAttemptToSpawnMSPortal = false;
             }
+            if (CheckBlocked("conduitcanyon"))
+            {
+                if (self.shouldAttemptToSpawnHiddenRealmsPortal)
+                {
+                    Log.LogDebug("Conduit / conduitcanyon portal blocked.");
+                    ChatMessage.Send("The conduit portal failed to decypher the access code!");
+                }
+                self.shouldAttemptToSpawnHiddenRealmsPortal = false;
+            }
             orig(self);
         }
 
@@ -262,6 +300,17 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (self.bannedEventFlag == "FalseSonBossComplete")
             {
                 self.bannedEventFlag = ""; // this prevents the colossus portal from being blocked after false son has been defeated
+            }
+            orig(self);
+        }
+
+        private void TeleporterInteraction_AttemptToSpawnHiddenRealmPortal(On.RoR2.TeleporterInteraction.orig_AttemptToSpawnHiddenRealmPortal orig, TeleporterInteraction self)
+        {
+            if (CheckBlocked("conduitcanyon"))
+            {
+                Log.LogDebug("Conduit / conduitcanyon portal blocked.");
+                ChatMessage.Send("The conduit portal failed to decypher the access code!");
+                return;
             }
             orig(self);
         }

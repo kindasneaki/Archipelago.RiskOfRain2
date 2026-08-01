@@ -56,7 +56,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start += PortalSpawner_Start;
+            On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal += TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
         }
+
+
 
         public void UnHook()
         {
@@ -77,6 +80,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
+            On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal -= TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
 
             // Reset values to prevent issues when restarting a run
             blocked_stages = null;

@@ -66,7 +66,13 @@ namespace Archipelago.RiskOfRain2.Handlers
             currentlocations.Add(LocationNames.lemuriantemple,    locationstemplate); // Reformed Altar
             currentlocations.Add(LocationNames.habitat,           locationstemplate); // Treeborn Colony
             currentlocations.Add(LocationNames.habitatfall,       locationstemplate); // Golden Dieback
-            currentlocations.Add(LocationNames.helminthroost,    locationstemplate);  // Helminth Hatchery
+            currentlocations.Add(LocationNames.helminthroost,     locationstemplate);  // Helminth Hatchery
+            // Alloyed Collection
+            currentlocations.Add(LocationNames.nest,              locationstemplate); // Pretender's Precipice
+            currentlocations.Add(LocationNames.ironalluvium,      locationstemplate); // Iron Alluvium
+            currentlocations.Add(LocationNames.ironalluvium2,     locationstemplate); // Iron Auroras
+            currentlocations.Add(LocationNames.conduitcanyon,     locationstemplate); // Conduit Canyon
+            currentlocations.Add(LocationNames.repurposedcrater,  locationstemplate); // Repurposed Crater
             // TODO separate out the DLC locations
         }
 

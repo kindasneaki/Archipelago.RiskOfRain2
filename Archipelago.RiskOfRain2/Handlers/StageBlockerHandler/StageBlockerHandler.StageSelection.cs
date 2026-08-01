@@ -42,6 +42,8 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
+            Log.LogDebug($"SceneExitController_SetState called. isAlternatePath: {self.isAlternatePath}, useRunNextStageScene: {self.useRunNextStageScene}");
+            Log.LogDebug($"SceneExitController_SetState called. name: {self.name}, useRunNextStageScene: {self.useRunNextStageScene}");
             if (self.isColossusPortal)
             {
                 bool runNextStage = true;
@@ -79,6 +81,39 @@ namespace Archipelago.RiskOfRain2.Handlers
                
 
                 self.useRunNextStageScene = runNextStage;
+            }
+            // If the player has completed more than 3 environments, the game will default the encrypted portal to goto Solutional Haunt and we want the player to always goto Conduit Canyon instead.
+            else if (self.name == "HardwareProgPortal_Haunt(Clone)" || self.name == "HardwareProgPortal(Clone)")
+            {
+                int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
+                Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}");
+                if (stageOrder == 3 && !CheckBlocked("conduitcanyon"))
+                {
+                    Log.LogDebug($"SceneExitController_SetState changing destination to Conduit Canyon.");
+                    SceneDef conduitCanyon = SceneCatalog.FindSceneDef("conduitcanyon");
+                    self.destinationScene = conduitCanyon;
+                }
+                // Solutional Haunt is a special case where it is a stage that is only accessible from Conduit Canyon. If the player has not unlocked Solutional Haunt, they will be sent back to the beginning of the run.
+                // This shouldn't be reachable but leaving for now.
+                else if (stageOrder != 3 && SceneCatalog.mostRecentSceneDef.cachedName == "conduitcanyon" && CheckBlocked("solutionalhaunt"))
+                {
+                    self.useRunNextStageScene = true;
+                }
+
+            }
+            else if (self.name == "Teleporter_ConduitCanyonVariant")
+            {
+                if (CheckBlocked("solutionalhaunt"))
+                {
+                    self.useRunNextStageScene = true;
+                }
+            }
+            else if (self.name == "EyePortal(Clone)")
+            {
+                if (CheckBlocked("computationalexchange"))
+                {
+                    self.useRunNextStageScene = true;
+                }
             }
 
             if (self.useRunNextStageScene)

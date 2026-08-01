@@ -7,42 +7,51 @@ namespace Archipelago.RiskOfRain2.Lookup
         // Single source of truth for scene indexes.
         // scenes from https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Scene-Names/
         // main scenes
-        public const int arena = 4;             // Void Fields
-        public const int lakes = 28;            // Verdant Falls
-        public const int blackbeach = 7;        // Distant Roost
-        public const int blackbeach2 = 8;       // Distant Roost (2)
-        public const int dampcavesimple = 10;   // Abyssal Depths
-        public const int foggyswamp = 12;       // Wetland Aspect
-        public const int frozenwall = 13;       // Rallypoint Delta
-        public const int golemplains = 15;      // Titanic Plains
-        public const int golemplains2 = 16;     // Titanic Plains (2)
-        public const int goolake = 17;          // Abandoned Aqueduct
-        public const int moon2 = 32;            // Commencement
-        public const int rootjungle = 35;       // Sundered Grove
-        public const int shipgraveyard = 37;    // Siren's Call
-        public const int skymeadow = 38;        // Sky Meadow
-        public const int wispgraveyard = 47;    // Scorched Acres
+        public const int arena = 4;                     // Void Fields
+        public const int lakes = 28;                    // Verdant Falls
+        public const int blackbeach = 7;                // Distant Roost
+        public const int blackbeach2 = 8;               // Distant Roost (2)
+        public const int dampcavesimple = 10;           // Abyssal Depths
+        public const int foggyswamp = 12;               // Wetland Aspect
+        public const int frozenwall = 13;               // Rallypoint Delta
+        public const int golemplains = 15;              // Titanic Plains
+        public const int golemplains2 = 16;             // Titanic Plains (2)
+        public const int goolake = 17;                  // Abandoned Aqueduct
+        public const int moon2 = 32;                    // Commencement
+        public const int rootjungle = 35;               // Sundered Grove
+        public const int shipgraveyard = 37;            // Siren's Call
+        public const int skymeadow = 38;                // Sky Meadow
+        public const int wispgraveyard = 47;            // Scorched Acres
         // Survivors of the Void
-        public const int snowyforest = 39;      // Siphoned Forest
-        public const int ancientloft = 3;       // Aphelian Sanctuary
-        public const int sulfurpools = 41;      // Sulfur Pools
-        public const int voidstage = 46;        // Void Locus
-        public const int voidraid = 45;         // The Planetarium
+        public const int snowyforest = 39;              // Siphoned Forest
+        public const int ancientloft = 3;               // Aphelian Sanctuary
+        public const int sulfurpools = 41;              // Sulfur Pools
+        public const int voidstage = 46;                // Void Locus
+        public const int voidraid = 45;                 // The Planetarium
         // Seekers of the Storm
-        public const int lakesnight = 34;       // Viscous Falls - Alternate stage to Verdant Falls
-        public const int village = 54;          // Shattered Abodes
-        public const int villagenight = 55;     // Disturbed Impact - Alternate stage to Shattered Abodes
-        public const int lemuriantemple = 36;   // Reformed Altar
-        public const int habitat = 21;          // Treeborn Colony
-        public const int habitatfall = 22;      // Golden Dieback - Alternate stage to Treeborn Colony
-        public const int helminthroost = 23;    // Helminth Hatchery
-        public const int meridian = 40;         // Prime Meridian
+        public const int lakesnight = 34;               // Viscous Falls - Alternate stage to Verdant Falls
+        public const int village = 54;                  // Shattered Abodes
+        public const int villagenight = 55;             // Disturbed Impact - Alternate stage to Shattered Abodes
+        public const int lemuriantemple = 36;           // Reformed Altar
+        public const int habitat = 21;                  // Treeborn Colony
+        public const int habitatfall = 22;              // Golden Dieback - Alternate stage to Treeborn Colony
+        public const int helminthroost = 23;            // Helminth Hatchery
+        public const int meridian = 40;                 // Prime Meridian
+        // Alloyed Collective
+        public const int nest = 48;                     // Pretender's Precipice
+        public const int ironalluvium = 78;             // Iron Alluvium
+        public const int ironalluvium2 = 29;            // Iron Auroras
+        public const int conduitcanyon = 73;            // Conduit Canyon
+        public const int repurposedcrater = 50;         // Repurposed Crater
+        public const int solutionalhaunt = 57;          // Solutional Haunt
+        public const int computationalexchange = 72;    // Computational Exchange
+        public const int solusweb = 56;                 // Neural Sanctum
         // hidden realms
-        public const int artifactworld = 5;     // Hidden Realm: Bulwark's Ambry
-        public const int bazaar = 6;            // Hidden Realm: Bazaar Between Time
-        public const int goldshores = 14;       // Hidden Realm: Gilded Coast
-        public const int limbo = 27;            // Hidden Realm: A Moment, Whole
-        public const int mysteryspace = 33;     // Hidden Realm: A Moment, Fractured
+        public const int artifactworld = 5;             // Hidden Realm: Bulwark's Ambry
+        public const int bazaar = 6;                    // Hidden Realm: Bazaar Between Time
+        public const int goldshores = 14;               // Hidden Realm: Gilded Coast
+        public const int limbo = 27;                    // Hidden Realm: A Moment, Whole
+        public const int mysteryspace = 33;             // Hidden Realm: A Moment, Fractured
 
         public static readonly Dictionary<int, string> locationsNames = new()
         {
@@ -78,7 +87,15 @@ namespace Archipelago.RiskOfRain2.Lookup
             { habitat, "Treeborn Colony" },
             { habitatfall, "Golden Dieback" },
             { helminthroost, "Helminth Hatchery" },
-            { meridian, "Prime Meridian" }
+            { meridian, "Prime Meridian" },
+            { nest, "Pretender's Precipice" },
+            { ironalluvium, "Iron Alluvium" },
+            { ironalluvium2, "Iron Auroras" },
+            { conduitcanyon, "Conduit Canyon" },
+            { repurposedcrater, "Repurposed Crater" },
+            { solutionalhaunt, "Solutional Haunt" },
+            { computationalexchange, "Computational Exchange" },
+            { solusweb, "Neural Sanctum" }
         };
 
         public static readonly Dictionary<int, string> cachedLocationsNames = new()
@@ -116,6 +133,14 @@ namespace Archipelago.RiskOfRain2.Lookup
             { habitatfall, "habitatfall" },
             { helminthroost, "helminthroost" },
             { meridian, "meridian" },
+            { nest, "nest" },
+            { ironalluvium, "ironalluvium" },
+            { ironalluvium2, "ironalluvium2" },
+            { conduitcanyon, "conduitcanyon" },
+            { repurposedcrater, "repurposedcrater" },
+            { solutionalhaunt, "solutionalhaunt" },
+            { computationalexchange, "computationalexchange" },
+            { solusweb, "solusweb" }
         };
 
         public string GetLocationName(string cachedName)
