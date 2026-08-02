@@ -86,6 +86,9 @@ namespace Archipelago.RiskOfRain2
             Locationhandler = null;
             itemCheckBar = null;
             shrineCheckBar = null;
+            seedHasSOTV = false;
+            seedHasSOTS = false;
+            seedHasALLOYED = false;
         }
 
         private void HookGame()

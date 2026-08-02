@@ -102,6 +102,23 @@ namespace Archipelago.RiskOfRain2
 
             }
 
+            // Seed DLC's
+            if (successResult.SlotData.TryGetValue("dlcSotv", out var sotv))
+            {
+                seedHasSOTV = Convert.ToBoolean(sotv);
+                Log.LogDebug($"Seed has Survivors: {seedHasSOTV}");
+            }
+            if (successResult.SlotData.TryGetValue("dlcSots", out var sots))
+            {
+                seedHasSOTS = Convert.ToBoolean(sots);
+                Log.LogDebug($"Seed has Seekers: {seedHasSOTS}");
+            }
+            if (successResult.SlotData.TryGetValue("dlcAlloyed", out var alloyed))
+            {
+                seedHasALLOYED = Convert.ToBoolean(alloyed);
+                Log.LogDebug($"Seed has Alloyed: {seedHasALLOYED}");
+            }
+
             // Classic Mode vs Explore Mode
             if (successResult.SlotData.TryGetValue("goal", out var classicmode))
             {
@@ -151,23 +168,6 @@ namespace Archipelago.RiskOfRain2
 
             // Victory Condition
             ParseVictoryCondition(successResult.SlotData);
-
-            // Seed DLC's
-            if (successResult.SlotData.TryGetValue("dlcSotv", out var sotv))
-            {
-                seedHasSOTV = Convert.ToBoolean(sotv);
-                Log.LogDebug($"Seed has Survivors: {seedHasSOTV}");
-            }
-            if (successResult.SlotData.TryGetValue("dlcSots", out var sots))
-            {
-                seedHasSOTS = Convert.ToBoolean(sots);
-                Log.LogDebug($"Seed has Seekers: {seedHasSOTS}");
-            }
-            if (successResult.SlotData.TryGetValue("dlcAlloyed", out var alloyed))
-            {
-                seedHasALLOYED = Convert.ToBoolean(alloyed);
-                Log.LogDebug($"Seed has Alloyed: {seedHasALLOYED}");
-            }
 
             // make the bar if for it has not been created because classic mode or the slot data was missing
             if (null == itemCheckBar)

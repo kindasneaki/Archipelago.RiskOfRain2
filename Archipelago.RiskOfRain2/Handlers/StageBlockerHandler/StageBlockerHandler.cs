@@ -3,6 +3,7 @@ using Archipelago.RiskOfRain2.Lookup;
 using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
@@ -57,7 +58,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start += PortalSpawner_Start;
-            On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal += TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
             On.RoR2.AccessCodesMissionController.OnStartServer += AccessCodesMissionController_OnStartServer;
             On.RoR2.SolusFight.TriggerServer += SolusFight_TriggerServer;
             On.RoR2.SolusFight.TriggerSirensCallPortal += SolusFight_TriggerSirensCallPortal;
@@ -82,7 +82,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
-            On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal -= TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
             On.RoR2.AccessCodesMissionController.OnStartServer -= AccessCodesMissionController_OnStartServer;
             On.RoR2.SolusFight.TriggerServer -= SolusFight_TriggerServer;
             On.RoR2.SolusFight.TriggerSirensCallPortal -= SolusFight_TriggerSirensCallPortal;
@@ -183,6 +182,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 if (LocationNames.cachedLocationsNames.ContainsValue(scene))
                 {
                     ChatMessage.Send($"{scene}");
+                    Debug.Log($"Unblocked stage: {scene}");
                 }
             }
         }

@@ -303,16 +303,5 @@ namespace Archipelago.RiskOfRain2.Handlers
             }
             orig(self);
         }
-
-        private void TeleporterInteraction_AttemptToSpawnHiddenRealmPortal(On.RoR2.TeleporterInteraction.orig_AttemptToSpawnHiddenRealmPortal orig, TeleporterInteraction self)
-        {
-            if (CheckBlocked("conduitcanyon"))
-            {
-                Log.LogDebug("Conduit / conduitcanyon portal blocked.");
-                ChatMessage.Send("The conduit portal failed to decypher the access code!");
-                return;
-            }
-            orig(self);
-        }
     }
 }

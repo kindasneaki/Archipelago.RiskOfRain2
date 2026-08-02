@@ -66,6 +66,25 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "repurposedcrater", "Repurposed Crater" },
         };
 
+        public readonly Dictionary <string, string> dlcLookup = new()
+        {
+            { "snowyforest", "sotv" },
+            { "ancientloft", "sotv" },
+            { "sulfurpools", "sotv" },
+            { "village", "sots" },
+            { "villagenight", "sots" },
+            { "lakesnight", "sots" },
+            { "lemuriantemple", "sots" },
+            { "habitat", "sots" },
+            { "habitatfall", "sots" },
+            { "helminthroost", "sots" },
+            { "nest", "alloyed" },
+            { "ironalluvium", "alloyed" },
+            { "ironalluvium2", "alloyed" },
+            { "conduitcanyon", "alloyed" },
+            { "repurposedcrater", "alloyed" },
+        };
+
         public static bool progressivesStages = false;
         public static bool showSeerPortals = false;
         public static string revertToBeginningMessage = "";

@@ -27,7 +27,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             orig(self);
             if (revertToBeginningMessage != "")
             {
-                ChatMessage.SendColored(revertToBeginningMessage, Color.red);
+                ChatMessage.Send(revertToBeginningMessage);
                 revertToBeginningMessage = "";
             }
         }
@@ -188,6 +188,11 @@ namespace Archipelago.RiskOfRain2.Handlers
                 
             }
 
+            if (SceneCatalog.mostRecentSceneDef.cachedName == "conduitcanyon" && !CheckBlocked("solutionalhaunt"))
+            {
+                manuallyPickingStage = false;
+            }
+
             // there are 2 conditions when we should mess with this call:
             // - the call to PickNextStageScene should have originated from stage blocker
             //      (since it gets called at the beginning of the scene by the game, and at the end by the stage blocker)
@@ -207,19 +212,19 @@ namespace Archipelago.RiskOfRain2.Handlers
                     Log.LogDebug($"Most recent scene stage order Stage {SceneCatalog.mostRecentSceneDef.stageOrder}");
                     if (!stageUnlocks[$"Stage {SceneCatalog.mostRecentSceneDef.stageOrder}"] && !progressivesStages)
                     {
-                        reason = $"you need Stage {SceneCatalog.mostRecentSceneDef.stageOrder}";
+                        reason = $"you need <color=#dda0dd>Stage {SceneCatalog.mostRecentSceneDef.stageOrder}</color>";
                     }
                     else if (SceneCatalog.mostRecentSceneDef.stageOrder > amountOfStages && progressivesStages)
                     {
-                        reason = $"you need {SceneCatalog.mostRecentSceneDef.stageOrder} Progressive Stages";
+                        reason = $"you need {SceneCatalog.mostRecentSceneDef.stageOrder} <color=#dda0dd>Progressive Stages</color>";
                     } else
                     {
                         List<string> stagesNeeded = new List<string>();
-                        reason = $"you are missing ";
+                        reason = $"you're missing ";
                         foreach (KeyValuePair<string, int> entry in stageLookup)
                         {
 
-                            if(entry.Value == SceneCatalog.mostRecentSceneDef.stageOrder)
+                            if(entry.Value == SceneCatalog.mostRecentSceneDef.stageOrder && SceneIsInSeed(entry.Key))
                             {
                                 stagesNeeded.Add(entry.Key);
                             }
@@ -230,17 +235,18 @@ namespace Archipelago.RiskOfRain2.Handlers
                             {
                                 if (i < stagesNeeded.Count - 1 || stagesNeeded.Count == 1)
                                 {
-                                    reason += $"{locationNames[stagesNeeded[i]]}, ";
+                                    reason += $"<color=#dda0dd>{locationNames[stagesNeeded[i]]}</color>";
+                                    if (stagesNeeded.Count > 1) reason += ", ";
                                 }
                                 else
                                 {
-                                    reason += $"or {locationNames[stagesNeeded[i]]}";
+                                    reason += $"or <color=#dda0dd>{locationNames[stagesNeeded[i]]}</color>";
                                 }
                             }
                         }
 
                     }
-                    revertToBeginningMessage = $"Unable to advance to the next set of stages because {reason}!";
+                    revertToBeginningMessage = $"Archipelago: <color=#FF0000>Unable to advance to the next set of stages because</color> {reason}!";
 
                     Log.LogDebug("adding choices for stage 1");
                     self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
@@ -275,6 +281,25 @@ namespace Archipelago.RiskOfRain2.Handlers
         {
             orig(self);
             voidPortalSpawned = false;
+        }
+
+        private bool SceneIsInSeed(string sceneName)
+        {
+            if (!dlcLookup.TryGetValue(sceneName, out string dlc))
+            {
+                return true;
+            }
+            switch(dlc)
+            {
+                case "sots":
+                    return ArchipelagoClient.seedHasSOTS;
+                case "sotv":
+                    return ArchipelagoClient.seedHasSOTV;
+                case "alloyed":
+                    return ArchipelagoClient.seedHasALLOYED;
+                default:
+                    return false;
+            }
         }
     }
 }
