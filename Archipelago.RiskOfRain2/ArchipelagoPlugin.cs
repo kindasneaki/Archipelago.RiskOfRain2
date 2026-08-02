@@ -72,6 +72,7 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
             ArchipelagoConsoleCommand.OnArchipelagoCommandCalled += ArchipelagoConsoleCommand_ArchipelagoCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoReconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoReconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
             AssetBundleHelper.LoadBundle();         
@@ -181,6 +182,23 @@ namespace Archipelago.RiskOfRain2
         private void ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled()
         {
             AP.Disconnect();
+        }
+        private void ArchipelagoConsoleCommand_ArchipelagoReconnectCommandCalled()
+        {
+            if (!AP.HasPreviousConnection)
+            {
+                ChatMessage.SendColored("No previous Archipelago connection to reconnect to. Use archipelago_connect first.", Color.red);
+                return;
+            }
+            if (AP.reconnecting)
+            {
+                ChatMessage.SendColored("Already attempting to reconnect to Archipelago.", Color.red);
+                return;
+            }
+
+            AP.PrepareForReconnect();
+            AP.reconnecting = true;
+            StartCoroutine(AP.AttemptReconnection());
         }
         /// <summary>
         /// Server -> Client packet responder. Should not run on server.

@@ -109,7 +109,6 @@ namespace Archipelago.RiskOfRain2
             shrineChanceHelper?.Hook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
-            ArchipelagoConsoleCommand.OnArchipelagoReconnectCommandCalled += ArchipelagoConsoleCommand_OnArchipelagoReconnectCommandCalled;
             session.Socket.ErrorReceived += Socket_ErrorReceived;
             On.RoR2.PortalDialerController.PortalDialerPreDialState.OnEnter += PortalDialerPreDialState_OnEnter;
             //On.RoR2.PortalDialerController.PortalDialerIdleState.OnActivationServer += PortalDialerIdleState_OnActivationServer;
@@ -122,8 +121,13 @@ namespace Archipelago.RiskOfRain2
             RoR2.Run.onRunDestroyGlobal -= Run_onRunDestroyGlobal;
             On.RoR2.Run.BeginGameOver -= Run_BeginGameOver;
             ArchipelagoChatMessage.OnChatReceivedFromClient -= ArchipelagoChatMessage_OnChatReceivedFromClient;
-            session.MessageLog.OnMessageReceived -= Session_OnMessageReceived;
-            session.Socket.SocketClosed -= Session_SocketClosed;
+            // Dispose can run with no session, e.g. after a failed login or a second disconnect.
+            if (session != null)
+            {
+                session.MessageLog.OnMessageReceived -= Session_OnMessageReceived;
+                session.Socket.SocketClosed -= Session_SocketClosed;
+                session.Socket.ErrorReceived -= Socket_ErrorReceived;
+            }
             On.RoR2.UI.GameEndReportPanelController.Awake -= GameEndReportPanelController_Awake;
             OnReleaseClick -= WillRelease;
             OnCollectClick -= WillCollect;
@@ -136,8 +140,6 @@ namespace Archipelago.RiskOfRain2
             shrineChanceHelper?.UnHook();
             ArchipelagoConsoleCommand.OnArchipelagoDeathLinkCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoDeathLinkCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoFinalStageDeathCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoFinalStageDeathCommandCalled;
-            ArchipelagoConsoleCommand.OnArchipelagoReconnectCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoReconnectCommandCalled;
-            session.Socket.ErrorReceived -= Socket_ErrorReceived;
             On.RoR2.PortalDialerController.PortalDialerPreDialState.OnEnter -= PortalDialerPreDialState_OnEnter;
 
         }
@@ -195,10 +197,16 @@ namespace Archipelago.RiskOfRain2
             }
         }
 
-        private void ArchipelagoConsoleCommand_OnArchipelagoReconnectCommandCalled()
+        public bool IsConnected => session != null && session.Socket.Connected;
+
+        public bool HasPreviousConnection => !string.IsNullOrEmpty(lastServerUrl);
+
+        public void PrepareForReconnect()
         {
-            reconnecting = true;
-            Session_SocketClosed("Making sure to be disconnected before reconnecting.");
+            if (IsConnected)
+            {
+                Session_SocketClosed("Making sure to be disconnected before reconnecting.");
+            }
         }
 
         private void ItemLogicHandler_ItemDropProcessed(int pickedUpCount)
