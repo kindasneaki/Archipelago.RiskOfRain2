@@ -83,6 +83,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 self.useRunNextStageScene = runNextStage;
             }
             // If the player has completed more than 3 environments, the game will default the encrypted portal to goto Solutional Haunt and we want the player to always goto Conduit Canyon instead.
+            // This might not be necessary anymore because we are forcefully spawning the conduit canyon portal.
             else if (self.name == "HardwareProgPortal_Haunt(Clone)" || self.name == "HardwareProgPortal(Clone)")
             {
                 int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;

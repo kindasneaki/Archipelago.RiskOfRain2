@@ -22,6 +22,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         private SceneDef prevOrderedStage = null; // used to keep track of what the scene was before the next scene is selected
 
         private SeerPortal seerPortal;
+        internal LocationHandler Locationhandler { get; set; }
 
         public StageBlockerHandler()
         {
@@ -57,9 +58,10 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection += SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start += PortalSpawner_Start;
             On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal += TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
+            On.RoR2.AccessCodesMissionController.OnStartServer += AccessCodesMissionController_OnStartServer;
+            On.RoR2.SolusFight.TriggerServer += SolusFight_TriggerServer;
+            On.RoR2.SolusFight.TriggerSirensCallPortal += SolusFight_TriggerSirensCallPortal;
         }
-
-
 
         public void UnHook()
         {
@@ -81,6 +83,9 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
             On.RoR2.TeleporterInteraction.AttemptToSpawnHiddenRealmPortal -= TeleporterInteraction_AttemptToSpawnHiddenRealmPortal;
+            On.RoR2.AccessCodesMissionController.OnStartServer -= AccessCodesMissionController_OnStartServer;
+            On.RoR2.SolusFight.TriggerServer -= SolusFight_TriggerServer;
+            On.RoR2.SolusFight.TriggerSirensCallPortal -= SolusFight_TriggerSirensCallPortal;
 
             // Reset values to prevent issues when restarting a run
             blocked_stages = null;

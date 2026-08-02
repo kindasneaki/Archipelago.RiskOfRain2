@@ -177,7 +177,18 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// Interacting with colossus shrine beats it.
         /// </summary>
 
+        private void ShrineCombatTroopBehavior_AddShrineStack(On.RoR2.ShrineCombatTroopBehavior.orig_AddShrineStack orig, ShrineCombatTroopBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            shrineBeat(); // using the combat shrine beats it
+        }
 
+
+
+
+        /// <summary>
+        /// Interacting with the combat troop shrine (conduit canyon shrine) beats it.
+        /// </summary>
         ////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

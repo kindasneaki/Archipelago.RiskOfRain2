@@ -122,6 +122,7 @@ namespace Archipelago.RiskOfRain2
                     ItemLogic.Stageblockerhandler = Stageblockerhandler;
                     Stageblockerhandler.BlockAll();
                     Locationhandler = new LocationHandler(session, LocationHandler.buildTemplateFromSlotData(successResult.SlotData));
+                    Stageblockerhandler.Locationhandler = Locationhandler;
                     shrineChanceHelper = new ShrineChanceHandler();
 
                     // TODO there is a more likely a more reasonable location to create the UI for explore mode
