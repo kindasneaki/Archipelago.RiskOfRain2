@@ -165,6 +165,9 @@ namespace Archipelago.RiskOfRain2
             AP.Connect(url, apSlotName, apPassword);
             //Log.LogDebug("On Click Connect");
             SlotNameEntry.Value = apSlotName;
+            ServerNameEntry.Value = apServerUri;
+            PortEntry.Value = apServerPort;
+
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
