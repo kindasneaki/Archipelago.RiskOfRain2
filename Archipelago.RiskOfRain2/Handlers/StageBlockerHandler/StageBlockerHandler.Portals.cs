@@ -96,7 +96,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                                 if (CheckBlocked("solusweb"))
                                 {
                                     ChatMessage.SendColored("You are right there at the entrance but you are missing the most imporant part!!", Color.yellow);
-                                    ChatMessage.SendColored($"Come back when you have Hidden Realm: Neural Sanctum", Color.green);
+                                    ChatMessage.Send($"<color=#FF00FF>Come back when you have</color> <color=#dda0dd>Neural Sanctum</color>");
                                     gi.SetInteractabilityConditionsNotMet();
                                 }
                                 else gi.SetInteractabilityAvailable();

@@ -80,6 +80,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             On.RoR2.UI.ChatBox.OnEnable -= ChatBox_OnEnable;
             On.RoR2.VoidStageMissionController.FixedUpdate -= VoidStageMissionController_FixedUpdate;
             On.RoR2.VoidStageMissionController.OnDisable -= VoidStageMissionController_OnDisable;
+            ArchipelagoConsoleCommand.OnArchipelagoShowUnlockedStagesCommandCalled -= ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled;
             On.RoR2.SceneDef.AddDestinationsToWeightedSelection -= SceneDef_AddDestinationsToWeightedSelection;
             On.RoR2.PortalSpawner.Start -= PortalSpawner_Start;
             On.RoR2.AccessCodesMissionController.OnStartServer -= AccessCodesMissionController_OnStartServer;
@@ -126,28 +127,32 @@ namespace Archipelago.RiskOfRain2.Handlers
          * Blocks a given environment.
          * Returns true if the stage was blocked by this call.
          */
-        public bool Block(string stageName)
+        public void Block(string stageName)
         {
             if (blocked_string_stages.Contains(stageName))
             {
                 Log.LogDebug($"Environment already blocked: index {stageName}.");
-                return false;
+                return;
             }
             Log.LogDebug($"Blocking environment: index {stageName}.");
             blocked_string_stages.Add(stageName);
-            return true;
+            return;
         }
 
         /**
          * Unblocks a given environment.
-         * Returns true if the stage was unblocked by this call.
+         * Adds stage to the list of unblocked stages and removes it from the list of blocked stages.
          */
-        public bool UnBlock(int index)
+        public void UnBlock(int index)
         {
-            string stageName = LocationNames.cachedLocationsNames[index];
+            if (!LocationNames.cachedLocationsNames.TryGetValue(index, out string stageName))
+            {
+                Log.LogWarning($"UnBlock called with unknown environment index {index}.");
+                return;
+            }
             Log.LogDebug($"UnBlocking environment: index {stageName}.");
             unblocked_string_stages.Add(stageName);
-            return blocked_string_stages.Remove(stageName);
+            blocked_string_stages.Remove(stageName);
         }
 
         /**
@@ -177,6 +182,11 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void ArchipelagoConsoleCommand_OnArchipelagoShowUnlockedStagesCommandCalled()
         {
+            if (unblocked_string_stages == null || unblocked_string_stages.Count == 0)
+            {
+                Log.LogDebug($"No unblocked stages to show or there was an error");
+                return;
+            }
             foreach (var scene in unblocked_string_stages)
             {
                 if (LocationNames.cachedLocationsNames.ContainsValue(scene))
