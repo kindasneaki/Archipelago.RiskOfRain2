@@ -49,6 +49,10 @@ namespace Archipelago.RiskOfRain2
         //public static ReleaseClick OnButtonClick;
         public static string connectedPlayerName;
 
+        public static bool seedHasSOTV { get; set; } = false;
+        public static bool seedHasSOTS { get; set; } = false;
+        public static bool seedHasALLOYED { get; set; } = false;
+
         public ArchipelagoClient()
         {
 

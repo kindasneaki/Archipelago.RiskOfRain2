@@ -8,8 +8,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using UnityEngine.Networking;
-using R2API.Utils;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using Archipelago.RiskOfRain2.Lookup;
@@ -48,13 +46,13 @@ namespace Archipelago.RiskOfRain2.Handlers
 
             
             currentlocations.Add(LocationNames.blackbeach,        locationstemplate); // Distant Roost
-            currentlocations.Add(LocationNames.blackbeach2,       locationstemplate); // Distant Roost
+            currentlocations.Add(LocationNames.blackbeach2,       locationstemplate); // Distant Roost (2)
             currentlocations.Add(LocationNames.lakes,             locationstemplate); // Verdant Falls
             currentlocations.Add(LocationNames.dampcavesimple,    locationstemplate); // Abyssal Depths
             currentlocations.Add(LocationNames.foggyswamp,        locationstemplate); // Wetland Aspect
             currentlocations.Add(LocationNames.frozenwall,        locationstemplate); // Rallypoint Delta
             currentlocations.Add(LocationNames.golemplains,       locationstemplate); // Titanic Plains
-            currentlocations.Add(LocationNames.golemplains2,      locationstemplate); // Titanic Plains
+            currentlocations.Add(LocationNames.golemplains2,      locationstemplate); // Titanic Plains (2)
             currentlocations.Add(LocationNames.goolake,           locationstemplate); // Abandoned Aqueduct
             currentlocations.Add(LocationNames.wispgraveyard,     locationstemplate); // Scorched Acres
             currentlocations.Add(LocationNames.rootjungle,        locationstemplate); // Sundered Grove
@@ -63,24 +61,36 @@ namespace Archipelago.RiskOfRain2.Handlers
             // TODO separate out the DLC locations.
 
             // Survivors of the Void
-            currentlocations.Add(LocationNames.ancientloft,       locationstemplate); // Aphelian Sanctuary
-            currentlocations.Add(LocationNames.snowyforest,       locationstemplate); // Siphoned Forest
-            currentlocations.Add(LocationNames.sulfurpools,       locationstemplate); // Sulfur Pools
+            if (ArchipelagoClient.seedHasSOTV)
+            {
+                Log.LogDebug($"SOTV in seed. Loading SOTV locations.");
+                currentlocations.Add(LocationNames.ancientloft,       locationstemplate); // Aphelian Sanctuary
+                currentlocations.Add(LocationNames.snowyforest,       locationstemplate); // Siphoned Forest
+                currentlocations.Add(LocationNames.sulfurpools,       locationstemplate); // Sulfur Pools
+            }
             // Seekers of the Storm
-            currentlocations.Add(LocationNames.lakesnight,        locationstemplate); // Viscous Falls
-            currentlocations.Add(LocationNames.village,           locationstemplate); // Shattered Abodes
-            currentlocations.Add(LocationNames.villagenight,      locationstemplate); // Disturbed Impact
-            currentlocations.Add(LocationNames.lemuriantemple,    locationstemplate); // Reformed Altar
-            currentlocations.Add(LocationNames.habitat,           locationstemplate); // Treeborn Colony
-            currentlocations.Add(LocationNames.habitatfall,       locationstemplate); // Golden Dieback
-            currentlocations.Add(LocationNames.helminthroost,     locationstemplate);  // Helminth Hatchery
+            if (ArchipelagoClient.seedHasSOTS)
+            {
+                Log.LogDebug($"SOTS in seed. Loading SOTS locations.");
+                currentlocations.Add(LocationNames.lakesnight,        locationstemplate); // Viscous Falls
+                currentlocations.Add(LocationNames.village,           locationstemplate); // Shattered Abodes
+                currentlocations.Add(LocationNames.villagenight,      locationstemplate); // Disturbed Impact
+                currentlocations.Add(LocationNames.lemuriantemple,    locationstemplate); // Reformed Altar
+                currentlocations.Add(LocationNames.habitat,           locationstemplate); // Treeborn Colony
+                currentlocations.Add(LocationNames.habitatfall,       locationstemplate); // Golden Dieback
+                currentlocations.Add(LocationNames.helminthroost,     locationstemplate);  // Helminth Hatchery
+            }
             // Alloyed Collection
-            currentlocations.Add(LocationNames.nest,              locationstemplate); // Pretender's Precipice
-            currentlocations.Add(LocationNames.ironalluvium,      locationstemplate); // Iron Alluvium
-            currentlocations.Add(LocationNames.ironalluvium2,     locationstemplate); // Iron Auroras
-            currentlocations.Add(LocationNames.repurposedcrater,  locationstemplate); // Repurposed Crater
-            // Conduit Canyon never spawns a newt location
-            currentlocations.Add(LocationNames.conduitcanyon,  locationsWithoutNewt); // Conduit Canyon
+            if (ArchipelagoClient.seedHasALLOYED)
+            {
+                Log.LogDebug($"ALLOYED in seed. Loading ALLOYED locations.");
+                currentlocations.Add(LocationNames.nest,              locationstemplate); // Pretender's Precipice
+                currentlocations.Add(LocationNames.ironalluvium,      locationstemplate); // Iron Alluvium
+                currentlocations.Add(LocationNames.ironalluvium2,     locationstemplate); // Iron Auroras
+                currentlocations.Add(LocationNames.repurposedcrater,  locationstemplate); // Repurposed Crater
+                // Conduit Canyon never spawns a newt location
+                currentlocations.Add(LocationNames.conduitcanyon,  locationsWithoutNewt); // Conduit Canyon
+            }
         }
 
         /// <summary>

@@ -63,20 +63,15 @@ namespace Archipelago.RiskOfRain2
 
             LoginSuccessful successResult = (LoginSuccessful)result;
             ArchipelagoConnectButtonController.ChangeButtonWhenConnected();
+            // Final Stage Death
             if (successResult.SlotData.TryGetValue("finalStageDeath", out var stageDeathObject))
             {
                 finalStageDeath = Convert.ToBoolean(stageDeathObject);
                 ChatMessage.SendColored("Connected!", Color.green);
             }
-            // to keep this setting working in previous versions of AP
-            // TODO remove at ap version 3.9
-            else if (successResult.SlotData.TryGetValue("FinalStageDeath", out var oldStageDeathObject))
-            {
-                finalStageDeath = Convert.ToBoolean(oldStageDeathObject);
-                ChatMessage.SendColored("Connected!", Color.green);
-            }
             Log.LogDebug($"finalStageDeath {finalStageDeath} ");
 
+            // Pickup Steps
             uint itemPickupStep = 3;
             uint shrineUseStep = 3;
             if (successResult.SlotData.TryGetValue("itemPickupStep", out var oitemPickupStep))
@@ -91,6 +86,8 @@ namespace Archipelago.RiskOfRain2
                 Log.LogDebug($"shrineUseStep from slot data: {shrineUseStep}");
                 shrineUseStep++; // Add 1 because the user's YAML will contain a value equal to "number of pickups before sent location"
             }
+
+            // Deathlink
             deathLinkService = DeathLinkProvider.CreateDeathLinkService(session);
             Log.LogDebug("Starting DeathLink service");
             Deathlinkhandler = new DeathLinkHandler(deathLinkService);
@@ -105,6 +102,7 @@ namespace Archipelago.RiskOfRain2
 
             }
 
+            // Classic Mode vs Explore Mode
             if (successResult.SlotData.TryGetValue("goal", out var classicmode))
             {
                 if (!Convert.ToBoolean(classicmode))
@@ -138,15 +136,39 @@ namespace Archipelago.RiskOfRain2
                     Locationhandler.shrineUseStep = shrineUseStep;
                 }
             }
+
+            // Progressive Stages
             if (successResult.SlotData.TryGetValue("progressiveStages", out var progressive))
             {
                 StageBlockerHandler.progressivesStages = Convert.ToBoolean(progressive);
             }
+
+            // Show Seer Portals
             if (successResult.SlotData.TryGetValue("showSeerPortals", out var showSeerPortals))
             {
                 StageBlockerHandler.showSeerPortals = Convert.ToBoolean(showSeerPortals);
             }
+
+            // Victory Condition
             ParseVictoryCondition(successResult.SlotData);
+
+            // Seed DLC's
+            if (successResult.SlotData.TryGetValue("dlcSotv", out var sotv))
+            {
+                seedHasSOTV = Convert.ToBoolean(sotv);
+                Log.LogDebug($"Seed has Survivors: {seedHasSOTV}");
+            }
+            if (successResult.SlotData.TryGetValue("dlcSots", out var sots))
+            {
+                seedHasSOTS = Convert.ToBoolean(sots);
+                Log.LogDebug($"Seed has Seekers: {seedHasSOTS}");
+            }
+            if (successResult.SlotData.TryGetValue("dlcAlloyed", out var alloyed))
+            {
+                seedHasALLOYED = Convert.ToBoolean(alloyed);
+                Log.LogDebug($"Seed has Alloyed: {seedHasALLOYED}");
+            }
+
             // make the bar if for it has not been created because classic mode or the slot data was missing
             if (null == itemCheckBar)
             {
