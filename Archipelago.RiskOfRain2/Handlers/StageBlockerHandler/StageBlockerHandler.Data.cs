@@ -17,6 +17,24 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         };
         public static int amountOfStages = 0;
+
+        /**
+         * Stage progression is static, so it outlives both the handler and the run.
+         * The server re-sends every stage item on connect, so this must be called once per connect
+         * before those items are applied.
+         */
+        public static void ResetStageProgression()
+        {
+            stageUnlocks = new Dictionary<string, bool>
+            {
+                { "Stage 1", false },
+                { "Stage 2", false },
+                { "Stage 3", false },
+                { "Stage 4", false },
+            };
+            amountOfStages = 0;
+        }
+
         public readonly Dictionary<string, int> stageLookup = new()
         {
             { "ancientloft", 1 },

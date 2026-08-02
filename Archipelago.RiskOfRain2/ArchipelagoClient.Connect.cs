@@ -155,12 +155,16 @@ namespace Archipelago.RiskOfRain2
             }
 
             // Progressive Stages
+            // These are static, so they must be defaulted rather than left holding the previous seed's value
+            // when the slot data omits the key.
+            StageBlockerHandler.progressivesStages = true;
             if (successResult.SlotData.TryGetValue("progressiveStages", out var progressive))
             {
                 StageBlockerHandler.progressivesStages = Convert.ToBoolean(progressive);
             }
 
             // Show Seer Portals
+            StageBlockerHandler.showSeerPortals = false;
             if (successResult.SlotData.TryGetValue("showSeerPortals", out var showSeerPortals))
             {
                 StageBlockerHandler.showSeerPortals = Convert.ToBoolean(showSeerPortals);
@@ -194,7 +198,8 @@ namespace Archipelago.RiskOfRain2
                 new ArchipelagoStartExplore().Send(NetworkDestination.Clients);
             }
 
-            ItemLogic.Precollect();
+            StageBlockerHandler.ResetStageProgression();
+
             // Needed for backwards compatability
             if (session.Items.GetItemName(37501) == null)
             {
@@ -203,13 +208,8 @@ namespace Archipelago.RiskOfRain2
                 StageBlockerHandler.stageUnlocks["Stage 3"] = true;
                 StageBlockerHandler.stageUnlocks["Stage 4"] = true;
             }
-            else if (!isInGame)
-            {
-                StageBlockerHandler.stageUnlocks["Stage 1"] = false;
-                StageBlockerHandler.stageUnlocks["Stage 2"] = false;
-                StageBlockerHandler.stageUnlocks["Stage 3"] = false;
-                StageBlockerHandler.stageUnlocks["Stage 4"] = false;
-            }
+
+            ItemLogic.Precollect();
         }
     }
 }

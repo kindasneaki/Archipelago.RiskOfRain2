@@ -33,7 +33,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             blocked_string_stages = new List<string>();
             unblocked_string_stages = new List<string>();
             stages_available = new List<SceneDef>();
-            amountOfStages = 0;
 
             // blocking stages should be down by the owner of this object
         }

@@ -31,12 +31,31 @@ namespace Archipelago.RiskOfRain2
 
         internal StageBlockerHandler Stageblockerhandler { get; set; }
 
+        /**
+         * An item waiting to be applied.
+         * Silent items are ones the server re-sent on reconnect that were already applied in a
+         * previous session; they still need to be applied to rebuild state but must not be announced.
+         */
+        private readonly struct QueuedItem
+        {
+            public readonly long Id;
+            public readonly string Name;
+            public readonly bool Silent;
+
+            public QueuedItem(long id, string name, bool silent)
+            {
+                Id = id;
+                Name = name;
+                Silent = silent;
+            }
+        }
+
         private ArchipelagoSession session;
         private Queue<KeyValuePair<long, string>> itemReceivedQueue = new Queue<KeyValuePair<long, string>>();
-        private Queue<KeyValuePair<long, string>> environmentReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<QueuedItem> environmentReceivedQueue = new Queue<QueuedItem>();
         private Queue<KeyValuePair<long, string>> fillerReceivedQueue = new Queue<KeyValuePair<long, string>>();
         private Queue<KeyValuePair<long, string>> trapReceivedQueue = new Queue<KeyValuePair<long, string>>();
-        private Queue<KeyValuePair<long, string>> stageReceivedQueue = new Queue<KeyValuePair<long, string>>();
+        private Queue<QueuedItem> stageReceivedQueue = new Queue<QueuedItem>();
         // TODO get magic numbers from somewhere else (eg move to LocationHandler.cs)
         private const long environmentRangeLower = 37700;
         private const long environmentRangeUpper = 37999;
@@ -116,10 +135,16 @@ namespace Archipelago.RiskOfRain2
                 EnqueueItem(newItem.ItemId);
                 ArchipelagoClient.lastReceivedItemindex = helper.AllItemsReceived.Count;
             }
-            else if (environmentRangeLower <= newItem.ItemId && newItem.ItemId <= environmentRangeUpper)
+            else if (IsReplayable(newItem.ItemId))
             {
-                EnqueueItem(newItem.ItemId);
+                EnqueueItem(newItem.ItemId, true);
             }
+        }
+
+        private static bool IsReplayable(long itemId)
+        {
+            return (environmentRangeLower <= itemId && itemId <= environmentRangeUpper)
+                || (stageRangeLower <= itemId && itemId <= stageRangeUpper);
         }
         private void Session_PacketReceived(ArchipelagoPacketBase packet)
         {
@@ -141,7 +166,7 @@ namespace Archipelago.RiskOfRain2
 
 
 
-        public void EnqueueItem(long itemId)
+        public void EnqueueItem(long itemId, bool silent = false)
         {
             // convert the itemId to a name here instead of in the main loop
             // this prevents a call to the session in the RoR2Application_Update
@@ -152,7 +177,7 @@ namespace Archipelago.RiskOfRain2
             //  when the run starts.
             if (environmentRangeLower <= itemId && itemId <= environmentRangeUpper)
             {
-                environmentReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
+                environmentReceivedQueue.Enqueue(new QueuedItem(itemId, itemName, silent));
             }
             else if (fillerRangeLower <= itemId && itemId <= fillerRangeUpper)
             {
@@ -163,7 +188,7 @@ namespace Archipelago.RiskOfRain2
             }
             else if (stageRangeLower <= itemId && itemId <= stageRangeUpper)
             {
-                stageReceivedQueue.Enqueue(new KeyValuePair<long, string>(itemId, itemName));
+                stageReceivedQueue.Enqueue(new QueuedItem(itemId, itemName, silent));
             }
             else
             {
@@ -187,6 +212,7 @@ namespace Archipelago.RiskOfRain2
 
         /**
          * At the start of a run, we need to precollect all environments before environments are picked for stages.
+         * Stage unlocks are precollected for the same reason: CheckBlocked consults them as soon as a stage is picked.
          */
         public void Precollect()
         {
@@ -194,6 +220,11 @@ namespace Archipelago.RiskOfRain2
             {
                 Log.LogDebug("Precollecting environment...");
                 HandleReceivedEnvironmentQueueItem();
+            }
+            while (stageReceivedQueue.Any())
+            {
+                Log.LogDebug("Precollecting stage unlock...");
+                HandleReceivedStageQueueItem();
             }
         }
 
@@ -229,10 +260,10 @@ namespace Archipelago.RiskOfRain2
 
         private void HandleReceivedEnvironmentQueueItem()
         {
-            KeyValuePair<long, string> itemReceived = environmentReceivedQueue.Dequeue();
+            QueuedItem itemReceived = environmentReceivedQueue.Dequeue();
 
-            long itemIdReceived = itemReceived.Key;
-            string itemNameReceived = itemReceived.Value;
+            long itemIdReceived = itemReceived.Id;
+            string itemNameReceived = itemReceived.Name;
             if (itemIdReceived == environmentRangeLower + 46 && itemNameReceived == "The Planetarium")
             {
                 itemIdReceived = environmentRangeLower + 45;
@@ -245,7 +276,7 @@ namespace Archipelago.RiskOfRain2
             }
             Log.LogDebug($"Handling environment with itemid {itemIdReceived} with name {itemNameReceived}");
             Stageblockerhandler?.UnBlock((int)(itemIdReceived - environmentRangeLower));
-            if (IsInGame)
+            if (!itemReceived.Silent && IsInGame)
             {
                 ChatMessage.SendColored($"Received {itemNameReceived}!", Color.magenta);
             }
@@ -299,19 +330,26 @@ namespace Archipelago.RiskOfRain2
         }
         private void HandleReceivedStageQueueItem()
         {
-            KeyValuePair<long, string> itemReceived = stageReceivedQueue.Dequeue();
+            QueuedItem itemReceived = stageReceivedQueue.Dequeue();
 
-            long itemIdRecieved = itemReceived.Key;
-            string itemNameReceived = itemReceived.Value;
+            long itemIdRecieved = itemReceived.Id;
+            string itemNameReceived = itemReceived.Name;
+            bool announce = !itemReceived.Silent && IsInGame;
             if (itemIdRecieved == 37505)
             {
                 StageBlockerHandler.amountOfStages += 1;
-                ChatMessage.SendColored($"Received {itemNameReceived} #{StageBlockerHandler.amountOfStages}!", Color.magenta);
+                if (announce)
+                {
+                    ChatMessage.SendColored($"Received {itemNameReceived} #{StageBlockerHandler.amountOfStages}!", Color.magenta);
+                }
             } 
             else
             {
                 StageBlockerHandler.stageUnlocks[itemNameReceived] = true;
-                ChatMessage.SendColored($"Received {itemNameReceived}!", Color.magenta);
+                if (announce)
+                {
+                    ChatMessage.SendColored($"Received {itemNameReceived}!", Color.magenta);
+                }
             }
             
         }
