@@ -1,11 +1,7 @@
-﻿using R2API.Utils;
-using RoR2.UI;
+﻿using RoR2.UI;
 using RoR2;
-using System;
-using System.IO;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 

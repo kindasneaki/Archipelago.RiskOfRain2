@@ -1,9 +1,32 @@
+**1.6.0**
+* **Alloyed Collective DLC support added**
+    * New Stages support
+        *  Pretender's Precipice
+         * Iron Alluvium
+         * Iron Auroras (Variant stage)
+         * Repurposed Crater
+         * Conduit Canyon
+         * Solutional Haunt
+         * Computational Exchange
+         * Neural Sanctum
+    * New Ending support
+         * Decompile (Requires beating the Solus Heart in Neural Sanctum) 
+**1.5.5**
+* **Bug Fixes:**
+    * Fixed "Helminhe Hatchery" typo in the stage name shown in chat
+    * manifest.json R2API dependency updated to 5.0.5 to match what the build actually uses (was listed as 4.4.1)
+
+**1.5.4**
+* **Bug Fixes:**
+    * Fixes a bug where the player could access stages that were not available without the dlc
+    * Moves Deathlink to the main thread to prevent crashes because Unity is not thread-safe
+
 **1.5.3**
 * Update gamelib/mmhook/ror2bepinexpack
 * Add more guards to deathlink to prevent attempt to prevent crashes.
 *  **Bug Fixes:**
     * New Variant stages have a default weight of 0, causing them to never be accessable if locations are complete
-    * 
+    
 **1.5.2**
 *  **Bug Fixes:**
     * Fixed items not counting as checks when related to pickupDropletController

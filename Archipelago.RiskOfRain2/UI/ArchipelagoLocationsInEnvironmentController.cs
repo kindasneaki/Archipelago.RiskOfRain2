@@ -1,9 +1,5 @@
 ﻿using Archipelago.RiskOfRain2.Handlers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using R2API.Utils;
 using RoR2.UI;
 using static RoR2.UI.ObjectivePanelController;
 

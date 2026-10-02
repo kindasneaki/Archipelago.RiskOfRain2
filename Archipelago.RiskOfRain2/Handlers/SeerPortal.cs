@@ -1,6 +1,7 @@
 ﻿using Archipelago.RiskOfRain2.Lookup;
 using RoR2;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -36,6 +37,8 @@ namespace Archipelago.RiskOfRain2.Handlers
                 }
                 var center = teleporterMesh.transform.position;
 
+                sceneDef = CheckRequiredExpansion(sceneDef).ToList();
+
                 for (int i = 0; i < sceneDef.Count; i++)
                 {
                     SceneIndex scene = sceneDef[i].sceneDefIndex;
@@ -65,6 +68,23 @@ namespace Archipelago.RiskOfRain2.Handlers
                     purchaseInteraction.contextToken = locationNames.GetLocationName(sceneDef[i].cachedName) ?? sceneDef[i].cachedName;
                 }
             }
+        }
+
+        public List<SceneDef> CheckRequiredExpansion(List<SceneDef> sceneDefs)
+        {
+            var result = new List<SceneDef>();
+            foreach (var scene in sceneDefs)
+            {
+                if (scene.requiredExpansion == null || Run.instance.IsExpansionEnabled(scene.requiredExpansion))
+                {
+                    result.Add(scene);
+                }
+                else
+                {
+                    Log.LogDebug($"Scene {scene.cachedName} requires expansion {scene.requiredExpansion?.name}, which is not available.");
+                }
+            }
+            return result;
         }
 
     }
