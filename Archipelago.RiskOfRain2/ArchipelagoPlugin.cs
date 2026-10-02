@@ -21,7 +21,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.5.4";
+        public const string PluginVersion = "1.6.0";
 
         public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }
@@ -37,7 +37,6 @@ namespace Archipelago.RiskOfRain2
         //private bool isInLobbyConfigLoaded = false;
         internal static string apServerUri = "archipelago.gg";
         internal static int apServerPort = 38281;
-        private bool willConnectToAP = true;
         private bool isPlayingAP = false;
         internal static string apSlotName = "";
         //private string apSlotName;
@@ -168,7 +167,6 @@ namespace Archipelago.RiskOfRain2
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
-            willConnectToAP = true;
             isPlayingAP = true;
             url = url + ":" + port;
 
