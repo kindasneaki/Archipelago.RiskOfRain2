@@ -1,11 +1,11 @@
 ﻿{
 	"name": "Archipelago",
-	"version_number": "1.5.4",
+	"version_number": "1.5.5",
 	"website_url": "https://github.com/kindasneaki/Archipelago.RiskOfRain2",
 	"description": "Archipelago multiworld randomizer client implementation enabling Risk of Rain 2 based Archipelago runners.",
 	"dependencies": [
 		"bbepis-BepInExPack-5.4.2101",
 		"RiskofThunder-HookGenPatcher-1.2.3",
-		"tristanmcpherson-R2API-4.4.1"
+		"tristanmcpherson-R2API-5.0.5"
 	]
 }

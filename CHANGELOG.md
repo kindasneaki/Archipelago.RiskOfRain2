@@ -1,3 +1,8 @@
+**1.5.5**
+* **Bug Fixes:**
+    * Fixed "Helminhe Hatchery" typo in the stage name shown in chat
+    * manifest.json R2API dependency updated to 5.0.5 to match what the build actually uses (was listed as 4.4.1)
+
 **1.5.4**
 * **Bug Fixes:**
     * Fixes a bug where the player could access stages that were not available without the dlc

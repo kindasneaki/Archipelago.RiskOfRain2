@@ -75,7 +75,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             { "lemuriantemple", "Reformed Altar" },
             { "habitat", "Treeborn Colony" },
             { "habitatfall", "Golden Dieback" },
-            { "helminthroost", "Helminhe Hatchery" },
+            { "helminthroost", "Helminth Hatchery" },
             { "meridian", "Prime Meridian" },
             { "nest", "Pretender's Precipice" },
             { "ironalluvium", "Iron Alluvium" },
