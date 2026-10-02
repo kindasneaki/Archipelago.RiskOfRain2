@@ -78,7 +78,8 @@ namespace Archipelago.RiskOfRain2.Handlers
                         runNextStage = CheckBlocked("meridian");
                         break;
                 }
-               
+
+                if (!runNextStage) ClearSceneBlockedMessage();
 
                 self.useRunNextStageScene = runNextStage;
             }
@@ -93,6 +94,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                     Log.LogDebug($"SceneExitController_SetState changing destination to Conduit Canyon.");
                     SceneDef conduitCanyon = SceneCatalog.FindSceneDef("conduitcanyon");
                     self.destinationScene = conduitCanyon;
+                    ClearSceneBlockedMessage();
                 }
                 // Solutional Haunt is a special case where it is a stage that is only accessible from Conduit Canyon. If the player has not unlocked Solutional Haunt, they will be sent back to the beginning of the run.
                 // This shouldn't be reachable but leaving for now.
@@ -191,6 +193,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (SceneCatalog.mostRecentSceneDef.cachedName == "conduitcanyon" && !CheckBlocked("solutionalhaunt"))
             {
                 manuallyPickingStage = false;
+                ClearSceneBlockedMessage();
             }
 
             // there are 2 conditions when we should mess with this call:
@@ -217,14 +220,15 @@ namespace Archipelago.RiskOfRain2.Handlers
                     else if (SceneCatalog.mostRecentSceneDef.stageOrder > amountOfStages && progressivesStages)
                     {
                         reason = $"you need {SceneCatalog.mostRecentSceneDef.stageOrder} <color=#dda0dd>Progressive Stages</color>";
-                    } else
+                    }
+                    else
                     {
                         List<string> stagesNeeded = new List<string>();
                         reason = $"you're missing ";
                         foreach (KeyValuePair<string, int> entry in stageLookup)
                         {
 
-                            if(entry.Value == SceneCatalog.mostRecentSceneDef.stageOrder && SceneIsInSeed(entry.Key))
+                            if (entry.Value == SceneCatalog.mostRecentSceneDef.stageOrder && SceneIsInSeed(entry.Key))
                             {
                                 stagesNeeded.Add(entry.Key);
                             }
@@ -251,7 +255,11 @@ namespace Archipelago.RiskOfRain2.Handlers
                     Log.LogDebug("adding choices for stage 1");
                     self.startingSceneGroup.AddToWeightedSelection(choices, self.CanPickStage);
                 }
-                else Log.LogDebug("there are choices for the next scene; skipping tampering said choices");
+                else
+                {
+                    ClearSceneBlockedMessage();
+                    Log.LogDebug("there are choices for the next scene; skipping tampering said choices");
+                }
 
                 prevOrderedStage = SceneCatalog.mostRecentSceneDef;
             }
@@ -300,6 +308,13 @@ namespace Archipelago.RiskOfRain2.Handlers
                 default:
                     return false;
             }
+        }
+
+        private void ClearSceneBlockedMessage()
+        {
+            // Clear message set at the start of the scene so that the player doesn't get a message about not being able to advance when they are actually advancing.
+            Log.LogDebug("Clearing scene blocked message.");
+            revertToBeginningMessage = "";
         }
     }
 }
