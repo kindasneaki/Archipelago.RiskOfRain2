@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Archipelago.RiskOfRain2.Console;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using Archipelago.RiskOfRain2.Handlers;
 using BepInEx;
-using BepInEx.Bootstrap;
-using R2API;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using R2API.Utils;

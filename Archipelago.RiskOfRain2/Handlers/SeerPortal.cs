@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
-using UnityEngine.SceneManagement;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {

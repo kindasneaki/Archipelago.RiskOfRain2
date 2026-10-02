@@ -1,4 +1,3 @@
-using EntityStates.MinorConstruct;
 using R2API.Utils;
 using RoR2;
 using UnityEngine;

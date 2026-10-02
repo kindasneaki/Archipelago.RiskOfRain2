@@ -9,7 +9,6 @@ using Archipelago.MultiClient.Net.Helpers;
 using Archipelago.RiskOfRain2.Extensions;
 using Archipelago.RiskOfRain2.Handlers;
 using Archipelago.RiskOfRain2.Net;
-using Archipelago.RiskOfRain2.UI;
 using R2API.Networking;
 using R2API.Utils;
 using R2API.Networking.Interfaces;
@@ -17,7 +16,6 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
-using System.Collections.ObjectModel;
 using KinematicCharacterController;
 
 namespace Archipelago.RiskOfRain2

@@ -1,5 +1,4 @@
 using RoR2;
-using UnityEngine.Networking;
 
 namespace Archipelago.RiskOfRain2.Handlers
 {
