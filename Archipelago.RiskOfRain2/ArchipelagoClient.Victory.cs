@@ -4,14 +4,12 @@ using System.Linq;
 using Archipelago.MultiClient.Net.Enums;
 using Archipelago.MultiClient.Net.Packets;
 using Archipelago.RiskOfRain2.Net;
-using Archipelago.RiskOfRain2.UI;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using R2API.Utils;
 using RoR2;
 using RoR2.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Archipelago.RiskOfRain2
 {
@@ -75,7 +73,8 @@ namespace Archipelago.RiskOfRain2
                             //RoR2Content.GameEndings.ObliterationEnding, 
                             RoR2Content.GameEndings.LimboEnding,
                             DLC1Content.GameEndings.VoidEnding,
-                            DLC2Content.GameEndings.RebirthEndingDef
+                            DLC2Content.GameEndings.RebirthEndingDef,
+                            DLC3Content.GameEndings.DecompileEnding
                         };
                         acceptableLosses = new[] {
                             "moon",
@@ -98,7 +97,8 @@ namespace Archipelago.RiskOfRain2
                     //RoR2Content.GameEndings.ObliterationEnding, 
                     RoR2Content.GameEndings.LimboEnding,
                     DLC1Content.GameEndings.VoidEnding,
-                    DLC2Content.GameEndings.RebirthEndingDef
+                    DLC2Content.GameEndings.RebirthEndingDef,
+                    DLC3Content.GameEndings.DecompileEnding
                 };
                 acceptableLosses = new[] {
                     "moon",
@@ -106,7 +106,8 @@ namespace Archipelago.RiskOfRain2
                     "voidraid",
                     "mysteryspace",
                     "limbo",
-                    "meridian"
+                    "meridian",
+                    "solusweb"
                 };
             }
         }
