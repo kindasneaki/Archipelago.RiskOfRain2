@@ -2,6 +2,7 @@ using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Archipelago.RiskOfRain2.Handlers
@@ -10,15 +11,23 @@ namespace Archipelago.RiskOfRain2.Handlers
     {
         private void SceneDef_AddDestinationsToWeightedSelection(On.RoR2.SceneDef.orig_AddDestinationsToWeightedSelection orig, SceneDef self, WeightedSelection<SceneDef> dest, Func<SceneDef, bool> canAdd)
         {
-            // This forces it to use the normal destination group instead of switching to the looped group after the first loop. (the looped ones are in this group for some reason).
-            // This is probably really unstable with updates to the game but I don't see any other way to do this currently.
-            if (self.destinationsGroup)
-            {
-                self.destinationsGroup.AddToWeightedSelection(dest, canAdd);
-            }
-            else
+            if (!self.destinationsGroup)
             {
                 orig(self, dest, canAdd);
+                return;
+            }
+
+            self.destinationsGroup.AddToWeightedSelection(dest, canAdd);
+
+            if (!self.loopedDestinationsGroup) return;
+
+            WeightedSelection<SceneDef> looped = new WeightedSelection<SceneDef>();
+            self.loopedDestinationsGroup.AddToWeightedSelection(looped, canAdd);
+            for (int i = 0; i < looped.Count; i++)
+            {
+                SceneDef scene = looped.choices[i].value;
+                if (dest.choices.Take(dest.Count).Any(choices => choices.value == scene)) continue;
+                dest.AddChoice(scene, looped.choices[i].weight);
             }
         }
 
@@ -39,6 +48,8 @@ namespace Archipelago.RiskOfRain2.Handlers
 
         private void SceneExitController_Begin(On.RoR2.SceneExitController.orig_Begin orig, SceneExitController self)
         {
+
+            int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
             // Suppose the player(s) enters a scene where they do not have a valid destination currently.
             // They would be guaranteed to be stuck in that level on the next stage.
             // By forcefully repicking the next scene, the player(s) can go to a scene that was unblocked while in the current scene.
@@ -47,7 +58,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             if (self.isColossusPortal)
             {
                 bool runNextStage = true;
-                int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
+                
 
                 Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}, mostRecent..{mostRecentStageGroup}.");
                 if (stageOrder > 5) stageOrder = mostRecentStageGroup; // if the stage order is greater than 5, use the current scene's stage order instead
@@ -87,7 +98,6 @@ namespace Archipelago.RiskOfRain2.Handlers
             // This might not be necessary anymore because we are forcefully spawning the conduit canyon portal.
             else if (self.name == "HardwareProgPortal_Haunt(Clone)" || self.name == "HardwareProgPortal(Clone)")
             {
-                int stageOrder = SceneCatalog.mostRecentSceneDef.stageOrder;
                 Log.LogDebug($"SceneExitController_SetState checking for blocked stages. Current stage order {stageOrder}");
                 if (stageOrder == 3 && !CheckBlocked("conduitcanyon"))
                 {
@@ -118,7 +128,6 @@ namespace Archipelago.RiskOfRain2.Handlers
                     self.useRunNextStageScene = true;
                 }
             }
-
             if (self.useRunNextStageScene)
             {
                 manuallyPickingStage = true;
@@ -143,7 +152,7 @@ namespace Archipelago.RiskOfRain2.Handlers
                 Log.LogDebug("blocking.");
                 return false;
             }
-            stages_available.Add(scenedef);
+            if (!stages_available.Contains(scenedef)) stages_available.Add(scenedef);
             Log.LogDebug("passing through.");
 
             return orig(self, scenedef);
