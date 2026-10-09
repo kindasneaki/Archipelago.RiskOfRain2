@@ -70,7 +70,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <summary>
         /// Blood shrine blocks the money that it will give if the shrine was used as a location.
         /// </summary>
-        private void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
+        private void CharacterMaster_GiveMoney_uint(On.RoR2.CharacterMaster.orig_GiveMoney_uint orig, CharacterMaster self, uint amount)
         {
             if (!bloodshrineblockgold) orig(self, amount);
             else Log.LogDebug($"CharacterMaster_GiveMoney: Gold blocked because blood shrine."); // XXX
