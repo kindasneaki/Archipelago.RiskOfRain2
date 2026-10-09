@@ -11,10 +11,14 @@
          * Neural Sanctum
     * New Ending support
          * Decompile (Requires beating the Solus Heart in Neural Sanctum) 
-**1.5.5**
+**1.5.6**
 * **Bug Fixes:**
     * Fixed "Helminhe Hatchery" typo in the stage name shown in chat
     * manifest.json R2API dependency updated to 5.0.5 to match what the build actually uses (was listed as 4.4.1)
+
+**1.5.5**
+* Update for Hallowed Concepts
+* Update Multiclient.net to 6.7.1
 
 **1.5.4**
 * **Bug Fixes:**
