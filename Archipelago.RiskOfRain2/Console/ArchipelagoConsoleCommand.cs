@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Text;
 using R2API.Utils;
 using RoR2;
 
@@ -48,25 +45,25 @@ namespace Archipelago.RiskOfRain2.Console
                 password = args.GetArgString(3);
             }
 
-            OnArchipelagoCommandCalled(url, port, slot, password);
+            OnArchipelagoCommandCalled?.Invoke(url, port, slot, password);
         }
 
         [ConCommand(commandName = "archipelago_disconnect", flags = ConVarFlags.SenderMustBeServer, helpText = "Disconnects from Archipelago.")]
         private static void ArchipelagoDisconnect(ConCommandArgs args)
         {
-            OnArchipelagoDisconnectCommandCalled();
+            OnArchipelagoDisconnectCommandCalled?.Invoke();
         }
         
         [ConCommand(commandName = "archipelago_reconnect", flags = ConVarFlags.SenderMustBeServer, helpText = "Attemps to reconnect to Archipelago.")]
         private static void ArchipelagoReconnect(ConCommandArgs args)
         {
-            OnArchipelagoReconnectCommandCalled();
+            OnArchipelagoReconnectCommandCalled?.Invoke();
         }
 
         [ConCommand(commandName = "archipelago_show_unlocked_stages", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows the current stages unlocked")]
         private static void ArchipelagoShowUnlockedStages(ConCommandArgs args)
         {
-            OnArchipelagoShowUnlockedStagesCommandCalled();
+            OnArchipelagoShowUnlockedStagesCommandCalled?.Invoke();
         }
 
         [ConCommand(commandName = "archipelago_deathlink", flags = ConVarFlags.SenderMustBeServer, helpText = "Change deathlink. Syntax archipelago_deathlink <true/false>.")]
@@ -80,7 +77,7 @@ namespace Archipelago.RiskOfRain2.Console
             else if(args.GetArgString(0) == "true" || args.GetArgString(0) == "false")
             {
                 bool link = Convert.ToBoolean(args.GetArgString(0));
-                OnArchipelagoDeathLinkCommandCalled(link);
+                OnArchipelagoDeathLinkCommandCalled?.Invoke(link);
                 ChatMessage.Send($"Deathlink is now set to {link}");
             }
             else
@@ -100,7 +97,7 @@ namespace Archipelago.RiskOfRain2.Console
             else if (args.GetArgString(0) == "true" || args.GetArgString(0) == "false")
             {
                 bool finalstage = Convert.ToBoolean(args.GetArgString(0));
-                OnArchipelagoFinalStageDeathCommandCalled(finalstage);
+                OnArchipelagoFinalStageDeathCommandCalled?.Invoke(finalstage);
                 ChatMessage.Send($"FinalStageDeath is now set to {finalstage}");
 
             }
@@ -120,7 +117,7 @@ namespace Archipelago.RiskOfRain2.Console
             else if (args.GetArgString(0) == "true" || args.GetArgString(0) == "false")
             {
                 bool highlight = Convert.ToBoolean(args.GetArgString(0));
-                OnArchipelagoHighlightSatelliteCommandCalled(highlight);
+                OnArchipelagoHighlightSatelliteCommandCalled?.Invoke(highlight);
                 var radar = UnityEngine.GameObject.Find("RadarTower(Clone)");
                 if (radar != null)
                 {

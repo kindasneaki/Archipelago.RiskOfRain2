@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Archipelago.RiskOfRain2.Console;
 using Archipelago.RiskOfRain2.Net;
 using Archipelago.RiskOfRain2.UI;
 using Archipelago.RiskOfRain2.Handlers;
 using BepInEx;
-using BepInEx.Bootstrap;
-using R2API;
 using R2API.Networking;
 using R2API.Networking.Interfaces;
 using R2API.Utils;
@@ -25,7 +21,7 @@ namespace Archipelago.RiskOfRain2
         public const string PluginGUID = "com.Ijwu.Archipelago";
         public const string PluginAuthor = "Ijwu/Sneaki";
         public const string PluginName = "Archipelago";
-        public const string PluginVersion = "1.5.3";
+        public const string PluginVersion = "1.6.0";
 
         public static BepInEx.Configuration.ConfigEntry<bool> SatelliteEntry { get; set; }
         public static BepInEx.Configuration.ConfigEntry<string> SlotNameEntry { get; set; }
@@ -41,7 +37,6 @@ namespace Archipelago.RiskOfRain2
         //private bool isInLobbyConfigLoaded = false;
         internal static string apServerUri = "archipelago.gg";
         internal static int apServerPort = 38281;
-        private bool willConnectToAP = true;
         private bool isPlayingAP = false;
         internal static string apSlotName = "";
         //private string apSlotName;
@@ -72,6 +67,7 @@ namespace Archipelago.RiskOfRain2
             ArchipelagoEndMessage.OnArchipelagoSessionEnd += ArchipelagoEndMessage_OnArchipelagoSessionEnd;
             ArchipelagoConsoleCommand.OnArchipelagoCommandCalled += ArchipelagoConsoleCommand_ArchipelagoCommandCalled;
             ArchipelagoConsoleCommand.OnArchipelagoDisconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled;
+            ArchipelagoConsoleCommand.OnArchipelagoReconnectCommandCalled += ArchipelagoConsoleCommand_ArchipelagoReconnectCommandCalled;
             NetworkManagerSystem.onStopClientGlobal += GameNetworkManager_onStopClientGlobal;
             On.RoR2.UI.ChatBox.SubmitChat += ChatBox_SubmitChat;
             AssetBundleHelper.LoadBundle();         
@@ -165,10 +161,12 @@ namespace Archipelago.RiskOfRain2
             AP.Connect(url, apSlotName, apPassword);
             //Log.LogDebug("On Click Connect");
             SlotNameEntry.Value = apSlotName;
+            ServerNameEntry.Value = apServerUri;
+            PortEntry.Value = apServerPort;
+
         }
         private void ArchipelagoConsoleCommand_ArchipelagoCommandCalled(string url, int port, string slot, string password)
         {
-            willConnectToAP = true;
             isPlayingAP = true;
             url = url + ":" + port;
 
@@ -178,6 +176,23 @@ namespace Archipelago.RiskOfRain2
         private void ArchipelagoConsoleCommand_ArchipelagoDisconnectCommandCalled()
         {
             AP.Disconnect();
+        }
+        private void ArchipelagoConsoleCommand_ArchipelagoReconnectCommandCalled()
+        {
+            if (!AP.HasPreviousConnection)
+            {
+                ChatMessage.SendColored("No previous Archipelago connection to reconnect to. Use archipelago_connect first.", Color.red);
+                return;
+            }
+            if (AP.reconnecting)
+            {
+                ChatMessage.SendColored("Already attempting to reconnect to Archipelago.", Color.red);
+                return;
+            }
+
+            AP.PrepareForReconnect();
+            AP.reconnecting = true;
+            StartCoroutine(AP.AttemptReconnection());
         }
         /// <summary>
         /// Server -> Client packet responder. Should not run on server.
