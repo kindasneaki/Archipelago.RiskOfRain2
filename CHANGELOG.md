@@ -1,9 +1,18 @@
+**1.5.5**
+* Update for Hallowed Concepts
+* Update Multiclient.net to 6.7.1
+
+**1.5.4**
+* **Bug Fixes:**
+    * Fixes a bug where the player could access stages that were not available without the dlc
+    * Moves Deathlink to the main thread to prevent crashes because Unity is not thread-safe
+
 **1.5.3**
 * Update gamelib/mmhook/ror2bepinexpack
 * Add more guards to deathlink to prevent attempt to prevent crashes.
 *  **Bug Fixes:**
     * New Variant stages have a default weight of 0, causing them to never be accessable if locations are complete
-    * 
+    
 **1.5.2**
 *  **Bug Fixes:**
     * Fixed items not counting as checks when related to pickupDropletController

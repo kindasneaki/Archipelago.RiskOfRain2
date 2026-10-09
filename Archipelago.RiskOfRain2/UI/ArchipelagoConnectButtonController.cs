@@ -93,7 +93,7 @@ namespace Archipelago.RiskOfRain2.UI
         //Create button for the lobby to connect to Archipelago
         private void CreateButton()
         {
-            var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
+            var readyButton = contr.transform.Find("SafeArea/ReadyPanel/VerticalLayoutGroup/ReadyButton");
             font = readyButton.GetComponentInChildren<TextMeshProUGUI>().font;
             var readyPanel = contr.transform.Find("SafeArea");
             var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage").gameObject;
@@ -174,17 +174,17 @@ namespace Archipelago.RiskOfRain2.UI
             }
         }
         //Creates a 1x1 Outline box inside Connect to AP... pretty useless and I have no idea why it doesnt create it the around it like I can do in game
-       /* private void CreateOutline()
-        {
-            var readyButton = contr.transform.Find("SafeArea/ReadyPanel/ReadyButton");
-            var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage").gameObject;
-            var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
-            var outline = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/HoverOutlineImage(Clone)").gameObject;
-            outline.transform.SetParent(button.transform);
-            outline.transform.localPosition = new Vector3(4, -4, 0);
-            button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
-            button.GetComponent<HGButton>().showImageOnHover = true;
-            button.GetComponent<HGButton>().allowAllEventSystems = true;
-        }*/
+        /* private void CreateOutline()
+         {
+             var readyButton = contr.transform.Find("SafeArea/ReadyPanel/VerticalLayoutGroup/ReadyButton");
+             var baseHoverOutlineSprite = readyButton.Find("HoverOutlineImage").gameObject;
+             var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
+             var outline = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/HoverOutlineImage(Clone)").gameObject;
+             outline.transform.SetParent(button.transform);
+             outline.transform.localPosition = new Vector3(4, -4, 0);
+             button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
+             button.GetComponent<HGButton>().showImageOnHover = true;
+             button.GetComponent<HGButton>().allowAllEventSystems = true;
+         }*/
     }
 }
