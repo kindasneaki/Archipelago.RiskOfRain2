@@ -266,7 +266,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry += PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
-            On.RoR2.CharacterMaster.GiveMoney += CharacterMaster_GiveMoney;
+            On.RoR2.CharacterMaster.GiveMoney_uint += CharacterMaster_GiveMoney_uint;
             On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
             On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 += PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack += ShrineCombatBehavior_AddShrineStack;
@@ -331,7 +331,7 @@ namespace Archipelago.RiskOfRain2.Handlers
             // Shrines
             On.RoR2.PortalStatueBehavior.GrantPortalEntry -= PortalStatueBehavior_GrantPortalEntry_Gold;
             On.RoR2.ShrineBloodBehavior.AddShrineStack -= ShrineBloodBehavior_AddShrineStack;
-            On.RoR2.CharacterMaster.GiveMoney -= CharacterMaster_GiveMoney;
+            On.RoR2.CharacterMaster.GiveMoney_uint -= CharacterMaster_GiveMoney_uint;
             On.RoR2.ShrineChanceBehavior.AddShrineStack -= ShrineChanceBehavior_AddShrineStack;
             On.RoR2.PickupDropletController.CreatePickupDroplet_CreatePickupInfo_Vector3_Vector3 -= PickupDropletController_CreatePickupDroplet_ChanceShrine;
             On.RoR2.ShrineCombatBehavior.AddShrineStack -= ShrineCombatBehavior_AddShrineStack;
@@ -794,7 +794,7 @@ namespace Archipelago.RiskOfRain2.Handlers
         /// <summary>
         /// Blood shrine blocks the money that it will give if the shrine was used as a location.
         /// </summary>
-        private void CharacterMaster_GiveMoney(On.RoR2.CharacterMaster.orig_GiveMoney orig, CharacterMaster self, uint amount)
+        private void CharacterMaster_GiveMoney_uint(On.RoR2.CharacterMaster.orig_GiveMoney_uint orig, CharacterMaster self, uint amount)
         {
             if (!bloodshrineblockgold) orig(self, amount);
             else Log.LogDebug($"CharacterMaster_GiveMoney: Gold blocked because blood shrine."); // XXX

@@ -1,3 +1,7 @@
+**1.5.5**
+* Update for Hallowed Concepts
+* Update Multiclient.net to 6.7.1
+
 **1.5.4**
 * **Bug Fixes:**
     * Fixes a bug where the player could access stages that were not available without the dlc
