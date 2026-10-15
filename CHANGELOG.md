@@ -1,3 +1,21 @@
+**1.6.0**
+* **Alloyed Collective DLC support added**
+    * New Stages support
+        *  Pretender's Precipice
+         * Iron Alluvium
+         * Iron Auroras (Variant stage)
+         * Repurposed Crater
+         * Conduit Canyon
+         * Solutional Haunt
+         * Computational Exchange
+         * Neural Sanctum
+    * New Ending support
+         * Decompile (Requires beating the Solus Heart in Neural Sanctum) 
+**1.5.6**
+* **Bug Fixes:**
+    * Fixed "Helminhe Hatchery" typo in the stage name shown in chat
+    * manifest.json R2API dependency updated to 5.0.5 to match what the build actually uses (was listed as 4.4.1)
+
 **1.5.5**
 * Update for Hallowed Concepts
 * Update Multiclient.net to 6.7.1

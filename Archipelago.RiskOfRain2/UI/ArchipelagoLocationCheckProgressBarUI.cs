@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Archipelago.RiskOfRain2.Extensions;
-using Archipelago.RiskOfRain2.Net;
 using RoR2.UI;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
 
 namespace Archipelago.RiskOfRain2.UI
 {
