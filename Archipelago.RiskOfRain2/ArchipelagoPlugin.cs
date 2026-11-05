@@ -45,7 +45,7 @@ namespace Archipelago.RiskOfRain2
         private bool isPlayingAP = false;
         internal static string apSlotName = "";
         //private string apSlotName;
-        internal static string apPassword;
+        internal static string apPassword = "";
 
         public ArchipelagoPlugin()
         {
@@ -61,7 +61,9 @@ namespace Archipelago.RiskOfRain2
             apSlotName = SlotNameEntry.Value;
             apServerUri = ServerNameEntry.Value;
             apServerPort = PortEntry.Value;
-            apPassword = PasswordEntry.Value;
+            apPassword = PasswordEntry.Value ?? "";
+
+            ParseCommandLineArgs();
 
             Instance = this;
             AP = new ArchipelagoClient();
@@ -238,8 +240,138 @@ namespace Archipelago.RiskOfRain2
         }
         private string ChangePort(string newValue)
         {
-            apServerPort = int.Parse(newValue);
+            if (int.TryParse(newValue, out var port))
+            {
+                apServerPort = port;
+            }
             return newValue;
+        }
+
+        internal static void ParseCommandLineArgs(string[] args = null)
+        {
+            try
+            {
+                args ??= Environment.GetCommandLineArgs();
+                if (args == null || args.Length == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < args.Length; i++)
+                {
+                    var arg = args[i];
+                    if (string.IsNullOrWhiteSpace(arg))
+                    {
+                        continue;
+                    }
+
+                    string key = null;
+                    string value = null;
+
+                    int equalsIndex = arg.IndexOf('=');
+                    if ((arg.StartsWith("--") || arg.StartsWith("-")) && equalsIndex > 0)
+                    {
+                        key = arg.Substring(0, equalsIndex);
+                        value = arg.Substring(equalsIndex + 1);
+                    }
+                    else if (arg.StartsWith("--") || arg.StartsWith("-"))
+                    {
+                        key = arg;
+                        if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                        {
+                            value = args[++i];
+                        }
+                    }
+
+                    if (key == null)
+                    {
+                        continue;
+                    }
+
+                    string normalizedKey = key.TrimStart('-');
+                    value = CleanArgumentValue(value);
+
+                    if (string.Equals(normalizedKey, "apaddress", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!string.IsNullOrEmpty(value))
+                        {
+                            int colonIndex = value.LastIndexOf(':');
+                            if (colonIndex > 0)
+                            {
+                                bool isBrackettedIpv6 = value.StartsWith("[") && value.Contains("]:");
+                                bool isStandardHost = value.IndexOf(':') == colonIndex;
+
+                                if ((isBrackettedIpv6 || isStandardHost) && int.TryParse(value.Substring(colonIndex + 1), out int parsedPortFromUri))
+                                {
+                                    apServerUri = value.Substring(0, colonIndex).Trim('[', ']');
+                                    apServerPort = parsedPortFromUri;
+                                }
+                                else
+                                {
+                                    apServerUri = value;
+                                }
+                            }
+                            else
+                            {
+                                apServerUri = value;
+                            }
+                            Log.LogInfo($"CommandLine arg 'apaddress' set server URI to: {apServerUri}");
+                        }
+                    }
+                    else if (string.Equals(normalizedKey, "apport", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (int.TryParse(value, out int parsedPort))
+                        {
+                            apServerPort = parsedPort;
+                            Log.LogInfo($"CommandLine arg 'apport' set port to: {apServerPort}");
+                        }
+                        else
+                        {
+                            Log.LogWarning($"CommandLine arg 'apport' had invalid integer value: '{value}'");
+                        }
+                    }
+                    else if (string.Equals(normalizedKey, "apslot", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (value != null)
+                        {
+                            apSlotName = value;
+                            Log.LogInfo($"CommandLine arg 'apslot' set slot name to: {apSlotName}");
+                        }
+                    }
+                    else if (string.Equals(normalizedKey, "appassword", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (value != null)
+                        {
+                            apPassword = value;
+                            Log.LogInfo("CommandLine arg 'appassword' set password.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Error parsing launch arguments: {ex}");
+            }
+        }
+
+        private static string CleanArgumentValue(string val)
+        {
+            if (string.IsNullOrEmpty(val))
+            {
+                return val;
+            }
+
+            val = val.Trim();
+            if (val.Length >= 2)
+            {
+                if ((val.StartsWith("\"") && val.EndsWith("\"")) ||
+                    (val.StartsWith("'") && val.EndsWith("'")))
+                {
+                    val = val.Substring(1, val.Length - 2);
+                }
+            }
+
+            return val;
         }
     }
 }
