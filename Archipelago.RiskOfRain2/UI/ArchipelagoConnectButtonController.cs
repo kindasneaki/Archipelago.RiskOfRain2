@@ -1,4 +1,4 @@
-﻿using R2API.Utils;
+using R2API.Utils;
 using RoR2.UI;
 using RoR2;
 using System;
@@ -100,7 +100,6 @@ namespace Archipelago.RiskOfRain2.UI
 
             var cb = Instantiate(connectPanel);
             cb.AddComponent<MPEventSystemLocator>();
-            cb.AddComponent<HGGamepadInputEvent>();
             cb.transform.SetParent(readyPanel, false);
             cb.transform.localPosition = new Vector3(125, 0, 0);
             cb.transform.localScale = Vector3.one;
@@ -108,12 +107,12 @@ namespace Archipelago.RiskOfRain2.UI
             var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button/").gameObject;
             var outline = Instantiate(baseHoverOutlineSprite);
             outline.transform.SetParent(button.transform, false);
-            button.AddComponent<HGButton>();
-            button.GetComponent<HGButton>().imageOnHover = outline.GetComponent<Image>();
-            button.GetComponent<HGButton>().showImageOnHover = true;
-            button.AddComponent<HGGamepadInputEvent>();
+            var hgButton = button.AddComponent<HGButton>();
+            hgButton.useBaseGamepadClick = true;
+            hgButton.imageOnHover = outline.GetComponent<Image>();
+            hgButton.showImageOnHover = true;
             button.GetComponent<Image>().sprite = readyButton.gameObject.GetComponent<Image>().sprite;
-            button.GetComponent<HGButton>().onClick.AddListener(() => OnConnectClick());
+            hgButton.onClick.AddListener(() => OnConnectClick());
             
             button.GetComponentInChildren<TextMeshProUGUI>().font = font;
         }
@@ -138,10 +137,10 @@ namespace Archipelago.RiskOfRain2.UI
         {
             var minimizePanel = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Hide");
             var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Hide/Button").gameObject;
-            button.AddComponent<HGButton>();
-            button.AddComponent<HGGamepadInputEvent>();
+            var hgButton = button.AddComponent<HGButton>();
+            hgButton.useBaseGamepadClick = true;
             minimizePanel.GetComponentInChildren<TextMeshProUGUI>().font = font;
-            button.GetComponent<HGButton>().onClick.AddListener(() => OnButtonClick());
+            hgButton.onClick.AddListener(() => OnButtonClick());
             MinimizePanel = minimizePanel.gameObject;
         }
         private void ButtonPressed()
@@ -164,7 +163,7 @@ namespace Archipelago.RiskOfRain2.UI
         }
         public static void ChangeButtonWhenDisconnected()
         {
-            Log.LogDebug("Changing Button after connecting.");
+            Log.LogDebug("Changing Button after disconnecting.");
             if (contr != null)
             {
                 var button = contr.transform.Find("SafeArea/ConnectCanvas(Clone)/Panel/Button").gameObject;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -64,6 +64,7 @@ namespace Archipelago.RiskOfRain2
         private GameEndingDef[] acceptableEndings;
         // Acceptable stages to die on
         private string[] acceptableLosses;
+        private DateTime lastConnectAttemptTime = DateTime.MinValue;
 
         public ArchipelagoClient()
         {
@@ -72,6 +73,13 @@ namespace Archipelago.RiskOfRain2
 
         public void Connect(string url, string slotName, string password = null)
         {
+            if ((DateTime.UtcNow - lastConnectAttemptTime).TotalSeconds < 1.5)
+            {
+                Log.LogDebug("Ignoring rapid duplicate Connect call.");
+                return;
+            }
+            lastConnectAttemptTime = DateTime.UtcNow;
+
             if (session != null)
             {
                 if (session.Socket.Connected)
@@ -92,7 +100,12 @@ namespace Archipelago.RiskOfRain2
             }
             catch (Exception e)
             {
-                OnClientDisconnect(e.Message);
+                OnClientDisconnect?.Invoke(e.Message);
+                return;
+            }
+            if (session == null)
+            {
+                return;
             }
             ItemLogic = new ArchipelagoItemLogicController(session);
             itemCheckBar = null;
